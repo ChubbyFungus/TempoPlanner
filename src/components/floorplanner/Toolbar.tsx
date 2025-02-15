@@ -1,0 +1,256 @@
+import React, { useState } from "react";
+import CatalogDialog from "./CatalogDialog";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Square,
+  Pencil,
+  Grid3X3,
+  DoorOpen,
+  GalleryVerticalEnd,
+  Box,
+  ArrowUpDown,
+  Grid,
+  ChefHat,
+  Bath,
+  Refrigerator,
+  Waves,
+  Utensils,
+} from "lucide-react";
+
+interface ToolbarItem {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  category: string;
+  width?: number;
+  height?: number;
+}
+
+interface ToolbarProps {
+  onItemDragStart?: (item: ToolbarItem) => void;
+  onItemDragEnd?: () => void;
+  onDrawingModeChange?: (mode: string) => void;
+  activeDrawingMode?: string;
+}
+
+const Toolbar = ({
+  onItemDragStart = () => {},
+  onItemDragEnd = () => {},
+  onDrawingModeChange = () => {},
+  activeDrawingMode = "",
+}: ToolbarProps) => {
+  const [showCatalog, setShowCatalog] = useState(false);
+
+  const handleCatalogItemSelect = (item: any) => {
+    onItemDragStart(item);
+  };
+
+  const categories = [
+    {
+      title: "Drawing Tools",
+      items: [
+        {
+          id: "select",
+          name: "Select",
+          icon: <ChefHat size={24} />,
+          category: "tools",
+        },
+        {
+          id: "room",
+          name: "Draw Room",
+          icon: <Square size={24} />,
+          category: "tools",
+        },
+        {
+          id: "wall",
+          name: "Draw Wall",
+          icon: <Pencil size={24} />,
+          category: "tools",
+        },
+        {
+          id: "surface",
+          name: "Draw Surface",
+          icon: <Grid3X3 size={24} />,
+          category: "tools",
+        },
+      ],
+    },
+    {
+      title: "Openings",
+      items: [
+        {
+          id: "door",
+          name: "Place Doors",
+          icon: <DoorOpen size={24} />,
+          category: "openings",
+        },
+        {
+          id: "window",
+          name: "Place Windows",
+          icon: <GalleryVerticalEnd size={24} />,
+          category: "openings",
+        },
+      ],
+    },
+    {
+      title: "Structural",
+      items: [
+        {
+          id: "structural",
+          name: "Place Structurals",
+          icon: <Box size={24} />,
+          category: "structural",
+        },
+      ],
+    },
+    {
+      title: "Cabinets & Countertops",
+      items: [
+        {
+          id: "base-cabinet",
+          name: "Base Cabinet",
+          icon: <Box size={24} />,
+          category: "cabinets",
+        },
+        {
+          id: "upper-cabinet",
+          name: "Upper Cabinet",
+          icon: <ArrowUpDown size={24} />,
+          category: "cabinets",
+        },
+        {
+          id: "island",
+          name: "Island",
+          icon: <Grid size={24} />,
+          category: "cabinets",
+        },
+        {
+          id: "countertop",
+          name: "Countertop",
+          icon: <Grid3X3 size={24} />,
+          category: "cabinets",
+        },
+      ],
+    },
+    {
+      title: "Appliances & Fixtures",
+      items: [
+        {
+          id: "refrigerator",
+          name: "Refrigerator",
+          icon: <Refrigerator size={24} />,
+          category: "appliances",
+          width: 36,
+          height: 30,
+        },
+        {
+          id: "stove",
+          name: "Stove",
+          icon: <Utensils size={24} />,
+          category: "appliances",
+          width: 30,
+          height: 24,
+        },
+        {
+          id: "sink",
+          name: "Sink",
+          icon: <Waves size={24} />,
+          category: "fixtures",
+          width: 24,
+          height: 21,
+        },
+        {
+          id: "bathtub",
+          name: "Bathtub",
+          icon: <Bath size={24} />,
+          category: "fixtures",
+          width: 60,
+          height: 32,
+        },
+      ],
+    },
+  ];
+
+  return (
+    <>
+      <CatalogDialog
+        open={showCatalog}
+        onOpenChange={setShowCatalog}
+        onItemSelect={handleCatalogItemSelect}
+      />
+      <Card className="w-[280px] h-full bg-[#1C1C1C] text-white">
+        <ScrollArea className="h-full">
+          <div className="p-4 space-y-6">
+            {categories.map((category) => (
+              <div key={category.title} className="space-y-2">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start p-0 h-6 text-sm font-medium text-gray-400 hover:text-white hover:bg-transparent"
+                  onClick={() => {
+                    if (category.title === "Appliances & Fixtures") {
+                      setShowCatalog(true);
+                    }
+                  }}
+                >
+                  {category.title}
+                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  {category.items.map((item) => (
+                    <TooltipProvider key={item.id}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={
+                              activeDrawingMode === item.id
+                                ? "default"
+                                : "outline"
+                            }
+                            className="w-full h-[60px] flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-gray-800 border-gray-700"
+                            onClick={() => {
+                              if (
+                                ["wall", "room", "surface"].includes(item.id)
+                              ) {
+                                onDrawingModeChange(
+                                  activeDrawingMode === item.id ? "" : item.id,
+                                );
+                              }
+                            }}
+                            draggable={
+                              !["wall", "room", "surface"].includes(item.id)
+                            }
+                            onDragStart={() => onItemDragStart(item)}
+                            onDragEnd={onItemDragEnd}
+                          >
+                            {item.icon}
+                            <span className="text-xs">{item.name}</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            {["wall", "room", "surface"].includes(item.id)
+                              ? `Click to ${item.name}`
+                              : `Drag to add ${item.name}`}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </Card>
+    </>
+  );
+};
+
+export default Toolbar;
