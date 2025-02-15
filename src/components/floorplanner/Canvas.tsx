@@ -1,30 +1,25 @@
 import React, { useState } from "react";
 import { calculatePolygonArea, convertToSquareFeet } from "@/lib/geometry";
+import {
+  pixelsToFeetAndInches,
+  calculateDistance,
+  getMidpoint,
+  getAngle,
+  getPerpendicularOffset,
+} from "@/lib/measurements";
 import { Card } from "@/components/ui/card";
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface CanvasElement {
-  id: string;
-  type: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  points?: Point[];
-  color?: string;
-  thickness?: number;
-}
+import { Point, Element as FloorplannerElement } from "@/types/floorplanner";
 
 interface CanvasProps {
-  elements?: CanvasElement[];
+  elements?: FloorplannerElement[];
   gridSize?: number;
   drawingMode?: string;
-  onElementSelect?: (element: CanvasElement | null) => void;
-  onElementMove?: (element: CanvasElement, newX: number, newY: number) => void;
+  onElementSelect?: (element: FloorplannerElement | null) => void;
+  onElementMove?: (
+    element: FloorplannerElement,
+    newX: number,
+    newY: number,
+  ) => void;
   onDrawComplete?: (points: Point[]) => void;
   onCanvasClick?: (x: number, y: number) => void;
 }
@@ -38,9 +33,8 @@ const Canvas = ({
   onElementSelect = () => {},
   onElementMove = () => {},
 }: CanvasProps) => {
-  const [selectedElement, setSelectedElement] = useState<CanvasElement | null>(
-    null,
-  );
+  const [selectedElement, setSelectedElement] =
+    useState<FloorplannerElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
@@ -80,7 +74,10 @@ const Canvas = ({
     );
   }
 
-  const handleMouseDown = (element: CanvasElement, e: React.MouseEvent) => {
+  const handleMouseDown = (
+    element: FloorplannerElement,
+    e: React.MouseEvent<SVGElement>,
+  ) => {
     setSelectedElement(element);
     onElementSelect(element);
     setIsDragging(true);
@@ -91,7 +88,7 @@ const Canvas = ({
     });
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = (e: React.MouseEvent<SVGElement>) => {
     if (isDragging && selectedElement) {
       const canvasRect = (
         e.currentTarget as HTMLElement
@@ -171,6 +168,15 @@ const Canvas = ({
         {elements.map((element) => {
           if (element.type === "wall") {
             const [start, end] = element.points || [];
+            const midpoint = getMidpoint(start, end);
+            const distance = calculateDistance(start, end);
+            const angle = getAngle(start, end);
+            const offset = getPerpendicularOffset(angle);
+            const textOffset = {
+              x: midpoint.x + offset.x,
+              y: midpoint.y + offset.y,
+            };
+
             return (
               <g
                 key={element.id}
@@ -190,9 +196,69 @@ const Canvas = ({
                   strokeWidth={element.thickness || 8}
                   strokeLinecap="square"
                 />
+                <line
+                  x1={midpoint.x}
+                  y1={midpoint.y}
+                  x2={textOffset.x}
+                  y2={textOffset.y}
+                  stroke="#6b7280"
+                  strokeWidth="1"
+                  strokeDasharray="4"
+                />
+                <text
+                  x={textOffset.x}
+                  y={textOffset.y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  transform={`rotate(${angle}, ${textOffset.x}, ${textOffset.y})`}
+                  className="select-none text-xs fill-gray-600 bg-white"
+                >
+                  {pixelsToFeetAndInches(distance)}
+                </text>
               </g>
             );
-          } else if (element.type === "room") {
+          } else if (element.type === "surface" || element.type === "room") {
+            const points = element.points || [];
+            const measurements = [];
+
+            // Calculate measurements for each edge
+            for (let i = 0; i < points.length; i++) {
+              const start = points[i];
+              const end = points[(i + 1) % points.length];
+              const midpoint = getMidpoint(start, end);
+              const distance = calculateDistance(start, end);
+              const angle = getAngle(start, end);
+              const offset = getPerpendicularOffset(angle, 20);
+              const textOffset = {
+                x: midpoint.x + offset.x,
+                y: midpoint.y + offset.y,
+              };
+
+              measurements.push(
+                <g key={`measurement-${i}`}>
+                  <line
+                    x1={midpoint.x}
+                    y1={midpoint.y}
+                    x2={textOffset.x}
+                    y2={textOffset.y}
+                    stroke="#6b7280"
+                    strokeWidth="1"
+                    strokeDasharray="4"
+                  />
+                  <text
+                    x={textOffset.x}
+                    y={textOffset.y}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    transform={`rotate(${angle}, ${textOffset.x}, ${textOffset.y})`}
+                    className="select-none text-xs fill-gray-600 bg-white"
+                  >
+                    {pixelsToFeetAndInches(distance)}
+                  </text>
+                </g>,
+              );
+            }
+
             return (
               <g
                 key={element.id}
@@ -202,16 +268,21 @@ const Canvas = ({
                 }
               >
                 <path
-                  d={`M ${element.points?.[0].x} ${element.points?.[0].y} ${element.points
-                    ?.slice(1)
+                  d={`M ${points[0].x} ${points[0].y} ${points
+                    .slice(1)
                     .map((p) => `L ${p.x} ${p.y}`)
                     .join(" ")} Z`}
-                  fill={element.color || "#f3f4f6"}
+                  fill={
+                    element.color ||
+                    (element.type === "surface" ? "#e5e7eb" : "#f3f4f6")
+                  }
                   stroke={
-                    selectedElement?.id === element.id ? "#3b82f6" : "#1a1a1a"
+                    selectedElement?.id === element.id ? "#3b82f6" : "#d1d5db"
                   }
                   strokeWidth={2}
+                  fillOpacity={element.type === "surface" ? 0.5 : 1}
                 />
+                {measurements}
                 {element.points && (
                   <text
                     x={element.x + element.width / 2}
@@ -223,29 +294,6 @@ const Canvas = ({
                     {`${convertToSquareFeet(calculatePolygonArea(element.points))} sq ft`}
                   </text>
                 )}
-              </g>
-            );
-          } else if (element.type === "surface") {
-            return (
-              <g
-                key={element.id}
-                onMouseDown={(e) => handleMouseDown(element, e)}
-                className={
-                  selectedElement?.id === element.id ? "stroke-blue-500" : ""
-                }
-              >
-                <path
-                  d={`M ${element.points?.[0].x} ${element.points?.[0].y} ${element.points
-                    ?.slice(1)
-                    .map((p) => `L ${p.x} ${p.y}`)
-                    .join(" ")} Z`}
-                  fill={element.color || "#e5e7eb"}
-                  stroke={
-                    selectedElement?.id === element.id ? "#3b82f6" : "#d1d5db"
-                  }
-                  strokeWidth={2}
-                  fillOpacity={0.5}
-                />
               </g>
             );
           } else {

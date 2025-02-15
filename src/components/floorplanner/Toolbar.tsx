@@ -24,15 +24,7 @@ import {
   Waves,
   Utensils,
 } from "lucide-react";
-
-interface ToolbarItem {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  category: string;
-  width?: number;
-  height?: number;
-}
+import { ToolbarItem } from "@/types/floorplanner";
 
 interface ToolbarProps {
   onItemDragStart?: (item: ToolbarItem) => void;
@@ -49,7 +41,7 @@ const Toolbar = ({
 }: ToolbarProps) => {
   const [showCatalog, setShowCatalog] = useState(false);
 
-  const handleCatalogItemSelect = (item: any) => {
+  const handleCatalogItemSelect = (item: CatalogItem) => {
     onItemDragStart(item);
   };
 
