@@ -5,49 +5,16 @@ import PropertiesPanel from "./floorplanner/PropertiesPanel";
 import ActionBar from "./floorplanner/ActionBar";
 import CatalogDialog from "./floorplanner/CatalogDialog";
 
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface Element {
-  id: string;
-  type: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-  locked: boolean;
-  points?: Point[];
-  thickness?: number;
-  color?: string;
-  label?: string;
-}
-
-import type { CatalogItem } from "./floorplanner/CatalogDialog";
-
-interface ToolbarItem {
-  id: string;
-  type?: string;
-  width?: number;
-  height?: number;
-  name: string;
-  color?: string;
-  label?: string;
-}
-
 const Home = () => {
-  const [elements, setElements] = useState<Element[]>([]);
-  const [selectedElement, setSelectedElement] = useState<Element | null>(null);
-  const [undoStack, setUndoStack] = useState<Element[][]>([]);
-  const [redoStack, setRedoStack] = useState<Element[][]>([]);
+  const [elements, setElements] = useState([]);
+  const [selectedElement, setSelectedElement] = useState(null);
+  const [undoStack, setUndoStack] = useState([]);
+  const [redoStack, setRedoStack] = useState([]);
   const [drawingMode, setDrawingMode] = useState("");
-  const [wallStartPoint, setWallStartPoint] = useState<Point | null>(null);
+  const [wallStartPoint, setWallStartPoint] = useState(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
 
-  const handleDrawingModeChange = (mode: string) => {
-    // If we're switching drawing modes and have an active drawing, save the current state
+  const handleDrawingModeChange = (mode) => {
     if (mode !== drawingMode && wallStartPoint) {
       setUndoStack([...undoStack, elements]);
       setRedoStack([]);
@@ -56,16 +23,14 @@ const Home = () => {
     setWallStartPoint(null);
   };
 
-  const handleCanvasClick = (x: number, y: number) => {
+  const handleCanvasClick = (x, y) => {
     if (drawingMode === "wall") {
       if (!wallStartPoint) {
-        // Save state before starting wall drawing
         setUndoStack([...undoStack, elements]);
         setRedoStack([]);
         setWallStartPoint({ x, y });
       } else {
-        // Create wall element
-        const newWall: Element = {
+        const newWall = {
           id: `wall-${Date.now()}`,
           type: "wall",
           x: wallStartPoint.x,
@@ -83,13 +48,11 @@ const Home = () => {
       }
     } else if (drawingMode === "surface") {
       if (!wallStartPoint) {
-        // Save state before starting surface drawing
         setUndoStack([...undoStack, elements]);
         setRedoStack([]);
         setWallStartPoint({ x, y });
       } else {
-        // Create surface element
-        const newSurface: Element = {
+        const newSurface = {
           id: `surface-${Date.now()}`,
           type: "surface",
           x: Math.min(wallStartPoint.x, x),
@@ -114,13 +77,12 @@ const Home = () => {
     }
   };
 
-  const handleDrawComplete = (points: Point[]) => {
+  const handleDrawComplete = (points) => {
     if (drawingMode === "room") {
-      // Save state before completing room drawing
       setUndoStack([...undoStack, elements]);
       setRedoStack([]);
 
-      const newRoom: Element = {
+      const newRoom = {
         id: `room-${Date.now()}`,
         type: "room",
         x: Math.min(...points.map((p) => p.x)),
@@ -142,8 +104,8 @@ const Home = () => {
     }
   };
 
-  const handleItemDragStart = (item: ToolbarItem | CatalogItem) => {
-    const newElement: Element = {
+  const handleItemDragStart = (item) => {
+    const newElement = {
       id: `${item.id}-${Date.now()}`,
       type: "type" in item ? item.type || item.id : item.id,
       x: 0,
@@ -161,11 +123,11 @@ const Home = () => {
     setRedoStack([]);
   };
 
-  const handleElementSelect = (element: Element | null) => {
+  const handleElementSelect = (element) => {
     setSelectedElement(element);
   };
 
-  const handleElementMove = (element: Element, newX: number, newY: number) => {
+  const handleElementMove = (element, newX, newY) => {
     if (element.locked) return;
 
     const updatedElements = elements.map((el) =>
@@ -175,7 +137,7 @@ const Home = () => {
     setElements(updatedElements);
   };
 
-  const handlePropertyChange = (property: string, value: any) => {
+  const handlePropertyChange = (property, value) => {
     if (!selectedElement) return;
 
     const updatedElements = elements.map((el) =>

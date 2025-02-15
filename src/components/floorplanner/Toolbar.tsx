@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import CatalogDialog from "./CatalogDialog";
+import CatalogDialog, { CatalogItem } from "./CatalogDialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,11 +18,7 @@ import {
   Box,
   ArrowUpDown,
   Grid,
-  ChefHat,
-  Bath,
-  Refrigerator,
-  Waves,
-  Utensils,
+  Plus,
 } from "lucide-react";
 
 interface ToolbarItem {
@@ -30,12 +26,16 @@ interface ToolbarItem {
   name: string;
   icon: React.ReactNode;
   category: string;
+  type?: string;
   width?: number;
   height?: number;
+  color?: string;
+  label?: string;
+  onClick?: () => void;
 }
 
 interface ToolbarProps {
-  onItemDragStart?: (item: ToolbarItem) => void;
+  onItemDragStart?: (item: ToolbarItem | CatalogItem) => void;
   onItemDragEnd?: () => void;
   onDrawingModeChange?: (mode: string) => void;
   activeDrawingMode?: string;
@@ -49,7 +49,7 @@ const Toolbar = ({
 }: ToolbarProps) => {
   const [showCatalog, setShowCatalog] = useState(false);
 
-  const handleCatalogItemSelect = (item: any) => {
+  const handleCatalogItemSelect = (item: CatalogItem) => {
     onItemDragStart(item);
   };
 
@@ -60,7 +60,7 @@ const Toolbar = ({
         {
           id: "select",
           name: "Select",
-          icon: <ChefHat size={24} />,
+          icon: <Square size={24} />,
           category: "tools",
         },
         {
@@ -144,36 +144,11 @@ const Toolbar = ({
       title: "Appliances & Fixtures",
       items: [
         {
-          id: "refrigerator",
-          name: "Refrigerator",
-          icon: <Refrigerator size={24} />,
+          id: "add-appliance",
+          name: "Add Appliance",
+          icon: <Plus size={24} />,
           category: "appliances",
-          width: 36,
-          height: 30,
-        },
-        {
-          id: "stove",
-          name: "Stove",
-          icon: <Utensils size={24} />,
-          category: "appliances",
-          width: 30,
-          height: 24,
-        },
-        {
-          id: "sink",
-          name: "Sink",
-          icon: <Waves size={24} />,
-          category: "fixtures",
-          width: 24,
-          height: 21,
-        },
-        {
-          id: "bathtub",
-          name: "Bathtub",
-          icon: <Bath size={24} />,
-          category: "fixtures",
-          width: 60,
-          height: 32,
+          onClick: () => setShowCatalog(true),
         },
       ],
     },
@@ -194,11 +169,7 @@ const Toolbar = ({
                 <Button
                   variant="ghost"
                   className="w-full justify-start p-0 h-6 text-sm font-medium text-gray-400 hover:text-white hover:bg-transparent"
-                  onClick={() => {
-                    if (category.title === "Appliances & Fixtures") {
-                      setShowCatalog(true);
-                    }
-                  }}
+                  onClick={() => {}}
                 >
                   {category.title}
                 </Button>
@@ -215,7 +186,9 @@ const Toolbar = ({
                             }
                             className="w-full h-[60px] flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-gray-800 border-gray-700"
                             onClick={() => {
-                              if (
+                              if (item.id === "add-appliance") {
+                                setShowCatalog(true);
+                              } else if (
                                 ["wall", "room", "surface"].includes(item.id)
                               ) {
                                 onDrawingModeChange(

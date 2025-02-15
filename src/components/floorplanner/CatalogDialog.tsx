@@ -6,31 +6,47 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Bath,
+  Heart,
+  Search,
   Refrigerator,
-  Waves,
-  Utensils,
   ChefHat,
-  Droplets,
-  Fan,
+  Waves,
+  Bath,
+  Box,
 } from "lucide-react";
 
-interface CatalogItem {
+export interface CatalogItem {
   id: string;
   name: string;
   brand: string;
   model: string;
   image: string;
-  category: string;
+  type?: string;
+  category?: string;
   width: number;
   height: number;
   depth: number;
   description: string;
   price?: string;
+  label?: string;
+}
+
+interface Brand {
+  name: string;
+  models: CatalogItem[];
+}
+
+interface Subcategory {
+  name: string;
+  brands: Brand[];
+}
+
+interface Category {
+  name: string;
+  subcategories: Subcategory[];
 }
 
 interface CatalogDialogProps {
@@ -44,1358 +60,291 @@ const CatalogDialog = ({
   onOpenChange,
   onItemSelect,
 }: CatalogDialogProps) => {
-  const [activeCategory, setActiveCategory] = useState("refrigerators");
+  const [activeTab, setActiveTab] = useState<"categories" | "brands">(
+    "categories",
+  );
+  const [selectedCategory, setSelectedCategory] = useState<string>("Kitchen");
+  const [selectedSubCategory, setSelectedSubCategory] =
+    useState<string>("Kitchen bins");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const categories = [
     {
-      id: "refrigerators",
-      name: "Refrigerators",
-      icon: <Refrigerator className="h-4 w-4" />,
-      items: [
+      name: "Kitchen",
+      subcategories: [
         {
-          id: "sub-zero-pro-48",
-          name: "Pro 48",
-          brand: "Sub-Zero",
-          model: "PRO48",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 48,
-          height: 84,
-          depth: 24,
-          description:
-            "Built-in side-by-side refrigerator with professional handles",
-          price: "$19,500",
+          name: "Basic units",
+          brands: [
+            {
+              name: "IKEA",
+              models: [
+                {
+                  id: "sektion-base",
+                  name: "SEKTION Base Cabinet",
+                  brand: "IKEA",
+                  model: "SEKTION",
+                  image:
+                    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136",
+                  width: 30,
+                  height: 30,
+                  depth: 24,
+                  description: "Base cabinet frame, white",
+                  price: "$89",
+                },
+              ],
+            },
+          ],
         },
         {
-          id: "thermador-freedom",
-          name: "Freedom Collection",
-          brand: "Thermador",
-          model: "T36FT820NS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description:
-            "French door refrigerator with custom panel ready design",
-          price: "$11,299",
+          name: "Baking & Bakeware",
+          brands: [
+            {
+              name: "KitchenAid",
+              models: [
+                {
+                  id: "stand-mixer",
+                  name: "Professional Stand Mixer",
+                  brand: "KitchenAid",
+                  model: "KP26M1XER",
+                  image:
+                    "https://images.unsplash.com/photo-1594222082006-57166bb68d75",
+                  width: 14,
+                  height: 17,
+                  depth: 11,
+                  description: "6-quart bowl-lift stand mixer",
+                  price: "$499.99",
+                },
+              ],
+            },
+          ],
         },
         {
-          id: "liebherr-monolith",
-          name: "Monolith",
-          brand: "Liebherr",
-          model: "MRB3000",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 30,
-          height: 84,
-          depth: 24,
-          description: "Built-in bottom freezer with BioFresh technology",
-          price: "$14,999",
+          name: "Built-in kitchen & Kitchen storage",
+          brands: [
+            {
+              name: "IKEA",
+              models: [
+                {
+                  id: "pax-wardrobe",
+                  name: "PAX Kitchen Storage Unit",
+                  brand: "IKEA",
+                  model: "PAX",
+                  image:
+                    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136",
+                  width: 39.25,
+                  height: 93.125,
+                  depth: 23.625,
+                  description: "Customizable storage solution",
+                  price: "$499",
+                },
+              ],
+            },
+          ],
         },
         {
-          id: "miele-mastercool",
-          name: "MasterCool",
-          brand: "Miele",
-          model: "KF2982Vi",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Built-in French door with MasterFresh drawers",
-          price: "$16,299",
+          name: "Cleaning accessories",
+          brands: [
+            {
+              name: "Simplehuman",
+              models: [
+                {
+                  id: "trash-can",
+                  name: "Rectangular Step Can",
+                  brand: "Simplehuman",
+                  model: "CW2054",
+                  image:
+                    "https://images.unsplash.com/photo-1610557892470-55d9e80c0bce",
+                  width: 19.8,
+                  height: 25.7,
+                  depth: 12.8,
+                  description: "45L stainless steel step trash can",
+                  price: "$130",
+                },
+              ],
+            },
+          ],
         },
         {
-          id: "viking-7-series",
-          name: "7 Series",
-          brand: "Viking",
-          model: "VBI7360W",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Professional built-in with dual compressors",
-          price: "$13,999",
+          name: "Coffee & Tea",
+          brands: [
+            {
+              name: "Breville",
+              models: [
+                {
+                  id: "espresso-machine",
+                  name: "Barista Express",
+                  brand: "Breville",
+                  model: "BES870XL",
+                  image:
+                    "https://images.unsplash.com/photo-1612887726773-e64e20cf08fe",
+                  width: 13.25,
+                  height: 15.75,
+                  depth: 12.5,
+                  description: "Espresso machine with grinder",
+                  price: "$699.95",
+                },
+              ],
+            },
+          ],
         },
         {
-          id: "dacor-modernist",
-          name: "Modernist",
-          brand: "Dacor",
-          model: "DRF36C000SR",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Smart French door with dual ice maker",
-          price: "$12,499",
+          name: "Cook's tools",
+          brands: [
+            {
+              name: "Global",
+              models: [
+                {
+                  id: "knife-set",
+                  name: "7-Piece Knife Block Set",
+                  brand: "Global",
+                  model: "G-835/KB",
+                  image:
+                    "https://images.unsplash.com/photo-1593618998160-e34014e67546",
+                  width: 10,
+                  height: 12,
+                  depth: 6,
+                  description: "Professional knife set with block",
+                  price: "$599.95",
+                },
+              ],
+            },
+          ],
         },
         {
-          id: "jenn-air-rise",
-          name: "RISE",
-          brand: "JennAir",
-          model: "JBRFR36NHL",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Built-in French door with Obsidian interior",
-          price: "$13,299",
-        },
-        {
-          id: "gaggenau-vario",
-          name: "Vario 400",
-          brand: "Gaggenau",
-          model: "RB492701",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Bottom freezer with motorized shelf",
-          price: "$17,999",
-        },
-        {
-          id: "true-residential",
-          name: "Professional",
-          brand: "True Residential",
-          model: "TR36",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Commercial-grade built-in refrigerator",
-          price: "$18,499",
-        },
-        {
-          id: "fisher-paykel-columns",
-          name: "Columns",
-          brand: "Fisher & Paykel",
-          model: "RS36A72U1",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Built-in column with Variable Temperature Zone",
-          price: "$10,999",
-        },
-        {
-          id: "bertazzoni-column",
-          name: "Built-in Column",
-          brand: "Bertazzoni",
-          model: "REF36RCPRL",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Professional series with FlexMode",
-          price: "$11,499",
-        },
-        {
-          id: "smeg-portofino",
-          name: "Portofino",
-          brand: "SMEG",
-          model: "REF36X",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Retro-style built-in with MultiZone drawer",
-          price: "$10,799",
-        },
-        {
-          id: "monogram-column",
-          name: "Statement",
-          brand: "Monogram",
-          model: "ZKCR362NN",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Luxury built-in with Autofill pitcher",
-          price: "$12,799",
-        },
-        {
-          id: "fulgor-sofia",
-          name: "Sofia Professional",
-          brand: "Fulgor Milano",
-          model: "F36BFPRO",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Professional built-in with ProVent",
-          price: "$11,999",
-        },
-        {
-          id: "signature-column",
-          name: "Signature",
-          brand: "LG Signature",
-          model: "UPXC3684N",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Smart InstaView with CustomChill drawer",
-          price: "$13,999",
-        },
-        {
-          id: "perlick-column",
-          name: "Collection",
-          brand: "Perlick",
-          model: "RC36",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Commercial-grade with QuatroCool",
-          price: "$14,499",
-        },
-        {
-          id: "blomberg-built-in",
-          name: "Built-in",
-          brand: "Blomberg",
-          model: "BRFB1900FBI",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Premium built-in with Blue Light technology",
-          price: "$9,999",
-        },
-        {
-          id: "beko-premium",
-          name: "Premium",
-          brand: "Beko",
-          model: "BBBF3019IMWESS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Built-in with NeoFrost dual cooling",
-          price: "$9,799",
-        },
-        {
-          id: "fhiaba-stand",
-          name: "StandPlus",
-          brand: "Fhiaba",
-          model: "XS8991TST6",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Professional built-in with TriMode",
-          price: "$16,999",
-        },
-        {
-          id: "ilve-nostalgie",
-          name: "Nostalgie",
-          brand: "ILVE",
-          model: "ILV36",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "refrigerators",
-          width: 36,
-          height: 84,
-          depth: 24,
-          description: "Classic built-in with modern features",
-          price: "$11,299",
-        },
-        // Add 18 more high-end refrigerators here
-      ],
-    },
-    {
-      id: "ranges",
-      name: "Ranges",
-      icon: <ChefHat className="h-4 w-4" />,
-      items: [
-        {
-          id: "wolf-dual-fuel-48",
-          name: "Dual Fuel Range",
-          brand: "Wolf",
-          model: "DF48650SP",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 29,
-          description:
-            "48-inch dual-fuel range with 6 burners and infrared griddle",
-          price: "$15,750",
-        },
-        {
-          id: "la-cornue-chateau",
-          name: "Château Series",
-          brand: "La Cornue",
-          model: "150",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 60,
-          height: 36,
-          depth: 28,
-          description: "Handcrafted luxury range with gas and electric options",
-          price: "$159,000",
-        },
-        {
-          id: "viking-professional",
-          name: "Professional Series",
-          brand: "Viking",
-          model: "VDR5606GSS",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 60,
-          height: 36,
-          depth: 29,
-          description: "6-burner range with griddle and dual ovens",
-          price: "$18,999",
-        },
-        {
-          id: "thermador-pro-grand",
-          name: "Pro Grand",
-          brand: "Thermador",
-          model: "PRG486WLG",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 28,
-          description: "Steam and convection range with grill",
-          price: "$14,999",
-        },
-        {
-          id: "miele-range",
-          name: "HR1956",
-          brand: "Miele",
-          model: "HR1956DFGD",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 27,
-          description: "Dual fuel range with M Touch controls",
-          price: "$16,999",
-        },
-        {
-          id: "dacor-modernist",
-          name: "Modernist",
-          brand: "Dacor",
-          model: "DOP48M96DLS",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 28,
-          description: "Smart dual-fuel range with steam",
-          price: "$15,299",
-        },
-        {
-          id: "monogram-statement",
-          name: "Statement",
-          brand: "Monogram",
-          model: "ZDP486NDTSS",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 29,
-          description: "Dual-fuel professional range",
-          price: "$13,999",
-        },
-        {
-          id: "fisher-paykel-pro",
-          name: "Professional",
-          brand: "Fisher & Paykel",
-          model: "RDV3-488",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 29,
-          description: "Dual fuel range with induction top",
-          price: "$12,999",
-        },
-        {
-          id: "bertazzoni-heritage",
-          name: "Heritage Series",
-          brand: "Bertazzoni",
-          model: "HERT486GGASNE",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 25,
-          description: "6-burner gas range with electric oven",
-          price: "$11,999",
-        },
-        {
-          id: "ilve-majestic",
-          name: "Majestic II",
-          brand: "ILVE",
-          model: "UMD10FDNS3",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 40,
-          height: 36,
-          depth: 27,
-          description: "Dual fuel range with brass trim",
-          price: "$13,499",
-        },
-        {
-          id: "smeg-opera",
-          name: "Opera Series",
-          brand: "SMEG",
-          model: "A4BL-8",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 27,
-          description: "Dual fuel range with color display",
-          price: "$10,999",
-        },
-        {
-          id: "fulgor-sofia",
-          name: "Sofia Professional",
-          brand: "Fulgor Milano",
-          model: "F6PDF486",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 27,
-          description: "Dual fuel range with triple ring burner",
-          price: "$12,499",
-        },
-        {
-          id: "jenn-air-rise",
-          name: "RISE",
-          brand: "JennAir",
-          model: "JDRP548HL",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 29,
-          description: "Dual fuel pro-style range",
-          price: "$14,299",
-        },
-        {
-          id: "gaggenau-400",
-          name: "400 Series",
-          brand: "Gaggenau",
-          model: "RG492701",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 28,
-          description: "Gas range with wok burner",
-          price: "$15,999",
-        },
-        {
-          id: "bluestar-platinum",
-          name: "Platinum Series",
-          brand: "BlueStar",
-          model: "BSP6010B",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 60,
-          height: 36,
-          depth: 30,
-          description: "Restaurant-style range with charbroiler",
-          price: "$16,995",
-        },
-        {
-          id: "capital-culinarian",
-          name: "Culinarian",
-          brand: "Capital",
-          model: "CGSR604B4",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 60,
-          height: 36,
-          depth: 29,
-          description: "Professional gas range with BBQ grill",
-          price: "$17,499",
-        },
-        {
-          id: "hallman-dual-fuel",
-          name: "Dual Fuel Pro",
-          brand: "Hallman",
-          model: "HGR60FDBL",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 60,
-          height: 36,
-          depth: 27,
-          description: "Italian-made range with brass burners",
-          price: "$11,999",
-        },
-        {
-          id: "tecnogas-superiore",
-          name: "Superiore",
-          brand: "Tecnogas",
-          model: "DECO6",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 27,
-          description: "Italian luxury range with color options",
-          price: "$13,999",
-        },
-        {
-          id: "american-range-performer",
-          name: "Performer Series",
-          brand: "American Range",
-          model: "ARR660",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 60,
-          height: 36,
-          depth: 29,
-          description: "Commercial-style range with convection",
-          price: "$15,999",
-        },
-        {
-          id: "dcs-professional",
-          name: "Professional",
-          brand: "DCS",
-          model: "RGV2488N",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 48,
-          height: 36,
-          depth: 29,
-          description: "Pro-style range with LED lighting",
-          price: "$12,999",
-        },
-        {
-          id: "verona-prestige",
-          name: "Prestige Series",
-          brand: "Verona",
-          model: "VPFSGE660D",
-          image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-          category: "ranges",
-          width: 60,
-          height: 36,
-          depth: 27,
-          description: "Double oven range with griddle",
-          price: "$10,999",
+          name: "Kitchen bins",
+          brands: [
+            {
+              name: "Simplehuman",
+              models: [
+                {
+                  id: "dual-trash",
+                  name: "Dual Compartment Step Can",
+                  brand: "Simplehuman",
+                  model: "CW2025",
+                  image:
+                    "https://images.unsplash.com/photo-1610557892470-55d9e80c0bce",
+                  width: 24.8,
+                  height: 25.7,
+                  depth: 14.8,
+                  description: "58L recycling step trash can",
+                  price: "$199.99",
+                },
+              ],
+            },
+          ],
         },
       ],
     },
     {
-      id: "dishwashers",
-      name: "Dishwashers",
-      icon: <Droplets className="h-4 w-4" />,
-      items: [
+      name: "Appliances",
+      subcategories: [
         {
-          id: "miele-g7966",
-          name: "G7966 SCVi SF",
-          brand: "Miele",
-          model: "G7966SCViSF",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Fully integrated dishwasher with AutoDos",
-          price: "$2,999",
+          name: "Refrigerators",
+          brands: [
+            {
+              name: "Samsung",
+              models: [
+                {
+                  id: "rf28r7551sr",
+                  name: "28 cu. ft. 4-Door French Door Refrigerator",
+                  brand: "Samsung",
+                  model: "RF28R7551SR",
+                  image:
+                    "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
+                  width: 36,
+                  height: 70,
+                  depth: 34,
+                  description:
+                    "Large capacity French door refrigerator with FlexZone drawer",
+                  price: "$2,699",
+                },
+                {
+                  id: "rf23m8570sr",
+                  name: "23 cu. ft. Counter Depth 4-Door French Door",
+                  brand: "Samsung",
+                  model: "RF23M8570SR",
+                  image:
+                    "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
+                  width: 36,
+                  height: 70,
+                  depth: 28.5,
+                  description: "Counter-depth design with Twin Cooling Plus",
+                  price: "$3,399",
+                },
+              ],
+            },
+            {
+              name: "LG",
+              models: [
+                {
+                  id: "lfxs26973s",
+                  name: "26 cu. ft. Side-by-Side Refrigerator",
+                  brand: "LG",
+                  model: "LFXS26973S",
+                  image:
+                    "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
+                  width: 36,
+                  height: 70,
+                  depth: 33,
+                  description: "Side-by-side design with Door-in-Door",
+                  price: "$1,799",
+                },
+              ],
+            },
+          ],
         },
         {
-          id: "bosch-benchmark",
-          name: "Benchmark",
-          brand: "Bosch",
-          model: "SHV89PW73N",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Panel ready with CrystalDry technology",
-          price: "$2,699",
-        },
-        {
-          id: "thermador-sapphire",
-          name: "Sapphire",
-          brand: "Thermador",
-          model: "DWHD870WFP",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Star-Sapphire with illuminated interior",
-          price: "$2,899",
-        },
-        {
-          id: "gaggenau-400",
-          name: "400 Series",
-          brand: "Gaggenau",
-          model: "DF481763",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Push-to-open with flexible rack system",
-          price: "$3,299",
-        },
-        {
-          id: "viking-professional",
-          name: "Professional",
-          brand: "Viking",
-          model: "VDW524SS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Multi-level PowerWash system",
-          price: "$2,199",
-        },
-        {
-          id: "dacor-modernist",
-          name: "Modernist",
-          brand: "Dacor",
-          model: "DDW24M999US",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "WaterWall with Zone Booster",
-          price: "$2,399",
-        },
-        {
-          id: "fisher-paykel-pro",
-          name: "Professional",
-          brand: "Fisher & Paykel",
-          model: "DD24DTI9 N",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Double DishDrawer with sanitize",
-          price: "$1,899",
-        },
-        {
-          id: "asko-pro",
-          name: "Pro Series",
-          brand: "ASKO",
-          model: "DFI676GXXL",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Turbo Drying with 9 spray zones",
-          price: "$2,099",
-        },
-        {
-          id: "jenn-air-rise",
-          name: "RISE",
-          brand: "JennAir",
-          model: "JDTSS246GP",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Trifecta Wash System with LED lighting",
-          price: "$2,299",
-        },
-        {
-          id: "monogram-pro",
-          name: "Professional",
-          brand: "Monogram",
-          model: "ZDT985SPNSS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Third rack with bottle jets",
-          price: "$2,199",
-        },
-        {
-          id: "wolf-id24",
-          name: "ID24",
-          brand: "Wolf",
-          model: "ID24F",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Integrated with Quick Start",
-          price: "$2,099",
-        },
-        {
-          id: "bertazzoni-pro",
-          name: "Professional Series",
-          brand: "Bertazzoni",
-          model: "DW24PR",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "ProWash with flexible racks",
-          price: "$1,999",
-        },
-        {
-          id: "smeg-linea",
-          name: "Linea",
-          brand: "SMEG",
-          model: "STU8649",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Orbital wash system with wine glass holder",
-          price: "$2,099",
-        },
-        {
-          id: "fulgor-sofia",
-          name: "Sofia Professional",
-          brand: "Fulgor Milano",
-          model: "F6DW24",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "ProClean with zone wash",
-          price: "$1,899",
-        },
-        {
-          id: "signature-panel",
-          name: "Signature",
-          brand: "LG Signature",
-          model: "LUDP8997SN",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "TrueSteam with QuadWash",
-          price: "$1,999",
-        },
-        {
-          id: "cove-24",
-          name: "Series 24",
-          brand: "Cove",
-          model: "DW2450",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Interior lighting with smart features",
-          price: "$2,499",
-        },
-        {
-          id: "liebherr-premium",
-          name: "Premium Plus",
-          brand: "Liebherr",
-          model: "SBS26S2",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "BioFresh with PowerCooling",
-          price: "$2,299",
-        },
-        {
-          id: "beko-premium",
-          name: "Premium",
-          brand: "Beko",
-          model: "DDT39434X",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "AquaIntense with ProSmart Inverter",
-          price: "$1,799",
-        },
-        {
-          id: "ilve-pro",
-          name: "Professional Plus",
-          brand: "ILVE",
-          model: "ILDW24",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Turbo Drying Plus with ProWash",
-          price: "$1,899",
-        },
-        {
-          id: "verona-prestige",
-          name: "Prestige",
-          brand: "Verona",
-          model: "VEDW24",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "dishwashers",
-          width: 24,
-          height: 34,
-          depth: 24,
-          description: "Premium wash system with delay start",
-          price: "$1,699",
+          name: "Ranges",
+          brands: [
+            {
+              name: "GE",
+              models: [
+                {
+                  id: "jgb735spss",
+                  name: '30" Free-Standing Gas Range',
+                  brand: "GE",
+                  model: "JGB735SPSS",
+                  image:
+                    "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
+                  width: 30,
+                  height: 47,
+                  depth: 28,
+                  description:
+                    "5.0 cu. ft. gas range with edge-to-edge cooktop",
+                  price: "$999",
+                },
+              ],
+            },
+          ],
         },
       ],
     },
     {
-      id: "ovens",
-      name: "Wall Ovens",
-      icon: <Utensils className="h-4 w-4" />,
-      items: [
+      name: "Cabinets",
+      subcategories: [
         {
-          id: "gaggenau-400",
-          name: "400 Series",
-          brand: "Gaggenau",
-          model: "BO480613",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Single wall oven with 17 heating methods",
-          price: "$8,999",
-        },
-        {
-          id: "wolf-m-series",
-          name: "M Series",
-          brand: "Wolf",
-          model: "SO30PM/S/PH",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Professional double oven with dual convection",
-          price: "$9,400",
-        },
-        {
-          id: "miele-dgc",
-          name: "DGC",
-          brand: "Miele",
-          model: "DGC6865",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Combination steam oven with M Touch",
-          price: "$8,799",
-        },
-        {
-          id: "thermador-masterpiece",
-          name: "Masterpiece",
-          brand: "Thermador",
-          model: "ME302WS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Triple convection wall oven",
-          price: "$7,999",
-        },
-        {
-          id: "dacor-contemporary",
-          name: "Contemporary",
-          brand: "Dacor",
-          model: "DOB30M977SS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Smart wall oven with Steam Bake",
-          price: "$7,299",
-        },
-        {
-          id: "jenn-air-noir",
-          name: "NOIR",
-          brand: "JennAir",
-          model: "JJW3830HL",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "V2 vertical dual-fan convection",
-          price: "$6,999",
-        },
-        {
-          id: "viking-7-series-oven",
-          name: "7 Series",
-          brand: "Viking",
-          model: "VSOE730SS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "French-door wall oven with LCD display",
-          price: "$8,499",
-        },
-        {
-          id: "monogram-statement-oven",
-          name: "Statement",
-          brand: "Monogram",
-          model: "ZTS90DPSNSS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Professional wall oven with hot air fry",
-          price: "$7,699",
-        },
-        {
-          id: "fisher-paykel-series-9",
-          name: "Series 9",
-          brand: "Fisher & Paykel",
-          model: "OB30DTEPX3",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Touchscreen wall oven with food probe",
-          price: "$6,499",
-        },
-        {
-          id: "bertazzoni-master",
-          name: "Master Series",
-          brand: "Bertazzoni",
-          model: "MASFS30XT",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Speed oven with microwave function",
-          price: "$5,999",
-        },
-        {
-          id: "smeg-linea-oven",
-          name: "Linea",
-          brand: "SMEG",
-          model: "SOU330X1",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Multi-function oven with pizza stone",
-          price: "$5,499",
-        },
-        {
-          id: "fulgor-sofia-oven",
-          name: "Sofia Professional",
-          brand: "Fulgor Milano",
-          model: "F7SP30S1",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Steam assist oven with meat probe",
-          price: "$6,299",
-        },
-        {
-          id: "ilve-majestic-oven",
-          name: "Majestic II",
-          brand: "ILVE",
-          model: "ILV30PWV",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Multi-function oven with rotisserie",
-          price: "$5,799",
-        },
-        {
-          id: "signature-column-oven",
-          name: "Signature",
-          brand: "LG Signature",
-          model: "UPWS3044ST",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Smart ThinQ wall oven with ProBake",
-          price: "$4,999",
-        },
-        {
-          id: "bosch-benchmark-oven",
-          name: "Benchmark",
-          brand: "Bosch",
-          model: "HBLP752UC",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "SideOpening door with HomeConnect",
-          price: "$5,299",
-        },
-        {
-          id: "cafe-pro",
-          name: "Professional",
-          brand: "Café",
-          model: "CTS90DP2NS1",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "French-door oven with precision cooking",
-          price: "$5,199",
-        },
-        {
-          id: "kitchenaid-smart",
-          name: "Smart Oven+",
-          brand: "KitchenAid",
-          model: "KOSE900HSS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Connected wall oven with powered attachments",
-          price: "$4,799",
-        },
-        {
-          id: "verona-designer",
-          name: "Designer Series",
-          brand: "Verona",
-          model: "VEBIEM3030SS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "European convection with dual fans",
-          price: "$4,599",
-        },
-        {
-          id: "liebherr-oven",
-          name: "Premium Plus",
-          brand: "Liebherr",
-          model: "HWO060P",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "Pyrolytic self-cleaning with food probe",
-          price: "$4,999",
-        },
-        {
-          id: "aeg-mastery",
-          name: "Mastery Range",
-          brand: "AEG",
-          model: "BSE792320M",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ovens",
-          width: 30,
-          height: 28,
-          depth: 24,
-          description: "SteamPro with sous vide function",
-          price: "$4,699",
-        },
-      ],
-    },
-    {
-      id: "ventilation",
-      name: "Ventilation",
-      icon: <Fan className="h-4 w-4" />,
-      items: [
-        {
-          id: "best-sorpresa",
-          name: "Sorpresa",
-          brand: "Best",
-          model: "IS70IQ12SB",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 70,
-          height: 18,
-          depth: 20,
-          description: "Island-mount range hood with perimeter aspiration",
-          price: "$3,499",
-        },
-        {
-          id: "wolf-pro-hood",
-          name: "Pro Wall Hood",
-          brand: "Wolf",
-          model: "PW482718",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Professional wall hood with heat lamps",
-          price: "$4,299",
-        },
-        {
-          id: "miele-da6708",
-          name: "DA 6708",
-          brand: "Miele",
-          model: "DA6708D",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Island hood with Con@ctivity",
-          price: "$4,599",
-        },
-        {
-          id: "thermador-professional",
-          name: "Professional Series",
-          brand: "Thermador",
-          model: "HPCN48NS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Low-profile canopy hood",
-          price: "$3,799",
-        },
-        {
-          id: "viking-5-series",
-          name: "5 Series",
-          brand: "Viking",
-          model: "VWH548481SS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Wall mount hood with heat sensor",
-          price: "$3,999",
-        },
-        {
-          id: "dacor-modernist-hood",
-          name: "Modernist",
-          brand: "Dacor",
-          model: "DHD48M967WS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Smart wall hood with auto function",
-          price: "$3,699",
-        },
-        {
-          id: "zephyr-roma",
-          name: "Roma Pro",
-          brand: "Zephyr",
-          model: "ZRM-E48DS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Pro-style hood with ICON Touch",
-          price: "$2,999",
-        },
-        {
-          id: "fisher-paykel-hood",
-          name: "Professional",
-          brand: "Fisher & Paykel",
-          model: "HC48PHTX1",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Power pack hood with LED lighting",
-          price: "$2,799",
-        },
-        {
-          id: "faber-stratus",
-          name: "Stratus",
-          brand: "Faber",
-          model: "STRS48SS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Island hood with ambient light",
-          price: "$3,299",
-        },
-        {
-          id: "vent-a-hood-pro",
-          name: "Professional",
-          brand: "Vent-A-Hood",
-          model: "PRH18-248",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Magic Lung blower system",
-          price: "$3,199",
-        },
-        {
-          id: "bertazzoni-kg",
-          name: "K&G Series",
-          brand: "Bertazzoni",
-          model: "KG48XV",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Professional wall mount hood",
-          price: "$2,899",
-        },
-        {
-          id: "smeg-portofino-hood",
-          name: "Portofino",
-          brand: "SMEG",
-          model: "KPF48X",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Chimney hood with perimeter extraction",
-          price: "$2,699",
-        },
-        {
-          id: "fulgor-sofia-hood",
-          name: "Sofia Professional",
-          brand: "Fulgor Milano",
-          model: "F4PI48S1",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Island hood with touch controls",
-          price: "$3,099",
-        },
-        {
-          id: "ilve-majestic-hood",
-          name: "Majestic II",
-          brand: "ILVE",
-          model: "UAM150",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Wall mount hood with brass accents",
-          price: "$3,399",
-        },
-        {
-          id: "signature-hood",
-          name: "Signature",
-          brand: "LG Signature",
-          model: "UPLED48",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Smart hood with auto sensing",
-          price: "$2,999",
-        },
-        {
-          id: "gaggenau-400-hood",
-          name: "400 Series",
-          brand: "Gaggenau",
-          model: "AW442720",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Wall-mounted hood with guided air",
-          price: "$4,799",
-        },
-        {
-          id: "monogram-pro-hood",
-          name: "Professional",
-          brand: "Monogram",
-          model: "ZV48SSJSS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Pro hood with vertical extraction",
-          price: "$3,599",
-        },
-        {
-          id: "jenn-air-pro-hood",
-          name: "Pro-Style",
-          brand: "JennAir",
-          model: "JXW8948HS",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Commercial-style hood with baffle filters",
-          price: "$3,299",
-        },
-        {
-          id: "kobe-premium",
-          name: "Premium Series",
-          brand: "KOBE",
-          model: "RA3830SQB",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "QuietMode hood with ECO mode",
-          price: "$2,499",
-        },
-        {
-          id: "air-king-pro",
-          name: "Professional",
-          brand: "Air King",
-          model: "ESDQ48",
-          image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-          category: "ventilation",
-          width: 48,
-          height: 18,
-          depth: 24,
-          description: "Energy Star qualified hood",
-          price: "$1,999",
+          name: "Base Cabinets",
+          brands: [
+            {
+              name: "KraftMaid",
+              models: [
+                {
+                  id: "b30",
+                  name: '30" Base Cabinet',
+                  brand: "KraftMaid",
+                  model: "B30",
+                  image:
+                    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136",
+                  width: 30,
+                  height: 34.5,
+                  depth: 24,
+                  description:
+                    "Standard base cabinet with one drawer and two doors",
+                  price: "$399",
+                },
+              ],
+            },
+          ],
         },
       ],
     },
@@ -1403,65 +352,126 @@ const CatalogDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle>Appliance Catalog</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[85vh] p-6">
+        <DialogHeader className="pb-4">
+          <DialogTitle>Objects</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue={activeCategory} onValueChange={setActiveCategory}>
-          <TabsList className="w-full justify-start">
-            {categories.map((category) => (
-              <TabsTrigger
-                key={category.id}
-                value={category.id}
-                className="flex items-center gap-2"
-              >
-                {category.icon}
-                {category.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {categories.map((category) => (
-            <TabsContent key={category.id} value={category.id}>
-              <ScrollArea className="h-[60vh]">
-                <div className="grid grid-cols-3 gap-4 p-4">
-                  {category.items.map((item) => (
-                    <Card
-                      key={item.id}
-                      className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => {
-                        onItemSelect(item);
-                        onOpenChange(false);
-                      }}
+
+        <div className="flex flex-col h-full">
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 mb-4">
+            <Button
+              variant={activeTab === "categories" ? "default" : "ghost"}
+              className="flex-1 rounded-none"
+              onClick={() => setActiveTab("categories")}
+            >
+              Categories
+            </Button>
+            <Button
+              variant={activeTab === "brands" ? "default" : "ghost"}
+              className="flex-1 rounded-none"
+              onClick={() => setActiveTab("brands")}
+            >
+              Brands
+            </Button>
+          </div>
+
+          {/* Search and Favorites */}
+          <div className="flex gap-2 p-4 border-b">
+            <Button variant="outline" size="icon">
+              <Heart className="h-4 w-4" />
+            </Button>
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search Kitchen bins"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Categories and Subcategories */}
+            <div className="w-48 border-r">
+              <ScrollArea className="h-full">
+                {categories.map((category) => (
+                  <div key={category.name}>
+                    <Button
+                      variant="ghost"
+                      className={`w-full justify-start rounded-none font-semibold ${selectedCategory === category.name ? "bg-gray-100" : ""}`}
+                      onClick={() => setSelectedCategory(category.name)}
                     >
-                      <div className="flex flex-col gap-3">
-                        <div className="aspect-video relative overflow-hidden rounded-lg bg-gray-100">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="object-cover w-full h-full"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{item.brand}</h3>
-                          <p className="text-sm text-gray-500">{item.model}</p>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          {item.description}
-                        </p>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500">
-                            {item.width}"W × {item.height}"H × {item.depth}"D
-                          </span>
-                          <span className="font-medium">{item.price}</span>
+                      {category.name}
+                    </Button>
+                    {selectedCategory === category.name && (
+                      <div className="pl-4">
+                        {category.subcategories.map((subcategory) => (
+                          <Button
+                            key={subcategory.name}
+                            variant="ghost"
+                            className={`w-full justify-start rounded-none text-sm ${selectedSubCategory === subcategory.name ? "bg-gray-50" : ""}`}
+                            onClick={() =>
+                              setSelectedSubCategory(subcategory.name)
+                            }
+                          >
+                            {subcategory.name}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </ScrollArea>
+            </div>
+
+            {/* Brands and Models Grid */}
+            <div className="flex-1">
+              <ScrollArea className="h-full">
+                <div className="p-4">
+                  {categories
+                    .find((c) => c.name === selectedCategory)
+                    ?.subcategories.find((s) => s.name === selectedSubCategory)
+                    ?.brands.map((brand) => (
+                      <div key={brand.name} className="mb-8">
+                        <h3 className="text-lg font-semibold mb-4">
+                          {brand.name}
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          {brand.models.map((model) => (
+                            <Button
+                              key={model.id}
+                              variant="outline"
+                              className="h-40 p-4 flex flex-col items-start justify-between text-left"
+                              onClick={() => onItemSelect(model)}
+                            >
+                              <div>
+                                <h4 className="font-medium">{model.name}</h4>
+                                <p className="text-sm text-gray-500 mt-1">
+                                  {model.model}
+                                </p>
+                              </div>
+                              <div className="w-full flex justify-between items-end">
+                                <span className="text-xs text-gray-500">
+                                  {model.width}"W × {model.height}"H ×{" "}
+                                  {model.depth}"D
+                                </span>
+                                <span className="text-sm font-medium">
+                                  {model.price}
+                                </span>
+                              </div>
+                            </Button>
+                          ))}
                         </div>
                       </div>
-                    </Card>
-                  ))}
+                    ))}
                 </div>
               </ScrollArea>
-            </TabsContent>
-          ))}
-        </Tabs>
+            </div>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

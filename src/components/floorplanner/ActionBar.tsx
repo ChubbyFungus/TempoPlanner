@@ -13,7 +13,6 @@ interface ActionBarProps {
   onLoad?: () => void;
   onUndo?: () => void;
   onRedo?: () => void;
-  onAddAppliance?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
 }
@@ -23,7 +22,6 @@ const ActionBar = ({
   onLoad = () => console.log("Load clicked"),
   onUndo = () => console.log("Undo clicked"),
   onRedo = () => console.log("Redo clicked"),
-  onAddAppliance = () => console.log("Add appliance clicked"),
   canUndo = false,
   canRedo = false,
 }: ActionBarProps) => {
@@ -62,24 +60,6 @@ const ActionBar = ({
             </TooltipTrigger>
             <TooltipContent>
               <p>Redo</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                onClick={onAddAppliance}
-                className="flex items-center gap-2 ml-4"
-              >
-                <Plus className="h-4 w-4" />
-                Add Appliance
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Add Appliance or Fixture</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

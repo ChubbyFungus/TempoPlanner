@@ -14,9 +14,12 @@ interface CanvasElement {
   y: number;
   width: number;
   height: number;
+  rotation: number;
+  locked: boolean;
   points?: Point[];
   color?: string;
   thickness?: number;
+  label?: string;
 }
 
 interface CanvasProps {
@@ -32,8 +35,8 @@ interface CanvasProps {
 const Canvas = ({
   elements = [],
   drawingMode = "",
-  onDrawComplete = (points: Point[]) => {},
-  onCanvasClick = (x: number, y: number) => {},
+  onDrawComplete = () => {},
+  onCanvasClick = () => {},
   gridSize = 20,
   onElementSelect = () => {},
   onElementMove = () => {},
@@ -44,14 +47,17 @@ const Canvas = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
+  const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
 
   // Create grid lines
   const gridLines = [];
-  const canvasWidth = 932; // From design spec
-  const canvasHeight = 982; // From design spec
+  const canvasWidth = 932;
+  const canvasHeight = 982;
+  const majorGridSize = gridSize * 5; // Major grid lines every 5 units
 
   // Vertical lines
   for (let x = 0; x <= canvasWidth; x += gridSize) {
+    const isMajor = x % majorGridSize === 0;
     gridLines.push(
       <line
         key={`v${x}`}
@@ -59,14 +65,16 @@ const Canvas = ({
         y1={0}
         x2={x}
         y2={canvasHeight}
-        stroke="#e5e7eb"
-        strokeWidth="1"
+        stroke={isMajor ? "#d1d5db" : "#f3f4f6"}
+        strokeWidth={isMajor ? "1" : "0.5"}
+        strokeDasharray={isMajor ? "none" : "2,2"}
       />,
     );
   }
 
   // Horizontal lines
   for (let y = 0; y <= canvasHeight; y += gridSize) {
+    const isMajor = y % majorGridSize === 0;
     gridLines.push(
       <line
         key={`h${y}`}
@@ -74,13 +82,17 @@ const Canvas = ({
         y1={y}
         x2={canvasWidth}
         y2={y}
-        stroke="#e5e7eb"
-        strokeWidth="1"
+        stroke={isMajor ? "#d1d5db" : "#f3f4f6"}
+        strokeWidth={isMajor ? "1" : "0.5"}
+        strokeDasharray={isMajor ? "none" : "2,2"}
       />,
     );
   }
 
-  const handleMouseDown = (element: CanvasElement, e: React.MouseEvent) => {
+  const handleMouseDown = (
+    element: CanvasElement,
+    e: React.MouseEvent<SVGElement>,
+  ) => {
     setSelectedElement(element);
     onElementSelect(element);
     setIsDragging(true);
@@ -91,7 +103,7 @@ const Canvas = ({
     });
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = (e: React.MouseEvent<SVGElement>) => {
     if (isDragging && selectedElement) {
       const canvasRect = (
         e.currentTarget as HTMLElement
@@ -102,8 +114,26 @@ const Canvas = ({
       const newY =
         Math.round((e.clientY - canvasRect.top - dragOffset.y) / gridSize) *
         gridSize;
-
       onElementMove(selectedElement, newX, newY);
+    }
+
+    if (drawingMode === "room" && drawingPoints.length > 0) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      let x = Math.round((e.clientX - rect.left) / gridSize) * gridSize;
+      let y = Math.round((e.clientY - rect.top) / gridSize) * gridSize;
+
+      if (e.shiftKey && drawingPoints.length > 0) {
+        const lastPoint = drawingPoints[drawingPoints.length - 1];
+        const dx = Math.abs(x - lastPoint.x);
+        const dy = Math.abs(y - lastPoint.y);
+        if (dx < dy) {
+          x = lastPoint.x;
+        } else {
+          y = lastPoint.y;
+        }
+      }
+
+      setPreviewPoint({ x, y });
     }
   };
 
@@ -112,7 +142,30 @@ const Canvas = ({
   };
 
   return (
-    <Card className="w-full h-full bg-white overflow-hidden">
+    <Card className="w-full h-full bg-white overflow-hidden relative">
+      {/* Zoom controls */}
+      <div className="absolute top-4 right-4 flex flex-col gap-2 bg-white rounded-lg shadow-lg p-2 z-10">
+        <button
+          className="p-1 hover:bg-gray-100 rounded"
+          onClick={() => {
+            /* TODO: Implement zoom */
+          }}
+        >
+          +
+        </button>
+        <button
+          className="p-1 hover:bg-gray-100 rounded"
+          onClick={() => {
+            /* TODO: Implement zoom */
+          }}
+        >
+          -
+        </button>
+      </div>
+      {/* Measurements */}
+      <div className="absolute top-4 left-4 text-xs text-gray-500">
+        Scale: 1:50
+      </div>
       <svg
         width={canvasWidth}
         height={canvasHeight}
@@ -123,12 +176,33 @@ const Canvas = ({
         onClick={(e) => {
           if (drawingMode) {
             const rect = e.currentTarget.getBoundingClientRect();
-            const x = Math.round((e.clientX - rect.left) / gridSize) * gridSize;
-            const y = Math.round((e.clientY - rect.top) / gridSize) * gridSize;
+            let x = Math.round((e.clientX - rect.left) / gridSize) * gridSize;
+            let y = Math.round((e.clientY - rect.top) / gridSize) * gridSize;
 
             if (drawingMode === "wall") {
+              if (e.shiftKey && drawingPoints.length > 0) {
+                const lastPoint = drawingPoints[drawingPoints.length - 1];
+                const dx = Math.abs(x - lastPoint.x);
+                const dy = Math.abs(y - lastPoint.y);
+                if (dx < dy) {
+                  x = lastPoint.x;
+                } else {
+                  y = lastPoint.y;
+                }
+              }
               onCanvasClick(x, y);
             } else if (drawingMode === "room") {
+              if (e.shiftKey && drawingPoints.length > 0) {
+                const lastPoint = drawingPoints[drawingPoints.length - 1];
+                const dx = Math.abs(x - lastPoint.x);
+                const dy = Math.abs(y - lastPoint.y);
+                if (dx < dy) {
+                  x = lastPoint.x;
+                } else {
+                  y = lastPoint.y;
+                }
+              }
+
               const newPoints = [...drawingPoints, { x, y }];
               setDrawingPoints(newPoints);
 
@@ -141,6 +215,7 @@ const Canvas = ({
                 if (distance < gridSize) {
                   onDrawComplete(drawingPoints);
                   setDrawingPoints([]);
+                  setPreviewPoint(null);
                   return;
                 }
               }
@@ -158,12 +233,22 @@ const Canvas = ({
               d={`M ${drawingPoints[0].x} ${drawingPoints[0].y} ${drawingPoints
                 .slice(1)
                 .map((p) => `L ${p.x} ${p.y}`)
-                .join(" ")}`}
+                .join(
+                  " ",
+                )}${previewPoint ? ` L ${previewPoint.x} ${previewPoint.y}` : ""}`}
               fill="none"
               stroke="#3b82f6"
               strokeWidth="2"
               strokeDasharray="4"
             />
+            {previewPoint && (
+              <circle
+                cx={previewPoint.x}
+                cy={previewPoint.y}
+                r={4}
+                fill="#3b82f6"
+              />
+            )}
           </g>
         )}
 
@@ -179,17 +264,37 @@ const Canvas = ({
                   selectedElement?.id === element.id ? "stroke-blue-500" : ""
                 }
               >
-                <line
-                  x1={start.x}
-                  y1={start.y}
-                  x2={end.x}
-                  y2={end.y}
-                  stroke={
-                    selectedElement?.id === element.id ? "#3b82f6" : "#1a1a1a"
-                  }
-                  strokeWidth={element.thickness || 8}
-                  strokeLinecap="square"
-                />
+                <g>
+                  {/* Inner wall fill */}
+                  <line
+                    x1={start.x}
+                    y1={start.y}
+                    x2={end.x}
+                    y2={end.y}
+                    stroke="#000000"
+                    strokeWidth={element.thickness || 8}
+                    strokeLinecap="square"
+                  />
+                  {/* Wall measurements */}
+                  <text
+                    x={(start.x + end.x) / 2}
+                    y={(start.y + end.y) / 2 - 10}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="select-none text-xs fill-gray-600"
+                    transform={`rotate(${(Math.atan2(end.y - start.y, end.x - start.x) * 180) / Math.PI}, ${(start.x + end.x) / 2}, ${(start.y + end.y) / 2})`}
+                  >
+                    {Math.round(
+                      (Math.sqrt(
+                        Math.pow(end.x - start.x, 2) +
+                          Math.pow(end.y - start.y, 2),
+                      ) /
+                        gridSize) *
+                        10,
+                    ) / 10}{" "}
+                    m
+                  </text>
+                </g>
               </g>
             );
           } else if (element.type === "room") {
@@ -206,11 +311,9 @@ const Canvas = ({
                     ?.slice(1)
                     .map((p) => `L ${p.x} ${p.y}`)
                     .join(" ")} Z`}
-                  fill={element.color || "#f3f4f6"}
-                  stroke={
-                    selectedElement?.id === element.id ? "#3b82f6" : "#1a1a1a"
-                  }
-                  strokeWidth={2}
+                  fill={element.color || "#ffffff"}
+                  stroke="#000000"
+                  strokeWidth={selectedElement?.id === element.id ? 3 : 2}
                 />
                 {element.points && (
                   <text
@@ -249,32 +352,264 @@ const Canvas = ({
               </g>
             );
           } else {
+            // Render appliances and fixtures
             return (
               <g
                 key={element.id}
-                transform={`translate(${element.x},${element.y})`}
+                transform={`translate(${element.x},${element.y}) rotate(${element.rotation || 0} ${element.width / 2} ${element.height / 2})`}
                 onMouseDown={(e) => handleMouseDown(element, e)}
                 className={`cursor-move ${selectedElement?.id === element.id ? "stroke-blue-500" : ""}`}
               >
+                {/* Main shape */}
                 <rect
                   width={element.width}
                   height={element.height}
-                  fill={
-                    selectedElement?.id === element.id ? "#e5e7eb" : "#f3f4f6"
-                  }
+                  fill={element.color || "#ffffff"}
                   stroke={
-                    selectedElement?.id === element.id ? "#3b82f6" : "#d1d5db"
+                    selectedElement?.id === element.id ? "#3b82f6" : "#000000"
                   }
                   strokeWidth="2"
                 />
+
+                {/* Interior details based on type */}
+                {element.type === "refrigerator" && (
+                  <>
+                    <line
+                      x1={0}
+                      y1={element.height * 0.7}
+                      x2={element.width}
+                      y2={element.height * 0.7}
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                    <rect
+                      x={element.width * 0.1}
+                      y={element.height * 0.2}
+                      width={element.width * 0.8}
+                      height={element.height * 0.4}
+                      fill="none"
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                  </>
+                )}
+                {element.type === "sink" && (
+                  <>
+                    <ellipse
+                      cx={element.width / 2}
+                      cy={element.height / 2}
+                      rx={element.width * 0.3}
+                      ry={element.height * 0.3}
+                      fill="none"
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                    <line
+                      x1={element.width / 2}
+                      y1={element.height * 0.2}
+                      x2={element.width / 2}
+                      y2={element.height * 0.8}
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                  </>
+                )}
+                {element.type === "stove" && (
+                  <>
+                    <circle
+                      cx={element.width * 0.25}
+                      cy={element.height * 0.25}
+                      r={element.width * 0.1}
+                      fill="none"
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                    <circle
+                      cx={element.width * 0.75}
+                      cy={element.height * 0.25}
+                      r={element.width * 0.1}
+                      fill="none"
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                    <circle
+                      cx={element.width * 0.25}
+                      cy={element.height * 0.75}
+                      r={element.width * 0.1}
+                      fill="none"
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                    <circle
+                      cx={element.width * 0.75}
+                      cy={element.height * 0.75}
+                      r={element.width * 0.1}
+                      fill="none"
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                  </>
+                )}
+                {element.type === "base-cabinet" && (
+                  <>
+                    <rect
+                      x={2}
+                      y={2}
+                      width={element.width - 4}
+                      height={element.height - 4}
+                      fill="none"
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                    <line
+                      x1={element.width * 0.2}
+                      y1={2}
+                      x2={element.width * 0.2}
+                      y2={element.height - 2}
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                    <line
+                      x1={element.width * 0.4}
+                      y1={2}
+                      x2={element.width * 0.4}
+                      y2={element.height - 2}
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                    <line
+                      x1={element.width * 0.6}
+                      y1={2}
+                      x2={element.width * 0.6}
+                      y2={element.height - 2}
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                    <line
+                      x1={element.width * 0.8}
+                      y1={2}
+                      x2={element.width * 0.8}
+                      y2={element.height - 2}
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                  </>
+                )}
+                {element.type === "upper-cabinet" && (
+                  <>
+                    <rect
+                      x={2}
+                      y={2}
+                      width={element.width - 4}
+                      height={element.height - 4}
+                      fill="none"
+                      stroke="#000000"
+                      strokeWidth="1"
+                      strokeDasharray="4,4"
+                    />
+                    <line
+                      x1={element.width * 0.2}
+                      y1={2}
+                      x2={element.width * 0.2}
+                      y2={element.height - 2}
+                      stroke="#000000"
+                      strokeWidth="1"
+                      strokeDasharray="4,4"
+                    />
+                    <line
+                      x1={element.width * 0.4}
+                      y1={2}
+                      x2={element.width * 0.4}
+                      y2={element.height - 2}
+                      stroke="#000000"
+                      strokeWidth="1"
+                      strokeDasharray="4,4"
+                    />
+                    <line
+                      x1={element.width * 0.6}
+                      y1={2}
+                      x2={element.width * 0.6}
+                      y2={element.height - 2}
+                      stroke="#000000"
+                      strokeWidth="1"
+                      strokeDasharray="4,4"
+                    />
+                    <line
+                      x1={element.width * 0.8}
+                      y1={2}
+                      x2={element.width * 0.8}
+                      y2={element.height - 2}
+                      stroke="#000000"
+                      strokeWidth="1"
+                      strokeDasharray="4,4"
+                    />
+                  </>
+                )}
+                {element.type === "island" && (
+                  <>
+                    <rect
+                      x={2}
+                      y={2}
+                      width={element.width - 4}
+                      height={element.height - 4}
+                      fill="none"
+                      stroke="#000000"
+                      strokeWidth="1"
+                    />
+                    <pattern
+                      id={`grid-${element.id}`}
+                      width="20"
+                      height="20"
+                      patternUnits="userSpaceOnUse"
+                    >
+                      <path
+                        d="M 20 0 L 0 0 0 20"
+                        fill="none"
+                        stroke="#000000"
+                        strokeWidth="0.5"
+                      />
+                    </pattern>
+                    <rect
+                      x={2}
+                      y={2}
+                      width={element.width - 4}
+                      height={element.height - 4}
+                      fill={`url(#grid-${element.id})`}
+                    />
+                  </>
+                )}
+
+                {/* Dimensions */}
+                {selectedElement?.id === element.id && (
+                  <>
+                    <text
+                      x={element.width / 2}
+                      y={-8}
+                      textAnchor="middle"
+                      className="select-none text-[10px] fill-gray-600"
+                    >
+                      {Math.round((element.width / 20) * 10) / 10}m
+                    </text>
+                    <text
+                      x={element.width + 12}
+                      y={element.height / 2}
+                      textAnchor="middle"
+                      transform={`rotate(90 ${element.width + 12} ${element.height / 2})`}
+                      className="select-none text-[10px] fill-gray-600"
+                    >
+                      {Math.round((element.height / 20) * 10) / 10}m
+                    </text>
+                  </>
+                )}
+
+                {/* Label */}
                 <text
                   x={element.width / 2}
-                  y={element.height / 2}
+                  y={element.height + 16}
                   textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="select-none text-xs fill-gray-600"
+                  className="select-none text-[10px] fill-gray-600"
                 >
-                  {element.type}
+                  {element.label || element.type}
                 </text>
               </g>
             );
