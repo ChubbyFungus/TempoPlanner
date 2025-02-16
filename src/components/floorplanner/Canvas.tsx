@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+// Static assets
+// Use absolute path for public assets
+const fridgetopImage = "/images/tempo-image-20250216T184521469Z.png";
 import { calculatePolygonArea, convertToSquareFeet } from "@/lib/geometry";
 import { Card } from "@/components/ui/card";
 
@@ -116,199 +119,224 @@ const Canvas = ({
       <svg
         width={canvasWidth}
         height={canvasHeight}
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         className={`${drawingMode ? "cursor-crosshair" : "cursor-default"}`}
-        onClick={(e) => {
-          if (drawingMode) {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = Math.round((e.clientX - rect.left) / gridSize) * gridSize;
-            const y = Math.round((e.clientY - rect.top) / gridSize) * gridSize;
+      >
+        <defs>
+          <pattern
+            id="fridgePattern"
+            patternUnits="objectBoundingBox"
+            width="1"
+            height="1"
+          >
+            <image
+              href={fridgetopImage}
+              width="100%"
+              height="100%"
+              preserveAspectRatio="none"
+            />
+          </pattern>
+        </defs>
+        <g
+          onClick={(e) => {
+            if (drawingMode) {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x =
+                Math.round((e.clientX - rect.left) / gridSize) * gridSize;
+              const y =
+                Math.round((e.clientY - rect.top) / gridSize) * gridSize;
 
-            if (drawingMode === "wall") {
-              onCanvasClick(x, y);
-            } else if (drawingMode === "room") {
-              const newPoints = [...drawingPoints, { x, y }];
-              setDrawingPoints(newPoints);
+              if (drawingMode === "wall") {
+                onCanvasClick(x, y);
+              } else if (drawingMode === "room") {
+                const newPoints = [...drawingPoints, { x, y }];
+                setDrawingPoints(newPoints);
 
-              // Complete room if clicking near start point
-              if (drawingPoints.length > 2) {
-                const startPoint = drawingPoints[0];
-                const distance = Math.sqrt(
-                  Math.pow(x - startPoint.x, 2) + Math.pow(y - startPoint.y, 2),
-                );
-                if (distance < gridSize) {
-                  onDrawComplete(drawingPoints);
-                  setDrawingPoints([]);
-                  return;
+                // Complete room if clicking near start point
+                if (drawingPoints.length > 2) {
+                  const startPoint = drawingPoints[0];
+                  const distance = Math.sqrt(
+                    Math.pow(x - startPoint.x, 2) +
+                      Math.pow(y - startPoint.y, 2),
+                  );
+                  if (distance < gridSize) {
+                    onDrawComplete(drawingPoints);
+                    setDrawingPoints([]);
+                    return;
+                  }
                 }
               }
             }
-          }
-        }}
-      >
-        {/* Grid */}
-        {gridLines}
+          }}
+        >
+          {/* Grid */}
+          {gridLines}
 
-        {/* Drawing Preview */}
-        {drawingPoints.length > 0 && (
-          <g>
-            <path
-              d={`M ${drawingPoints[0].x} ${drawingPoints[0].y} ${drawingPoints
-                .slice(1)
-                .map((p) => `L ${p.x} ${p.y}`)
-                .join(" ")}`}
-              fill="none"
-              stroke="#3b82f6"
-              strokeWidth="2"
-              strokeDasharray="4"
-            />
-          </g>
-        )}
+          {/* Drawing Preview */}
+          {drawingPoints.length > 0 && (
+            <g>
+              <path
+                d={`M ${drawingPoints[0].x} ${drawingPoints[0].y} ${drawingPoints
+                  .slice(1)
+                  .map((p) => `L ${p.x} ${p.y}`)
+                  .join(" ")}`}
+                fill="none"
+                stroke="#3b82f6"
+                strokeWidth="2"
+                strokeDasharray="4"
+              />
+            </g>
+          )}
 
-        {/* Elements */}
-        {elements.map((element) => {
-          if (element.type === "wall") {
-            const [start, end] = element.points || [];
-            return (
-              <g
-                key={element.id}
-                onMouseDown={(e) => handleMouseDown(element, e)}
-                className={
-                  selectedElement?.id === element.id ? "stroke-blue-500" : ""
-                }
-              >
-                <line
-                  x1={start.x}
-                  y1={start.y}
-                  x2={end.x}
-                  y2={end.y}
-                  stroke={
-                    selectedElement?.id === element.id ? "#3b82f6" : "#1a1a1a"
+          {/* Elements */}
+          {elements.map((element) => {
+            if (element.type === "wall") {
+              const [start, end] = element.points || [];
+              return (
+                <g
+                  key={element.id}
+                  onMouseDown={(e) => handleMouseDown(element, e)}
+                  className={
+                    selectedElement?.id === element.id ? "stroke-blue-500" : ""
                   }
-                  strokeWidth={element.thickness || 8}
-                  strokeLinecap="square"
-                />
-              </g>
-            );
-          } else if (element.type === "room") {
-            return (
-              <g
-                key={element.id}
-                onMouseDown={(e) => handleMouseDown(element, e)}
-                className={
-                  selectedElement?.id === element.id ? "stroke-blue-500" : ""
-                }
-              >
-                <path
-                  d={`M ${element.points?.[0].x} ${element.points?.[0].y} ${element.points
-                    ?.slice(1)
-                    .map((p) => `L ${p.x} ${p.y}`)
-                    .join(" ")} Z`}
-                  fill={element.color || "#f3f4f6"}
-                  stroke={
-                    selectedElement?.id === element.id ? "#3b82f6" : "#1a1a1a"
-                  }
-                  strokeWidth={2}
-                />
-                {element.points && (
-                  <text
-                    x={element.x + element.width / 2}
-                    y={element.y + element.height / 2}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    className="select-none text-sm fill-gray-600"
-                  >
-                    {`${convertToSquareFeet(calculatePolygonArea(element.points))} sq ft`}
-                  </text>
-                )}
-              </g>
-            );
-          } else if (element.type === "surface") {
-            return (
-              <g
-                key={element.id}
-                onMouseDown={(e) => handleMouseDown(element, e)}
-                className={
-                  selectedElement?.id === element.id ? "stroke-blue-500" : ""
-                }
-              >
-                <path
-                  d={`M ${element.points?.[0].x} ${element.points?.[0].y} ${element.points
-                    ?.slice(1)
-                    .map((p) => `L ${p.x} ${p.y}`)
-                    .join(" ")} Z`}
-                  fill={element.color || "#e5e7eb"}
-                  stroke={
-                    selectedElement?.id === element.id ? "#3b82f6" : "#d1d5db"
-                  }
-                  strokeWidth={2}
-                  fillOpacity={0.5}
-                />
-              </g>
-            );
-          } else {
-            return (
-              <g
-                key={element.id}
-                transform={`translate(${element.x},${element.y})`}
-                onMouseDown={(e) => handleMouseDown(element, e)}
-                className={`cursor-move ${selectedElement?.id === element.id ? "stroke-blue-500" : ""}`}
-              >
-                <rect
-                  width={element.width}
-                  height={element.height}
-                  fill={
-                    selectedElement?.id === element.id ? "#e5e7eb" : "#f3f4f6"
-                  }
-                  stroke={
-                    selectedElement?.id === element.id ? "#3b82f6" : "#d1d5db"
-                  }
-                  strokeWidth="2"
-                />
-                {element.type === "refrigerator" ? (
-                  <image
-                    href="/fridgetop.png"
-                    width={element.width}
-                    height={element.height}
-                    preserveAspectRatio="xMidYMid slice"
+                >
+                  <line
+                    x1={start.x}
+                    y1={start.y}
+                    x2={end.x}
+                    y2={end.y}
+                    stroke={
+                      selectedElement?.id === element.id ? "#3b82f6" : "#1a1a1a"
+                    }
+                    strokeWidth={element.thickness || 8}
+                    strokeLinecap="square"
                   />
-                ) : (
-                  <>
-                    <rect
-                      x={2}
-                      y={2}
-                      width={element.width - 4}
-                      height={element.height - 4}
-                      fill="#e2e8f0"
-                      stroke="none"
-                    />
-                    {element.type.includes("upper-") && (
-                      <line
-                        x1={element.width * 0.2}
-                        y1={element.height * 0.3}
-                        x2={element.width * 0.8}
-                        y2={element.height * 0.3}
-                        stroke="#94a3b8"
-                        strokeWidth="2"
-                      />
-                    )}
+                </g>
+              );
+            } else if (element.type === "room") {
+              return (
+                <g
+                  key={element.id}
+                  onMouseDown={(e) => handleMouseDown(element, e)}
+                  className={
+                    selectedElement?.id === element.id ? "stroke-blue-500" : ""
+                  }
+                >
+                  <path
+                    d={`M ${element.points?.[0].x} ${element.points?.[0].y} ${element.points
+                      ?.slice(1)
+                      .map((p) => `L ${p.x} ${p.y}`)
+                      .join(" ")} Z`}
+                    fill={element.color || "#f3f4f6"}
+                    stroke={
+                      selectedElement?.id === element.id ? "#3b82f6" : "#1a1a1a"
+                    }
+                    strokeWidth={2}
+                  />
+                  {element.points && (
                     <text
-                      x={element.width / 2}
-                      y={element.height / 2}
+                      x={element.x + element.width / 2}
+                      y={element.y + element.height / 2}
                       textAnchor="middle"
                       dominantBaseline="middle"
-                      className="select-none text-xs fill-gray-600"
+                      className="select-none text-sm fill-gray-600"
                     >
-                      {element.width}"W
+                      {`${convertToSquareFeet(calculatePolygonArea(element.points))} sq ft`}
                     </text>
-                  </>
-                )}
-              </g>
-            );
-          }
-        })}
+                  )}
+                </g>
+              );
+            } else if (element.type === "surface") {
+              return (
+                <g
+                  key={element.id}
+                  onMouseDown={(e) => handleMouseDown(element, e)}
+                  className={
+                    selectedElement?.id === element.id ? "stroke-blue-500" : ""
+                  }
+                >
+                  <path
+                    d={`M ${element.points?.[0].x} ${element.points?.[0].y} ${element.points
+                      ?.slice(1)
+                      .map((p) => `L ${p.x} ${p.y}`)
+                      .join(" ")} Z`}
+                    fill={element.color || "#e5e7eb"}
+                    stroke={
+                      selectedElement?.id === element.id ? "#3b82f6" : "#d1d5db"
+                    }
+                    strokeWidth={2}
+                    fillOpacity={0.5}
+                  />
+                </g>
+              );
+            } else {
+              return (
+                <g
+                  key={element.id}
+                  transform={`translate(${element.x},${element.y})`}
+                  onMouseDown={(e) => handleMouseDown(element, e)}
+                  className={`cursor-move ${selectedElement?.id === element.id ? "stroke-blue-500" : ""}`}
+                >
+                  <rect
+                    width={element.width}
+                    height={element.height}
+                    fill={
+                      selectedElement?.id === element.id ? "#e5e7eb" : "#f3f4f6"
+                    }
+                    stroke={
+                      selectedElement?.id === element.id ? "#3b82f6" : "#d1d5db"
+                    }
+                    strokeWidth="2"
+                  />
+                  {element.type.includes("sub-zero") ||
+                  element.type.includes("thermador") ||
+                  element.type.includes("liebherr") ||
+                  element.type.includes("refrigerator") ? (
+                    <rect
+                      width={element.width}
+                      height={element.height}
+                      fill="url(#fridgePattern)"
+                    />
+                  ) : (
+                    <>
+                      <rect
+                        x={2}
+                        y={2}
+                        width={element.width - 4}
+                        height={element.height - 4}
+                        fill="#e2e8f0"
+                        stroke="none"
+                      />
+                      {element.type.includes("upper-") && (
+                        <line
+                          x1={element.width * 0.2}
+                          y1={element.height * 0.3}
+                          x2={element.width * 0.8}
+                          y2={element.height * 0.3}
+                          stroke="#94a3b8"
+                          strokeWidth="2"
+                        />
+                      )}
+                      <text
+                        x={element.width / 2}
+                        y={element.height / 2}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className="select-none text-xs fill-gray-600"
+                      >
+                        {element.width}"W
+                      </text>
+                    </>
+                  )}
+                </g>
+              );
+            }
+          })}
+        </g>
       </svg>
     </Card>
   );
