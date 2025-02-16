@@ -1403,9 +1403,12 @@ const CatalogDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[80vh]">
+      <DialogContent className="max-w-6xl max-h-[80vh]" aria-describedby="catalog-description">
         <DialogHeader>
           <DialogTitle>Appliance Catalog</DialogTitle>
+          <p id="catalog-description" className="text-sm text-muted-foreground">
+            Browse and select from our collection of high-end appliances for your kitchen design.
+          </p>
         </DialogHeader>
         <Tabs defaultValue={activeCategory} onValueChange={setActiveCategory}>
           <TabsList className="w-full justify-start">
