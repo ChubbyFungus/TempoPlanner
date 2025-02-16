@@ -4,13 +4,15 @@ import Canvas from "./floorplanner/Canvas";
 import PropertiesPanel from "./floorplanner/PropertiesPanel";
 import ActionBar from "./floorplanner/ActionBar";
 import CatalogDialog from "./floorplanner/CatalogDialog";
+import { Button } from "./ui/button";
+import { ToolbarItem, CatalogItem } from "@/types/shared";
 
 interface Point {
   x: number;
   y: number;
 }
 
-interface Element {
+interface CanvasElement {
   id: string;
   type: string;
   x: number;
@@ -22,20 +24,19 @@ interface Element {
   points?: Point[];
   thickness?: number;
   color?: string;
+  materialId?: string;
+  overlayId?: string;
 }
 
-interface ToolbarItem {
-  id: string;
-  type: string;
-  width?: number;
-  height?: number;
-}
+const isCatalogItem = (item: ToolbarItem | CatalogItem): item is CatalogItem => {
+  return 'model' in item && 'brand' in item;
+};
 
 const Home = () => {
-  const [elements, setElements] = useState<Element[]>([]);
-  const [selectedElement, setSelectedElement] = useState<Element | null>(null);
-  const [undoStack, setUndoStack] = useState<Element[][]>([]);
-  const [redoStack, setRedoStack] = useState<Element[][]>([]);
+  const [elements, setElements] = useState<CanvasElement[]>([]);
+  const [selectedElement, setSelectedElement] = useState<CanvasElement | null>(null);
+  const [undoStack, setUndoStack] = useState<CanvasElement[][]>([]);
+  const [redoStack, setRedoStack] = useState<CanvasElement[][]>([]);
   const [drawingMode, setDrawingMode] = useState("");
   const [wallStartPoint, setWallStartPoint] = useState<Point | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -51,7 +52,7 @@ const Home = () => {
         setWallStartPoint({ x, y });
       } else {
         // Create wall element
-        const newWall: Element = {
+        const newWall: CanvasElement = {
           id: `wall-${Date.now()}`,
           type: "wall",
           x: wallStartPoint.x,
@@ -74,7 +75,7 @@ const Home = () => {
         setWallStartPoint({ x, y });
       } else {
         // Create surface element
-        const newSurface: Element = {
+        const newSurface: CanvasElement = {
           id: `surface-${Date.now()}`,
           type: "surface",
           x: Math.min(wallStartPoint.x, x),
@@ -103,7 +104,7 @@ const Home = () => {
 
   const handleDrawComplete = (points: Point[]) => {
     if (drawingMode === "room") {
-      const newRoom: Element = {
+      const newRoom: CanvasElement = {
         id: `room-${Date.now()}`,
         type: "room",
         x: Math.min(...points.map((p) => p.x)),
@@ -127,10 +128,10 @@ const Home = () => {
     }
   };
 
-  const handleItemDragStart = (item: ToolbarItem) => {
-    const newElement: Element = {
+  const handleItemDragStart = (item: ToolbarItem | CatalogItem) => {
+    const newElement: CanvasElement = {
       id: `${item.id}-${Date.now()}`,
-      type: item.id,
+      type: isCatalogItem(item) ? item.model : item.type,
       x: 0,
       y: 0,
       width: item.width || 60,
@@ -144,11 +145,11 @@ const Home = () => {
     setRedoStack([]);
   };
 
-  const handleElementSelect = (element: Element | null) => {
+  const handleElementSelect = (element: CanvasElement | null) => {
     setSelectedElement(element);
   };
 
-  const handleElementMove = (element: Element, newX: number, newY: number) => {
+  const handleElementMove = (element: CanvasElement, newX: number, newY: number) => {
     if (element.locked) return;
 
     const updatedElements = elements.map((el) =>
@@ -160,6 +161,11 @@ const Home = () => {
 
   const handlePropertyChange = (property: string, value: any) => {
     if (!selectedElement) return;
+
+    if (property === "delete" && value === true) {
+      handleDeleteElement();
+      return;
+    }
 
     const updatedElements = elements.map((el) =>
       el.id === selectedElement.id ? { ...el, [property]: value } : el,
@@ -224,44 +230,110 @@ const Home = () => {
     }
   };
 
+  const handleAddTestElements = () => {
+    const testElements: CanvasElement[] = [
+      // Sub-Zero with default stainless
+      {
+        id: 'test-subzero-1',
+        type: 'sub-zero-refrigerator',
+        x: 50,
+        y: 50,
+        width: 100,
+        height: 200,
+        rotation: 0,
+        locked: false,
+        materialId: 'subZeroStainless',
+        overlayId: 'professionalBrushed'
+      },
+      // Sub-Zero with black finish
+      {
+        id: 'test-subzero-2',
+        type: 'sub-zero-refrigerator',
+        x: 200,
+        y: 50,
+        width: 100,
+        height: 200,
+        rotation: 0,
+        locked: false,
+        materialId: 'subZeroBlack',
+        overlayId: 'obsidianMatte'
+      },
+      // Thermador Professional
+      {
+        id: 'test-thermador-1',
+        type: 'thermador-refrigerator',
+        x: 350,
+        y: 50,
+        width: 100,
+        height: 200,
+        rotation: 0,
+        locked: false,
+        materialId: 'thermadorProfessional',
+        overlayId: 'verticalBrushed'
+      },
+      // Liebherr with glass finish
+      {
+        id: 'test-liebherr-1',
+        type: 'liebherr-refrigerator',
+        x: 500,
+        y: 50,
+        width: 100,
+        height: 200,
+        rotation: 0,
+        locked: false,
+        materialId: 'liebherrBlueGlass',
+        overlayId: 'glassReflective'
+      }
+    ];
+    setElements([...elements, ...testElements]);
+  };
+
+  const handleAddElements = (newElements: CanvasElement[]) => {
+    setElements([...elements, ...newElements]);
+  };
+
   return (
-    <div className="h-screen w-screen bg-gray-100 flex flex-col">
-      <ActionBar
-        onSave={handleSave}
-        onLoad={handleLoad}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-        onAddAppliance={() => setCatalogOpen(true)}
-        canUndo={undoStack.length > 0}
-        canRedo={redoStack.length > 0}
+    <div className="flex h-screen bg-[#1C1C1C]">
+      <Toolbar
+        onItemDragStart={handleItemDragStart}
+        onDrawingModeChange={handleDrawingModeChange}
+        activeDrawingMode={drawingMode}
       />
+      <div className="flex-1 flex flex-col">
+        <ActionBar
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          onDelete={handleDeleteElement}
+          onCatalogOpen={() => setCatalogOpen(true)}
+        />
+        <div className="flex-1 relative">
+          <Button
+            onClick={handleAddTestElements}
+            className="absolute top-4 right-4 z-10"
+          >
+            Test Materials
+          </Button>
+          <Canvas
+            elements={elements}
+            drawingMode={drawingMode}
+            onDrawComplete={handleDrawComplete}
+            onElementSelect={handleElementSelect}
+            onElementMove={handleElementMove}
+            selectedElement={selectedElement}
+          />
+        </div>
+      </div>
+      {selectedElement && (
+        <PropertiesPanel
+          element={selectedElement}
+          onPropertyChange={handlePropertyChange}
+        />
+      )}
       <CatalogDialog
         open={catalogOpen}
         onOpenChange={setCatalogOpen}
         onItemSelect={handleItemDragStart}
       />
-      <div className="flex-1 flex overflow-hidden">
-        <Toolbar
-          onItemDragStart={handleItemDragStart}
-          onDrawingModeChange={handleDrawingModeChange}
-          activeDrawingMode={drawingMode}
-        />
-        <div className="flex-1 overflow-auto">
-          <Canvas
-            elements={elements}
-            onElementSelect={handleElementSelect}
-            onElementMove={handleElementMove}
-            drawingMode={drawingMode}
-            onCanvasClick={handleCanvasClick}
-            onDrawComplete={handleDrawComplete}
-          />
-        </div>
-        <PropertiesPanel
-          selectedElement={selectedElement}
-          onPropertyChange={handlePropertyChange}
-          onDeleteElement={handleDeleteElement}
-        />
-      </div>
     </div>
   );
 };

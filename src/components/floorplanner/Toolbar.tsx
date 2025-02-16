@@ -4,6 +4,7 @@ import CabinetDialog from "./CabinetDialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ToolbarItem, CatalogItem } from "@/types/shared";
 import {
   Tooltip,
   TooltipContent,
@@ -22,17 +23,8 @@ import {
   ChefHat,
 } from "lucide-react";
 
-interface ToolbarItem {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  category: string;
-  width?: number;
-  height?: number;
-}
-
 interface ToolbarProps {
-  onItemDragStart?: (item: ToolbarItem) => void;
+  onItemDragStart?: (item: ToolbarItem | CatalogItem) => void;
   onItemDragEnd?: () => void;
   onDrawingModeChange?: (mode: string) => void;
   activeDrawingMode?: string;
@@ -58,24 +50,28 @@ const Toolbar = ({
         {
           id: "select",
           name: "Select",
+          type: "select",
           icon: <ChefHat size={24} />,
           category: "tools",
         },
         {
           id: "room",
           name: "Draw Room",
+          type: "room",
           icon: <Square size={24} />,
           category: "tools",
         },
         {
           id: "wall",
           name: "Draw Wall",
+          type: "wall",
           icon: <Pencil size={24} />,
           category: "tools",
         },
         {
           id: "surface",
           name: "Draw Surface",
+          type: "surface",
           icon: <Grid3X3 size={24} />,
           category: "tools",
         },
@@ -87,12 +83,14 @@ const Toolbar = ({
         {
           id: "door",
           name: "Place Doors",
+          type: "door",
           icon: <DoorOpen size={24} />,
           category: "openings",
         },
         {
           id: "window",
           name: "Place Windows",
+          type: "window",
           icon: <GalleryVerticalEnd size={24} />,
           category: "openings",
         },
@@ -104,6 +102,7 @@ const Toolbar = ({
         {
           id: "structural",
           name: "Place Structurals",
+          type: "structural",
           icon: <Box size={24} />,
           category: "structural",
         },
@@ -115,24 +114,28 @@ const Toolbar = ({
         {
           id: "base-cabinet",
           name: "Base Cabinet",
+          type: "base-cabinet",
           icon: <Box size={24} />,
           category: "cabinets",
         },
         {
           id: "upper-cabinet",
           name: "Upper Cabinet",
+          type: "upper-cabinet",
           icon: <ArrowUpDown size={24} />,
           category: "cabinets",
         },
         {
           id: "island",
           name: "Island",
+          type: "island",
           icon: <Grid size={24} />,
           category: "cabinets",
         },
         {
           id: "countertop",
           name: "Countertop",
+          type: "countertop",
           icon: <Grid3X3 size={24} />,
           category: "cabinets",
         },
@@ -144,6 +147,7 @@ const Toolbar = ({
         {
           id: "appliances",
           name: "Add Appliance",
+          type: "appliance",
           icon: <ChefHat size={24} />,
           category: "appliances",
         },

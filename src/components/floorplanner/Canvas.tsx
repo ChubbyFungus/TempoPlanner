@@ -1,9 +1,16 @@
 import React, { useState } from "react";
 // Static assets
 // Use absolute path for public assets
-const fridgetopImage = "/images/fridgetop.png";
+const fridgetopImage = "https://placehold.co/600x400";
 import { calculatePolygonArea, convertToSquareFeet } from "@/lib/geometry";
 import { Card } from "@/components/ui/card";
+import { MaterialRenderer } from './MaterialRenderer';
+import { MATERIAL_PRESETS, MATERIAL_OVERLAYS, MaterialDefinition, MaterialOverlay } from '@/types/materials';
+import { Button } from "@/components/ui/button";
+import { ThreeMaterialRenderer } from './ThreeMaterialRenderer';
+
+console.log('Available Material Presets:', MATERIAL_PRESETS);
+console.log('Available Material Overlays:', MATERIAL_OVERLAYS);
 
 interface Point {
   x: number;
@@ -20,30 +27,31 @@ interface CanvasElement {
   points?: Point[];
   color?: string;
   thickness?: number;
+  materialId?: string;
+  overlayId?: string;
 }
 
 interface CanvasProps {
-  elements?: CanvasElement[];
-  gridSize?: number;
-  drawingMode?: string;
-  onElementSelect?: (element: CanvasElement | null) => void;
-  onElementMove?: (element: CanvasElement, newX: number, newY: number) => void;
-  onDrawComplete?: (points: Point[]) => void;
+  elements: CanvasElement[];
+  drawingMode: string;
+  selectedElement: CanvasElement | null;
+  onDrawComplete: (points: Point[]) => void;
+  onElementSelect: (element: CanvasElement | null) => void;
+  onElementMove: (element: CanvasElement, newX: number, newY: number) => void;
   onCanvasClick?: (x: number, y: number) => void;
+  onAddElements?: (elements: CanvasElement[]) => void;
 }
 
 const Canvas = ({
   elements = [],
   drawingMode = "",
+  selectedElement,
   onDrawComplete = (points: Point[]) => {},
   onCanvasClick = (x: number, y: number) => {},
-  gridSize = 20,
   onElementSelect = () => {},
   onElementMove = () => {},
+  onAddElements = () => {},
 }: CanvasProps) => {
-  const [selectedElement, setSelectedElement] = useState<CanvasElement | null>(
-    null,
-  );
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
@@ -54,7 +62,7 @@ const Canvas = ({
   const canvasHeight = 982; // From design spec
 
   // Vertical lines
-  for (let x = 0; x <= canvasWidth; x += gridSize) {
+  for (let x = 0; x <= canvasWidth; x += 20) {
     gridLines.push(
       <line
         key={`v${x}`}
@@ -69,7 +77,7 @@ const Canvas = ({
   }
 
   // Horizontal lines
-  for (let y = 0; y <= canvasHeight; y += gridSize) {
+  for (let y = 0; y <= canvasHeight; y += 20) {
     gridLines.push(
       <line
         key={`h${y}`}
@@ -84,7 +92,6 @@ const Canvas = ({
   }
 
   const handleMouseDown = (element: CanvasElement, e: React.MouseEvent) => {
-    setSelectedElement(element);
     onElementSelect(element);
     setIsDragging(true);
     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -100,11 +107,11 @@ const Canvas = ({
         e.currentTarget as HTMLElement
       ).getBoundingClientRect();
       const newX =
-        Math.round((e.clientX - canvasRect.left - dragOffset.x) / gridSize) *
-        gridSize;
+        Math.round((e.clientX - canvasRect.left - dragOffset.x) / 20) *
+        20;
       const newY =
-        Math.round((e.clientY - canvasRect.top - dragOffset.y) / gridSize) *
-        gridSize;
+        Math.round((e.clientY - canvasRect.top - dragOffset.y) / 20) *
+        20;
 
       onElementMove(selectedElement, newX, newY);
     }
@@ -114,8 +121,66 @@ const Canvas = ({
     setIsDragging(false);
   };
 
+  const getMaterialForType = (element: CanvasElement): MaterialDefinition => {
+    console.log('Getting material for element:', {
+      id: element.id,
+      type: element.type,
+      materialId: element.materialId
+    });
+    
+    // If a specific material is specified, use it
+    if (element.materialId && element.materialId in MATERIAL_PRESETS) {
+      console.log('Using specified material:', MATERIAL_PRESETS[element.materialId]);
+      return MATERIAL_PRESETS[element.materialId];
+    }
+
+    // Otherwise, use default based on type
+    let material: MaterialDefinition;
+    if (element.type.toLowerCase().includes('sub-zero')) {
+      material = MATERIAL_PRESETS.subZeroStainless;
+    } else if (element.type.toLowerCase().includes('thermador')) {
+      material = MATERIAL_PRESETS.thermadorProfessional;
+    } else if (element.type.toLowerCase().includes('liebherr')) {
+      material = MATERIAL_PRESETS.liebherrMonolith;
+    } else {
+      material = MATERIAL_PRESETS.subZeroStainless;
+    }
+    
+    console.log('Using default material:', material);
+    return material;
+  };
+
+  const getOverlayForType = (element: CanvasElement): MaterialOverlay => {
+    console.log('Getting overlay for element:', {
+      id: element.id,
+      type: element.type,
+      overlayId: element.overlayId
+    });
+
+    // If a specific overlay is specified, use it
+    if (element.overlayId && element.overlayId in MATERIAL_OVERLAYS) {
+      console.log('Using specified overlay:', MATERIAL_OVERLAYS[element.overlayId]);
+      return MATERIAL_OVERLAYS[element.overlayId];
+    }
+
+    // Otherwise, use default based on type
+    let overlay: MaterialOverlay;
+    if (element.type.toLowerCase().includes('sub-zero')) {
+      overlay = MATERIAL_OVERLAYS.professionalBrushed;
+    } else if (element.type.toLowerCase().includes('thermador')) {
+      overlay = MATERIAL_OVERLAYS.verticalBrushed;
+    } else if (element.type.toLowerCase().includes('liebherr')) {
+      overlay = MATERIAL_OVERLAYS.circularBrushed;
+    } else {
+      overlay = MATERIAL_OVERLAYS.professionalBrushed;
+    }
+
+    console.log('Using default overlay:', overlay);
+    return overlay;
+  };
+
   return (
-    <Card className="w-full h-full bg-white overflow-hidden">
+    <Card className="w-full h-full bg-white overflow-hidden relative">
       <svg
         width={canvasWidth}
         height={canvasHeight}
@@ -126,47 +191,14 @@ const Canvas = ({
         onMouseLeave={handleMouseUp}
         className={`${drawingMode ? "cursor-crosshair" : "cursor-default"}`}
       >
-        <defs>
-          {elements.map((element) => {
-            if (element.type.includes("sub-zero") ||
-                element.type.includes("thermador") ||
-                element.type.includes("liebherr") ||
-                element.type.includes("refrigerator")) {
-              return (
-                <pattern
-                  key={`pattern-${element.id}`}
-                  id={`fridgePattern-${element.id}`}
-                  patternUnits="userSpaceOnUse"
-                  patternContentUnits="userSpaceOnUse"
-                  x={element.x}
-                  y={element.y}
-                  width={element.width}
-                  height={element.height}
-                  viewBox={`0 0 ${element.width} ${element.height}`}
-                  preserveAspectRatio="xMidYMid slice"
-                >
-                  <image
-                    href={fridgetopImage}
-                    x="0"
-                    y="0"
-                    width={element.width}
-                    height={element.height}
-                    preserveAspectRatio="xMidYMid slice"
-                  />
-                </pattern>
-              );
-            }
-            return null;
-          })}
-        </defs>
         <g
           onClick={(e) => {
             if (drawingMode) {
               const rect = e.currentTarget.getBoundingClientRect();
               const x =
-                Math.round((e.clientX - rect.left) / gridSize) * gridSize;
+                Math.round((e.clientX - rect.left) / 20) * 20;
               const y =
-                Math.round((e.clientY - rect.top) / gridSize) * gridSize;
+                Math.round((e.clientY - rect.top) / 20) * 20;
 
               if (drawingMode === "wall") {
                 onCanvasClick(x, y);
@@ -181,7 +213,7 @@ const Canvas = ({
                     Math.pow(x - startPoint.x, 2) +
                       Math.pow(y - startPoint.y, 2),
                   );
-                  if (distance < gridSize) {
+                  if (distance < 20) {
                     onDrawComplete(drawingPoints);
                     setDrawingPoints([]);
                     return;
@@ -292,6 +324,8 @@ const Canvas = ({
                 </g>
               );
             } else {
+              const isAppliance = element.type.includes("refrigerator");
+              
               return (
                 <g
                   key={element.id}
@@ -299,37 +333,28 @@ const Canvas = ({
                   onMouseDown={(e) => handleMouseDown(element, e)}
                   className={`cursor-move ${selectedElement?.id === element.id ? "stroke-blue-500" : ""}`}
                 >
-                  <rect
-                    width={element.width}
-                    height={element.height}
-                    fill={
-                      selectedElement?.id === element.id ? "#e5e7eb" : "#f3f4f6"
-                    }
-                    stroke={
-                      selectedElement?.id === element.id ? "#3b82f6" : "#d1d5db"
-                    }
-                    strokeWidth="2"
-                  />
-                  {element.type.includes("sub-zero") ||
-                  element.type.includes("thermador") ||
-                  element.type.includes("liebherr") ||
-                  element.type.includes("refrigerator") ? (
+                  {isAppliance ? (
+                    <foreignObject 
+                      width={element.width} 
+                      height={element.height}
+                    >
+                      <ThreeMaterialRenderer
+                        elementId={element.id}
+                        material={getMaterialForType(element)}
+                        overlay={getOverlayForType(element)}
+                        width={element.width}
+                        height={element.height}
+                      />
+                    </foreignObject>
+                  ) : (
                     <>
                       <rect
                         width={element.width}
                         height={element.height}
-                        fill={`url(#fridgePattern-${element.id})`}
-                      />
-                      <rect
-                        width={element.width}
-                        height={element.height}
-                        fill="none"
+                        fill={selectedElement?.id === element.id ? "#e5e7eb" : "#f3f4f6"}
                         stroke={selectedElement?.id === element.id ? "#3b82f6" : "#d1d5db"}
                         strokeWidth="2"
                       />
-                    </>
-                  ) : (
-                    <>
                       <rect
                         x={2}
                         y={2}
