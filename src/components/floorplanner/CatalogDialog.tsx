@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CatalogItem } from "@/types/shared";
 import {
   Bath,
   Refrigerator,
@@ -18,20 +19,6 @@ import {
   Droplets,
   Fan,
 } from "lucide-react";
-
-interface CatalogItem {
-  id: string;
-  name: string;
-  brand: string;
-  model: string;
-  image: string;
-  category: string;
-  width: number;
-  height: number;
-  depth: number;
-  description: string;
-  price?: string;
-}
 
 interface CatalogDialogProps {
   open: boolean;

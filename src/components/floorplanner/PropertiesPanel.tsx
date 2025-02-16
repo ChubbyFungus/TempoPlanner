@@ -9,7 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Trash2, Move, Rotate3D } from "lucide-react";
 
-interface ElementProperties {
+interface CanvasElement {
   id: string;
   type: string;
   width: number;
@@ -18,16 +18,17 @@ interface ElementProperties {
   x: number;
   y: number;
   locked: boolean;
+  materialId?: string;
+  overlayId?: string;
 }
 
 interface PropertiesPanelProps {
-  selectedElement?: ElementProperties;
-  onPropertyChange?: (property: string, value: any) => void;
-  onDeleteElement?: () => void;
+  element: CanvasElement;
+  onPropertyChange: (property: string, value: any) => void;
 }
 
 const PropertiesPanel = ({
-  selectedElement = {
+  element = {
     id: "default",
     type: "cabinet",
     width: 60,
@@ -38,7 +39,6 @@ const PropertiesPanel = ({
     locked: false,
   },
   onPropertyChange = () => {},
-  onDeleteElement = () => {},
 }: PropertiesPanelProps) => {
   return (
     <Card className="w-[300px] h-full bg-white border-l">
@@ -47,13 +47,13 @@ const PropertiesPanel = ({
           <div className="space-y-2">
             <h3 className="text-lg font-semibold">Properties</h3>
             <p className="text-sm text-muted-foreground">
-              {selectedElement
-                ? `${selectedElement.type} properties`
+              {element
+                ? `${element.type} properties`
                 : "No element selected"}
             </p>
           </div>
 
-          {selectedElement && (
+          {element && (
             <>
               <Separator />
 
@@ -66,7 +66,7 @@ const PropertiesPanel = ({
                       <Input
                         id="width"
                         type="number"
-                        value={selectedElement.width}
+                        value={element.width}
                         onChange={(e) =>
                           onPropertyChange("width", Number(e.target.value))
                         }
@@ -77,7 +77,7 @@ const PropertiesPanel = ({
                       <Input
                         id="height"
                         type="number"
-                        value={selectedElement.height}
+                        value={element.height}
                         onChange={(e) =>
                           onPropertyChange("height", Number(e.target.value))
                         }
@@ -94,7 +94,7 @@ const PropertiesPanel = ({
                       <Input
                         id="x"
                         type="number"
-                        value={selectedElement.x}
+                        value={element.x}
                         onChange={(e) =>
                           onPropertyChange("x", Number(e.target.value))
                         }
@@ -105,7 +105,7 @@ const PropertiesPanel = ({
                       <Input
                         id="y"
                         type="number"
-                        value={selectedElement.y}
+                        value={element.y}
                         onChange={(e) =>
                           onPropertyChange("y", Number(e.target.value))
                         }
@@ -119,7 +119,7 @@ const PropertiesPanel = ({
                   <div className="flex items-center gap-2">
                     <Rotate3D className="h-4 w-4" />
                     <Slider
-                      value={[selectedElement.rotation]}
+                      value={[element.rotation]}
                       max={360}
                       step={1}
                       onValueChange={(value) =>
@@ -127,7 +127,7 @@ const PropertiesPanel = ({
                       }
                     />
                     <span className="min-w-[3ch]">
-                      {selectedElement.rotation}°
+                      {element.rotation}°
                     </span>
                   </div>
                 </div>
@@ -138,7 +138,7 @@ const PropertiesPanel = ({
                     <Label>Lock Position</Label>
                   </div>
                   <Switch
-                    checked={selectedElement.locked}
+                    checked={element.locked}
                     onCheckedChange={(checked) =>
                       onPropertyChange("locked", checked)
                     }
@@ -150,7 +150,7 @@ const PropertiesPanel = ({
                 <Button
                   variant="destructive"
                   className="w-full"
-                  onClick={onDeleteElement}
+                  onClick={() => onPropertyChange("delete", true)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Element

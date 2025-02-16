@@ -16,6 +16,8 @@ interface ActionBarProps {
   onAddAppliance?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  onDelete: () => void;
+  onCatalogOpen: () => void;
 }
 
 const ActionBar = ({
@@ -26,6 +28,8 @@ const ActionBar = ({
   onAddAppliance = () => console.log("Add appliance clicked"),
   canUndo = false,
   canRedo = false,
+  onDelete,
+  onCatalogOpen,
 }: ActionBarProps) => {
   return (
     <div className="w-full h-[60px] bg-white border-b border-gray-200 px-4 flex items-center justify-between">
