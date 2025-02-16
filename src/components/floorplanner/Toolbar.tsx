@@ -21,18 +21,62 @@ import {
   Plus,
 } from "lucide-react";
 
-interface ToolbarItem {
+interface BaseToolbarItem {
   id: string;
   name: string;
   icon: React.ReactNode;
   category: string;
-  type?: string;
-  width?: number;
-  height?: number;
-  color?: string;
-  label?: string;
   onClick?: () => void;
 }
+
+interface DrawingTool extends BaseToolbarItem {
+  category: "tools";
+  id: "select" | "room" | "wall" | "surface";
+}
+
+interface Opening extends BaseToolbarItem {
+  category: "openings";
+  id: "door" | "window";
+  width: number;
+  height: number;
+}
+
+interface StructuralElement extends BaseToolbarItem {
+  category: "structural";
+  id: "structural";
+  width: number;
+  height: number;
+}
+
+interface Cabinet extends BaseToolbarItem {
+  category: "cabinets";
+  id: "base-cabinet" | "upper-cabinet" | "island" | "countertop";
+  width: number;
+  height: number;
+  depth: number;
+}
+
+interface Appliance extends BaseToolbarItem {
+  category: "appliances";
+  id: "add-appliance";
+}
+
+type ToolbarItem =
+  | DrawingTool
+  | Opening
+  | StructuralElement
+  | Cabinet
+  | Appliance;
+
+const defaultDimensions = {
+  door: { width: 36, height: 80 },
+  window: { width: 36, height: 48 },
+  structural: { width: 48, height: 96 },
+  "base-cabinet": { width: 24, height: 34.5, depth: 24 },
+  "upper-cabinet": { width: 24, height: 30, depth: 12 },
+  island: { width: 60, height: 34.5, depth: 24 },
+  countertop: { width: 24, height: 1.5, depth: 25.5 },
+} as const;
 
 interface ToolbarProps {
   onItemDragStart?: (item: ToolbarItem | CatalogItem) => void;
@@ -91,12 +135,16 @@ const Toolbar = ({
           name: "Place Doors",
           icon: <DoorOpen size={24} />,
           category: "openings",
+          width: defaultDimensions.door.width,
+          height: defaultDimensions.door.height,
         },
         {
           id: "window",
           name: "Place Windows",
           icon: <GalleryVerticalEnd size={24} />,
           category: "openings",
+          width: defaultDimensions.window.width,
+          height: defaultDimensions.window.height,
         },
       ],
     },
@@ -108,6 +156,8 @@ const Toolbar = ({
           name: "Place Structurals",
           icon: <Box size={24} />,
           category: "structural",
+          width: defaultDimensions.structural.width,
+          height: defaultDimensions.structural.height,
         },
       ],
     },
@@ -119,24 +169,36 @@ const Toolbar = ({
           name: "Base Cabinet",
           icon: <Box size={24} />,
           category: "cabinets",
+          width: defaultDimensions["base-cabinet"].width,
+          height: defaultDimensions["base-cabinet"].height,
+          depth: defaultDimensions["base-cabinet"].depth,
         },
         {
           id: "upper-cabinet",
           name: "Upper Cabinet",
           icon: <ArrowUpDown size={24} />,
           category: "cabinets",
+          width: defaultDimensions["upper-cabinet"].width,
+          height: defaultDimensions["upper-cabinet"].height,
+          depth: defaultDimensions["upper-cabinet"].depth,
         },
         {
           id: "island",
           name: "Island",
           icon: <Grid size={24} />,
           category: "cabinets",
+          width: defaultDimensions.island.width,
+          height: defaultDimensions.island.height,
+          depth: defaultDimensions.island.depth,
         },
         {
           id: "countertop",
           name: "Countertop",
           icon: <Grid3X3 size={24} />,
           category: "cabinets",
+          width: defaultDimensions.countertop.width,
+          height: defaultDimensions.countertop.height,
+          depth: defaultDimensions.countertop.depth,
         },
       ],
     },
@@ -186,7 +248,7 @@ const Toolbar = ({
                             }
                             className="w-full h-[60px] flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-gray-800 border-gray-700"
                             onClick={() => {
-                              if (item.id === "add-appliance") {
+                              if (item.category === "appliances") {
                                 setShowCatalog(true);
                               } else if (
                                 ["wall", "room", "surface"].includes(item.id)
@@ -195,11 +257,23 @@ const Toolbar = ({
                                   activeDrawingMode === item.id ? "" : item.id,
                                 );
                               }
+                              if (item.onClick) {
+                                item.onClick();
+                              }
                             }}
                             draggable={
-                              !["wall", "room", "surface"].includes(item.id)
+                              ![
+                                "wall",
+                                "room",
+                                "surface",
+                                "select",
+                                "add-appliance",
+                              ].includes(item.id)
                             }
-                            onDragStart={() => onItemDragStart(item)}
+                            onDragStart={(e) => {
+                              e.dataTransfer.effectAllowed = "move";
+                              onItemDragStart(item);
+                            }}
                             onDragEnd={onItemDragEnd}
                           >
                             {item.icon}

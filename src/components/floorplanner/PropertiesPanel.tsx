@@ -14,6 +14,7 @@ interface ElementProperties {
   type: string;
   width: number;
   height: number;
+  depth?: number;
   rotation: number;
   x: number;
   y: number;
@@ -64,15 +65,36 @@ const PropertiesPanel = ({
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Dimensions</Label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="width">Width (in)</Label>
                       <Input
                         id="width"
                         type="number"
-                        value={selectedElement.width}
+                        value={Math.round((selectedElement.width * 12) / 20)}
                         onChange={(e) =>
-                          onPropertyChange("width", Number(e.target.value))
+                          onPropertyChange(
+                            "width",
+                            Math.round((Number(e.target.value) * 20) / 12),
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="depth">Depth (in)</Label>
+                      <Input
+                        id="depth"
+                        type="number"
+                        value={Math.round(
+                          ((selectedElement.depth || selectedElement.width) *
+                            12) /
+                            20,
+                        )}
+                        onChange={(e) =>
+                          onPropertyChange(
+                            "depth",
+                            Math.round((Number(e.target.value) * 20) / 12),
+                          )
                         }
                       />
                     </div>
@@ -81,9 +103,12 @@ const PropertiesPanel = ({
                       <Input
                         id="height"
                         type="number"
-                        value={selectedElement.height}
+                        value={Math.round((selectedElement.height * 12) / 20)}
                         onChange={(e) =>
-                          onPropertyChange("height", Number(e.target.value))
+                          onPropertyChange(
+                            "height",
+                            Math.round((Number(e.target.value) * 20) / 12),
+                          )
                         }
                       />
                     </div>

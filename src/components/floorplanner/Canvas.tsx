@@ -14,6 +14,7 @@ interface CanvasElement {
   y: number;
   width: number;
   height: number;
+  depth?: number;
   rotation: number;
   locked: boolean;
   points?: Point[];
@@ -172,7 +173,6 @@ const Canvas = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        className={`${drawingMode ? "cursor-crosshair" : "cursor-default"}`}
         onClick={(e) => {
           if (drawingMode) {
             const rect = e.currentTarget.getBoundingClientRect();
@@ -222,6 +222,13 @@ const Canvas = ({
             }
           }
         }}
+        className={`${drawingMode ? "cursor-crosshair" : "cursor-default"}`}
+      >
+        <defs>
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="2" dy="2" stdDeviation="3" floodOpacity="0.1"/>
+          </filter>
+        </defs>
       >
         {/* Grid */}
         {gridLines}
@@ -360,221 +367,238 @@ const Canvas = ({
                 onMouseDown={(e) => handleMouseDown(element, e)}
                 className={`cursor-move ${selectedElement?.id === element.id ? "stroke-blue-500" : ""}`}
               >
-                {/* Main shape */}
+                {/* Main shape with shadow effect */}
                 <rect
                   width={element.width}
-                  height={element.height}
-                  fill={element.color || "#ffffff"}
+                  height={element.depth || element.width}
+                  fill="#FFFFFF"
                   stroke={
-                    selectedElement?.id === element.id ? "#3b82f6" : "#000000"
+                    selectedElement?.id === element.id ? "#3b82f6" : "#94A3B8"
                   }
                   strokeWidth="2"
+                  filter="url(#shadow)"
                 />
 
-                {/* Interior details based on type */}
+                {/* Element-specific details */}
                 {element.type === "refrigerator" && (
                   <>
+                    {/* Main body with gradient */}
+                    <defs>
+                      <linearGradient id="refrigeratorGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#9CA3AF" />
+                        <stop offset="50%" stopColor="#E5E7EB" />
+                        <stop offset="100%" stopColor="#9CA3AF" />
+                      </linearGradient>
+                    </defs>
+                    <rect
+                      x={0}
+                      y={0}
+                      width={element.width}
+                      height={element.depth || element.width}
+                      fill="url(#refrigeratorGradient)"
+                      stroke={selectedElement?.id === element.id ? "#3b82f6" : "#94A3B8"}
+                      strokeWidth="1"
+                      rx="2"
+                    />
+                    {/* Control panel */}
+                    <rect
+                      x={element.width / 2 - 15}
+                      y={(element.depth || element.width) / 2 - 10}
+                      width={30}
+                      height={20}
+                      fill="#1F2937"
+                      rx="2"
+                    />
+                    {/* Control panel details */}
                     <line
-                      x1={0}
-                      y1={element.height * 0.7}
-                      x2={element.width}
-                      y2={element.height * 0.7}
-                      stroke="#000000"
+                      x1={element.width / 2 - 10}
+                      y1={(element.depth || element.width) / 2 - 5}
+                      x2={element.width / 2 + 10}
+                      y2={(element.depth || element.width) / 2 - 5}
+                      stroke="#60A5FA"
                       strokeWidth="1"
                     />
-                    <rect
-                      x={element.width * 0.1}
-                      y={element.height * 0.2}
-                      width={element.width * 0.8}
-                      height={element.height * 0.4}
-                      fill="none"
-                      stroke="#000000"
-                      strokeWidth="1"
+                    <circle
+                      cx={element.width / 2}
+                      cy={(element.depth || element.width) / 2 + 5}
+                      r="2"
+                      fill="#60A5FA"
                     />
                   </>
                 )}
+
                 {element.type === "sink" && (
                   <>
+                    <rect
+                      x={4}
+                      y={4}
+                      width={element.width - 8}
+                      height={(element.depth || element.width) - 8}
+                      fill="#F8FAFC"
+                      stroke={selectedElement?.id === element.id ? "#3b82f6" : "#94A3B8"}
+                      strokeWidth="1"
+                    />
                     <ellipse
                       cx={element.width / 2}
-                      cy={element.height / 2}
-                      rx={element.width * 0.3}
-                      ry={element.height * 0.3}
-                      fill="none"
-                      stroke="#000000"
-                      strokeWidth="1"
+                      cy={(element.depth || element.width) / 2}
+                      rx={element.width / 2.5}
+                      ry={(element.depth || element.width) / 3}
+                      fill="#E2E8F0"
+                      stroke={selectedElement?.id === element.id ? "#3b82f6" : "#94A3B8"}
+                      strokeWidth="2"
                     />
                     <line
                       x1={element.width / 2}
-                      y1={element.height * 0.2}
+                      y1={(element.depth || element.width) / 2 - 5}
                       x2={element.width / 2}
-                      y2={element.height * 0.8}
-                      stroke="#000000"
+                      y2={(element.depth || element.width) / 2 + 5}
+                      stroke={
+                        selectedElement?.id === element.id
+                          ? "#3b82f6"
+                          : "#94A3B8"
+                      }
                       strokeWidth="1"
                     />
                   </>
                 )}
+
+                {element.type === "dishwasher" && (
+                  <>
+                    <rect
+                      x={4}
+                      y={4}
+                      width={element.width - 8}
+                      height={(element.depth || element.width) - 8}
+                      fill="none"
+                      stroke={
+                        selectedElement?.id === element.id
+                          ? "#3b82f6"
+                          : "#94A3B8"
+                      }
+                      strokeWidth="1"
+                    />
+                    <line
+                      x1={0}
+                      y1={0}
+                      x2={element.width}
+                      y2={0}
+                      stroke={
+                        selectedElement?.id === element.id
+                          ? "#3b82f6"
+                          : "#94A3B8"
+                      }
+                      strokeWidth="2"
+                    />
+                  </>
+                )}
+
                 {element.type === "stove" && (
                   <>
-                    <circle
-                      cx={element.width * 0.25}
-                      cy={element.height * 0.25}
-                      r={element.width * 0.1}
-                      fill="none"
-                      stroke="#000000"
+                    <rect
+                      x={4}
+                      y={4}
+                      width={element.width - 8}
+                      height={(element.depth || element.width) - 8}
+                      fill="#F8FAFC"
+                      stroke={selectedElement?.id === element.id ? "#3b82f6" : "#94A3B8"}
                       strokeWidth="1"
                     />
                     <circle
-                      cx={element.width * 0.75}
-                      cy={element.height * 0.25}
-                      r={element.width * 0.1}
+                      cx={element.width / 4}
+                      cy={(element.depth || element.width) / 4}
+                      r={element.width / 8}
                       fill="none"
-                      stroke="#000000"
+                      stroke={selectedElement?.id === element.id ? "#3b82f6" : "#94A3B8"}
+                      strokeWidth="2"
+                    />
+                    <circle
+                      cx={(3 * element.width) / 4}
+                      cy={(element.depth || element.width) / 4}
+                      r={8}
+                      fill="none"
+                      stroke={
+                        selectedElement?.id === element.id
+                          ? "#3b82f6"
+                          : "#94A3B8"
+                      }
                       strokeWidth="1"
                     />
                     <circle
-                      cx={element.width * 0.25}
-                      cy={element.height * 0.75}
-                      r={element.width * 0.1}
+                      cx={element.width / 4}
+                      cy={(3 * (element.depth || element.width)) / 4}
+                      r={8}
                       fill="none"
-                      stroke="#000000"
+                      stroke={
+                        selectedElement?.id === element.id
+                          ? "#3b82f6"
+                          : "#94A3B8"
+                      }
                       strokeWidth="1"
                     />
                     <circle
-                      cx={element.width * 0.75}
-                      cy={element.height * 0.75}
-                      r={element.width * 0.1}
+                      cx={(3 * element.width) / 4}
+                      cy={(3 * (element.depth || element.width)) / 4}
+                      r={8}
                       fill="none"
-                      stroke="#000000"
+                      stroke={
+                        selectedElement?.id === element.id
+                          ? "#3b82f6"
+                          : "#94A3B8"
+                      }
                       strokeWidth="1"
                     />
                   </>
                 )}
-                {element.type === "base-cabinet" && (
+
+                {element.type === "microwave" && (
                   <>
                     <rect
-                      x={2}
-                      y={2}
-                      width={element.width - 4}
-                      height={element.height - 4}
+                      x={4}
+                      y={4}
+                      width={element.width - 8}
+                      height={(element.depth || element.width) - 8}
                       fill="none"
-                      stroke="#000000"
+                      stroke={
+                        selectedElement?.id === element.id
+                          ? "#3b82f6"
+                          : "#94A3B8"
+                      }
                       strokeWidth="1"
+                      rx={4}
                     />
-                    <line
-                      x1={element.width * 0.2}
-                      y1={2}
-                      x2={element.width * 0.2}
-                      y2={element.height - 2}
-                      stroke="#000000"
-                      strokeWidth="1"
-                    />
-                    <line
-                      x1={element.width * 0.4}
-                      y1={2}
-                      x2={element.width * 0.4}
-                      y2={element.height - 2}
-                      stroke="#000000"
-                      strokeWidth="1"
-                    />
-                    <line
-                      x1={element.width * 0.6}
-                      y1={2}
-                      x2={element.width * 0.6}
-                      y2={element.height - 2}
-                      stroke="#000000"
-                      strokeWidth="1"
-                    />
-                    <line
-                      x1={element.width * 0.8}
-                      y1={2}
-                      x2={element.width * 0.8}
-                      y2={element.height - 2}
-                      stroke="#000000"
-                      strokeWidth="1"
+                    <circle
+                      cx={element.width - 16}
+                      cy={12}
+                      r={4}
+                      fill={
+                        selectedElement?.id === element.id
+                          ? "#3b82f6"
+                          : "#94A3B8"
+                      }
                     />
                   </>
                 )}
-                {element.type === "upper-cabinet" && (
+
+                {(element.type === "base-cabinet" ||
+                  element.type === "upper-cabinet") && (
                   <>
                     <rect
-                      x={2}
-                      y={2}
-                      width={element.width - 4}
-                      height={element.height - 4}
-                      fill="none"
-                      stroke="#000000"
+                      x={4}
+                      y={4}
+                      width={element.width - 8}
+                      height={(element.depth || element.width) - 8}
+                      fill="#F8FAFC"
+                      stroke={selectedElement?.id === element.id ? "#3b82f6" : "#94A3B8"}
                       strokeWidth="1"
-                      strokeDasharray="4,4"
                     />
                     <line
-                      x1={element.width * 0.2}
-                      y1={2}
-                      x2={element.width * 0.2}
-                      y2={element.height - 2}
-                      stroke="#000000"
-                      strokeWidth="1"
+                      x1={8}
+                      y1={(element.depth || element.width) / 2}
+                      x2={element.width - 8}
+                      y2={(element.depth || element.width) / 2}
+                      stroke={selectedElement?.id === element.id ? "#3b82f6" : "#94A3B8"}
+                      strokeWidth="2"
                       strokeDasharray="4,4"
-                    />
-                    <line
-                      x1={element.width * 0.4}
-                      y1={2}
-                      x2={element.width * 0.4}
-                      y2={element.height - 2}
-                      stroke="#000000"
-                      strokeWidth="1"
-                      strokeDasharray="4,4"
-                    />
-                    <line
-                      x1={element.width * 0.6}
-                      y1={2}
-                      x2={element.width * 0.6}
-                      y2={element.height - 2}
-                      stroke="#000000"
-                      strokeWidth="1"
-                      strokeDasharray="4,4"
-                    />
-                    <line
-                      x1={element.width * 0.8}
-                      y1={2}
-                      x2={element.width * 0.8}
-                      y2={element.height - 2}
-                      stroke="#000000"
-                      strokeWidth="1"
-                      strokeDasharray="4,4"
-                    />
-                  </>
-                )}
-                {element.type === "island" && (
-                  <>
-                    <rect
-                      x={2}
-                      y={2}
-                      width={element.width - 4}
-                      height={element.height - 4}
-                      fill="none"
-                      stroke="#000000"
-                      strokeWidth="1"
-                    />
-                    <pattern
-                      id={`grid-${element.id}`}
-                      width="20"
-                      height="20"
-                      patternUnits="userSpaceOnUse"
-                    >
-                      <path
-                        d="M 20 0 L 0 0 0 20"
-                        fill="none"
-                        stroke="#000000"
-                        strokeWidth="0.5"
-                      />
-                    </pattern>
-                    <rect
-                      x={2}
-                      y={2}
-                      width={element.width - 4}
-                      height={element.height - 4}
-                      fill={`url(#grid-${element.id})`}
                     />
                   </>
                 )}
@@ -588,16 +612,24 @@ const Canvas = ({
                       textAnchor="middle"
                       className="select-none text-[10px] fill-gray-600"
                     >
-                      {Math.round((element.width / 20) * 10) / 10}m
+                      {Math.floor((element.width * 12) / 20 / 12)}'{" "}
+                      {Math.round(((element.width * 12) / 20) % 12)}"
                     </text>
                     <text
                       x={element.width + 12}
-                      y={element.height / 2}
+                      y={(element.depth || element.width) / 2}
                       textAnchor="middle"
-                      transform={`rotate(90 ${element.width + 12} ${element.height / 2})`}
+                      transform={`rotate(90 ${element.width + 12} ${(element.depth || element.width) / 2})`}
                       className="select-none text-[10px] fill-gray-600"
                     >
-                      {Math.round((element.height / 20) * 10) / 10}m
+                      {Math.floor(
+                        ((element.depth || element.width) * 12) / 20 / 12,
+                      )}
+                      '{" "}
+                      {Math.round(
+                        (((element.depth || element.width) * 12) / 20) % 12,
+                      )}
+                      "
                     </text>
                   </>
                 )}

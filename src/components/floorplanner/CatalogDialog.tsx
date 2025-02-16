@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import {
   Dialog,
   DialogContent,
@@ -8,22 +9,14 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Heart,
-  Search,
-  Refrigerator,
-  ChefHat,
-  Waves,
-  Bath,
-  Box,
-} from "lucide-react";
+import { Search } from "lucide-react";
 
 export interface CatalogItem {
   id: string;
   name: string;
   brand: string;
   model: string;
-  image: string;
+  image?: string;
   type?: string;
   category?: string;
   width: number;
@@ -47,6 +40,7 @@ interface Subcategory {
 interface Category {
   name: string;
   subcategories: Subcategory[];
+  isExpanded?: boolean;
 }
 
 interface CatalogDialogProps {
@@ -55,336 +49,215 @@ interface CatalogDialogProps {
   onItemSelect: (item: CatalogItem) => void;
 }
 
+const parseDimensions = (
+  dimensionsStr: string | null,
+): { width: number; height: number; depth: number } => {
+  const defaultDimensions = { width: 36, height: 70, depth: 32 };
+
+  if (!dimensionsStr) return defaultDimensions;
+
+  try {
+    console.log("Raw dimensions string:", dimensionsStr);
+
+    // Handle format like "24"×84"×24"
+    if (dimensionsStr.includes("×")) {
+      const dimensions = dimensionsStr.split("×").map((d) => {
+        // Remove the inch symbol and any whitespace
+        const cleanStr = d.replace(/"/g, "").trim();
+        return parseFloat(cleanStr);
+      });
+
+      if (dimensions.length >= 2) {
+        const result = {
+          width: dimensions[0] || defaultDimensions.width,
+          height: dimensions[1] || defaultDimensions.height,
+          depth: dimensions[2] || defaultDimensions.depth,
+        };
+        console.log("Parsed dimensions:", result);
+        return result;
+      }
+    }
+
+    // Handle JSON format
+    if (dimensionsStr.startsWith("{") && dimensionsStr.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(dimensionsStr);
+        return {
+          width: Number(parsed.width) || defaultDimensions.width,
+          height: Number(parsed.height) || defaultDimensions.height,
+          depth: Number(parsed.depth) || defaultDimensions.depth,
+        };
+      } catch (e) {
+        console.error("Failed to parse JSON dimensions:", e);
+      }
+    }
+
+    // Handle comma-separated format
+    const pairs = dimensionsStr.split(",");
+    const dimensions = { ...defaultDimensions };
+
+    for (const pair of pairs) {
+      const [key, value] = pair.split(":").map((s) => s.trim().toLowerCase());
+      const numValue = parseFloat(value);
+
+      if (!isNaN(numValue)) {
+        if (key === "w" || key === "width") dimensions.width = numValue;
+        else if (key === "h" || key === "height") dimensions.height = numValue;
+        else if (key === "d" || key === "depth") dimensions.depth = numValue;
+      }
+    }
+
+    // Validate dimensions
+    if (
+      dimensions.width <= 0 ||
+      dimensions.height <= 0 ||
+      dimensions.depth <= 0
+    ) {
+      console.warn("Invalid dimensions, using defaults:", dimensions);
+      return defaultDimensions;
+    }
+
+    return dimensions;
+  } catch (error) {
+    console.error("Error parsing dimensions:", error);
+    return defaultDimensions;
+  }
+};
+
+// Convert inches to grid units (20px = 1ft = 12in)
+const inchesToGridUnits = (inches: number) => {
+  // Each foot is 20px, so each inch is 20/12 pixels
+  const PIXELS_PER_INCH = 20 / 12;
+  return Math.round(inches * PIXELS_PER_INCH);
+};
+
+// Convert grid units back to inches for display
+const gridUnitsToInches = (gridUnits: number) => {
+  const GRID_UNIT = 20; // 20px = 1ft
+  const INCHES_PER_FOOT = 12;
+  return Math.round((gridUnits * INCHES_PER_FOOT) / GRID_UNIT);
+};
+
 const CatalogDialog = ({
   open,
   onOpenChange,
   onItemSelect,
 }: CatalogDialogProps) => {
-  const [activeTab, setActiveTab] = useState<"categories" | "brands">(
-    "categories",
+  const [catalogData, setCatalogData] = useState<Category[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(),
   );
-  const [selectedCategory, setSelectedCategory] = useState<string>("Kitchen");
-  const [selectedSubCategory, setSelectedSubCategory] =
-    useState<string>("Kitchen bins");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const categories = [
-    {
-      name: "Kitchen",
-      subcategories: [
-        {
-          name: "Basic units",
-          brands: [
+  useEffect(() => {
+    const fetchCatalogData = async () => {
+      const { data, error } = await supabase
+        .from("catalog objects")
+        .select("*");
+
+      if (error) {
+        console.error("Error fetching catalog data:", error);
+        return;
+      }
+
+      // Transform the data into our category structure
+      const categoriesMap = new Map<
+        string,
+        Map<string, Map<string, CatalogItem[]>>
+      >();
+
+      data.forEach((item) => {
+        console.log(
+          "Processing item:",
+          item.Name,
+          "Raw dimensions string:",
+          item.Dimensions,
+        );
+        const dimensions = parseDimensions(item.Dimensions);
+        console.log("Parsed dimensions for", item.Name, ":", dimensions);
+
+        // Convert inches to grid units
+        const gridWidth = inchesToGridUnits(dimensions.width);
+        const gridHeight = inchesToGridUnits(dimensions.height);
+        const gridDepth = inchesToGridUnits(dimensions.depth);
+
+        console.log("Grid units for", item.Name, ":", {
+          width: gridWidth,
+          height: gridHeight,
+          depth: gridDepth,
+          "original inches": dimensions,
+        });
+
+        const catalogItem: CatalogItem = {
+          id: item.ItemID.toString(),
+          name: item.Name,
+          brand: item.Brand,
+          model: item.Model,
+          width: gridWidth,
+          height: gridHeight,
+          depth: gridDepth,
+          description: `${item.Name} by ${item.Brand}`,
+          type: item.Category.toLowerCase().replace(" ", "-"),
+        };
+
+        if (!categoriesMap.has(item.Category)) {
+          categoriesMap.set(item.Category, new Map());
+        }
+        const category = categoriesMap.get(item.Category)!;
+
+        if (!category.has(item.Brand)) {
+          category.set(item.Brand, new Map());
+        }
+        const brand = category.get(item.Brand)!;
+
+        if (!brand.has(item.Model)) {
+          brand.set(item.Model, []);
+        }
+        brand.get(item.Model)!.push(catalogItem);
+      });
+
+      // Convert the maps to our category structure
+      const categories: Category[] = Array.from(categoriesMap.entries()).map(
+        ([categoryName, brands]) => ({
+          name: categoryName,
+          subcategories: [
             {
-              name: "IKEA",
-              models: [
-                {
-                  id: "sektion-base",
-                  name: "SEKTION Base Cabinet",
-                  brand: "IKEA",
-                  model: "SEKTION",
-                  image:
-                    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136",
-                  width: 30,
-                  height: 30,
-                  depth: 24,
-                  description: "Base cabinet frame, white",
-                  price: "$89",
-                },
-              ],
+              name: categoryName,
+              brands: Array.from(brands.entries()).map(
+                ([brandName, models]) => ({
+                  name: brandName,
+                  models: Array.from(models.values()).flat(),
+                }),
+              ),
             },
           ],
-        },
-        {
-          name: "Baking & Bakeware",
-          brands: [
-            {
-              name: "KitchenAid",
-              models: [
-                {
-                  id: "stand-mixer",
-                  name: "Professional Stand Mixer",
-                  brand: "KitchenAid",
-                  model: "KP26M1XER",
-                  image:
-                    "https://images.unsplash.com/photo-1594222082006-57166bb68d75",
-                  width: 14,
-                  height: 17,
-                  depth: 11,
-                  description: "6-quart bowl-lift stand mixer",
-                  price: "$499.99",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Built-in kitchen & Kitchen storage",
-          brands: [
-            {
-              name: "IKEA",
-              models: [
-                {
-                  id: "pax-wardrobe",
-                  name: "PAX Kitchen Storage Unit",
-                  brand: "IKEA",
-                  model: "PAX",
-                  image:
-                    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136",
-                  width: 39.25,
-                  height: 93.125,
-                  depth: 23.625,
-                  description: "Customizable storage solution",
-                  price: "$499",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Cleaning accessories",
-          brands: [
-            {
-              name: "Simplehuman",
-              models: [
-                {
-                  id: "trash-can",
-                  name: "Rectangular Step Can",
-                  brand: "Simplehuman",
-                  model: "CW2054",
-                  image:
-                    "https://images.unsplash.com/photo-1610557892470-55d9e80c0bce",
-                  width: 19.8,
-                  height: 25.7,
-                  depth: 12.8,
-                  description: "45L stainless steel step trash can",
-                  price: "$130",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Coffee & Tea",
-          brands: [
-            {
-              name: "Breville",
-              models: [
-                {
-                  id: "espresso-machine",
-                  name: "Barista Express",
-                  brand: "Breville",
-                  model: "BES870XL",
-                  image:
-                    "https://images.unsplash.com/photo-1612887726773-e64e20cf08fe",
-                  width: 13.25,
-                  height: 15.75,
-                  depth: 12.5,
-                  description: "Espresso machine with grinder",
-                  price: "$699.95",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Cook's tools",
-          brands: [
-            {
-              name: "Global",
-              models: [
-                {
-                  id: "knife-set",
-                  name: "7-Piece Knife Block Set",
-                  brand: "Global",
-                  model: "G-835/KB",
-                  image:
-                    "https://images.unsplash.com/photo-1593618998160-e34014e67546",
-                  width: 10,
-                  height: 12,
-                  depth: 6,
-                  description: "Professional knife set with block",
-                  price: "$599.95",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Kitchen bins",
-          brands: [
-            {
-              name: "Simplehuman",
-              models: [
-                {
-                  id: "dual-trash",
-                  name: "Dual Compartment Step Can",
-                  brand: "Simplehuman",
-                  model: "CW2025",
-                  image:
-                    "https://images.unsplash.com/photo-1610557892470-55d9e80c0bce",
-                  width: 24.8,
-                  height: 25.7,
-                  depth: 14.8,
-                  description: "58L recycling step trash can",
-                  price: "$199.99",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      name: "Appliances",
-      subcategories: [
-        {
-          name: "Refrigerators",
-          brands: [
-            {
-              name: "Samsung",
-              models: [
-                {
-                  id: "rf28r7551sr",
-                  name: "28 cu. ft. 4-Door French Door Refrigerator",
-                  brand: "Samsung",
-                  model: "RF28R7551SR",
-                  image:
-                    "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-                  width: 36,
-                  height: 70,
-                  depth: 34,
-                  description:
-                    "Large capacity French door refrigerator with FlexZone drawer",
-                  price: "$2,699",
-                },
-                {
-                  id: "rf23m8570sr",
-                  name: "23 cu. ft. Counter Depth 4-Door French Door",
-                  brand: "Samsung",
-                  model: "RF23M8570SR",
-                  image:
-                    "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-                  width: 36,
-                  height: 70,
-                  depth: 28.5,
-                  description: "Counter-depth design with Twin Cooling Plus",
-                  price: "$3,399",
-                },
-              ],
-            },
-            {
-              name: "LG",
-              models: [
-                {
-                  id: "lfxs26973s",
-                  name: "26 cu. ft. Side-by-Side Refrigerator",
-                  brand: "LG",
-                  model: "LFXS26973S",
-                  image:
-                    "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
-                  width: 36,
-                  height: 70,
-                  depth: 33,
-                  description: "Side-by-side design with Door-in-Door",
-                  price: "$1,799",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Ranges",
-          brands: [
-            {
-              name: "GE",
-              models: [
-                {
-                  id: "jgb735spss",
-                  name: '30" Free-Standing Gas Range',
-                  brand: "GE",
-                  model: "JGB735SPSS",
-                  image:
-                    "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
-                  width: 30,
-                  height: 47,
-                  depth: 28,
-                  description:
-                    "5.0 cu. ft. gas range with edge-to-edge cooktop",
-                  price: "$999",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      name: "Cabinets",
-      subcategories: [
-        {
-          name: "Base Cabinets",
-          brands: [
-            {
-              name: "KraftMaid",
-              models: [
-                {
-                  id: "b30",
-                  name: '30" Base Cabinet',
-                  brand: "KraftMaid",
-                  model: "B30",
-                  image:
-                    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136",
-                  width: 30,
-                  height: 34.5,
-                  depth: 24,
-                  description:
-                    "Standard base cabinet with one drawer and two doors",
-                  price: "$399",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ];
+        }),
+      );
+
+      setCatalogData(categories);
+      if (categories.length > 0) {
+        setSelectedCategory(categories[0].name);
+      }
+    };
+
+    fetchCatalogData();
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] p-6">
+      <DialogContent className="max-w-6xl max-h-[85vh] p-0 overflow-hidden">
         <DialogHeader className="pb-4">
           <DialogTitle>Objects</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col h-full">
-          {/* Tabs */}
-          <div className="flex border-b border-gray-200 mb-4">
-            <Button
-              variant={activeTab === "categories" ? "default" : "ghost"}
-              className="flex-1 rounded-none"
-              onClick={() => setActiveTab("categories")}
-            >
-              Categories
-            </Button>
-            <Button
-              variant={activeTab === "brands" ? "default" : "ghost"}
-              className="flex-1 rounded-none"
-              onClick={() => setActiveTab("brands")}
-            >
-              Brands
-            </Button>
-          </div>
-
+        <div className="flex flex-col h-[85vh]">
           {/* Search and Favorites */}
-          <div className="flex gap-2 p-4 border-b">
-            <Button variant="outline" size="icon">
-              <Heart className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center p-4 border-b">
             <div className="relative flex-1">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
               <Input
-                placeholder="Search Kitchen bins"
+                placeholder="Search objects"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
@@ -393,28 +266,42 @@ const CatalogDialog = ({
           </div>
 
           {/* Main Content */}
-          <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-1 overflow-hidden h-full">
             {/* Categories and Subcategories */}
-            <div className="w-48 border-r">
+            <div className="w-64 border-r h-full overflow-hidden">
               <ScrollArea className="h-full">
-                {categories.map((category) => (
-                  <div key={category.name}>
+                {catalogData.map((category) => (
+                  <div key={category.name} className="py-1">
                     <Button
                       variant="ghost"
-                      className={`w-full justify-start rounded-none font-semibold ${selectedCategory === category.name ? "bg-gray-100" : ""}`}
-                      onClick={() => setSelectedCategory(category.name)}
+                      className={`w-full justify-start rounded-none px-4 py-2 font-semibold ${selectedCategory === category.name ? "bg-gray-100" : ""}`}
+                      onClick={() => {
+                        const newExpanded = new Set(expandedCategories);
+                        if (expandedCategories.has(category.name)) {
+                          newExpanded.delete(category.name);
+                        } else {
+                          newExpanded.add(category.name);
+                        }
+                        setExpandedCategories(newExpanded);
+                        setSelectedCategory(category.name);
+                      }}
                     >
-                      {category.name}
+                      <div className="flex items-center w-full">
+                        <span>{category.name}</span>
+                        <span className="ml-auto">
+                          {expandedCategories.has(category.name) ? "−" : "+"}
+                        </span>
+                      </div>
                     </Button>
-                    {selectedCategory === category.name && (
-                      <div className="pl-4">
+                    {expandedCategories.has(category.name) && (
+                      <div className="pl-4 border-l border-gray-200 ml-2 mt-1">
                         {category.subcategories.map((subcategory) => (
                           <Button
                             key={subcategory.name}
                             variant="ghost"
-                            className={`w-full justify-start rounded-none text-sm ${selectedSubCategory === subcategory.name ? "bg-gray-50" : ""}`}
+                            className={`w-full justify-start rounded-none px-4 py-2 text-sm ${selectedCategory === subcategory.name ? "bg-gray-50" : ""}`}
                             onClick={() =>
-                              setSelectedSubCategory(subcategory.name)
+                              setSelectedCategory(subcategory.name)
                             }
                           >
                             {subcategory.name}
@@ -428,42 +315,51 @@ const CatalogDialog = ({
             </div>
 
             {/* Brands and Models Grid */}
-            <div className="flex-1">
+            <div className="flex-1 h-full overflow-hidden">
               <ScrollArea className="h-full">
-                <div className="p-4">
-                  {categories
+                <div className="p-4 space-y-8">
+                  {catalogData
                     .find((c) => c.name === selectedCategory)
-                    ?.subcategories.find((s) => s.name === selectedSubCategory)
+                    ?.subcategories.find((s) => s.name === selectedCategory)
                     ?.brands.map((brand) => (
-                      <div key={brand.name} className="mb-8">
+                      <div key={brand.name}>
                         <h3 className="text-lg font-semibold mb-4">
                           {brand.name}
                         </h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          {brand.models.map((model) => (
-                            <Button
-                              key={model.id}
-                              variant="outline"
-                              className="h-40 p-4 flex flex-col items-start justify-between text-left"
-                              onClick={() => onItemSelect(model)}
-                            >
-                              <div>
-                                <h4 className="font-medium">{model.name}</h4>
-                                <p className="text-sm text-gray-500 mt-1">
-                                  {model.model}
-                                </p>
-                              </div>
-                              <div className="w-full flex justify-between items-end">
-                                <span className="text-xs text-gray-500">
-                                  {model.width}"W × {model.height}"H ×{" "}
-                                  {model.depth}"D
-                                </span>
-                                <span className="text-sm font-medium">
-                                  {model.price}
-                                </span>
-                              </div>
-                            </Button>
-                          ))}
+                        <div className="grid grid-cols-3 gap-4">
+                          {brand.models
+                            .filter((model) =>
+                              searchQuery
+                                ? model.name
+                                    .toLowerCase()
+                                    .includes(searchQuery.toLowerCase()) ||
+                                  model.model
+                                    .toLowerCase()
+                                    .includes(searchQuery.toLowerCase()) ||
+                                  model.brand
+                                    .toLowerCase()
+                                    .includes(searchQuery.toLowerCase())
+                                : true,
+                            )
+                            .map((model) => (
+                              <Button
+                                key={model.id}
+                                variant="outline"
+                                className="h-[100px] p-4 flex flex-col items-start justify-between text-left hover:border-primary"
+                                onClick={() => onItemSelect(model)}
+                              >
+                                <div className="w-full">
+                                  <h4 className="font-medium truncate">
+                                    {model.name}
+                                  </h4>
+                                  <p className="text-sm text-gray-500">
+                                    {gridUnitsToInches(model.width)}"W ×{" "}
+                                    {gridUnitsToInches(model.height)}"H ×{" "}
+                                    {gridUnitsToInches(model.depth)}"D
+                                  </p>
+                                </div>
+                              </Button>
+                            ))}
                         </div>
                       </div>
                     ))}

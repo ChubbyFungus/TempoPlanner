@@ -17,6 +17,7 @@ interface Element {
   y: number;
   width: number;
   height: number;
+  depth?: number;
   rotation: number;
   locked: boolean;
   points?: Point[];
@@ -150,6 +151,7 @@ const Home = () => {
       y: 0,
       width: item.width || 60,
       height: item.height || 60,
+      depth: "depth" in item ? item.depth : item.width,
       rotation: 0,
       locked: false,
       color: "color" in item ? item.color : "#ffffff",
