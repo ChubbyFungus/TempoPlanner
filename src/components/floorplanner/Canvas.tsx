@@ -137,8 +137,13 @@ const Canvas = ({
                   key={`pattern-${element.id}`}
                   id={`fridgePattern-${element.id}`}
                   patternUnits="userSpaceOnUse"
+                  patternContentUnits="userSpaceOnUse"
+                  x={element.x}
+                  y={element.y}
                   width={element.width}
                   height={element.height}
+                  viewBox={`0 0 ${element.width} ${element.height}`}
+                  preserveAspectRatio="xMidYMid slice"
                 >
                   <image
                     href={fridgetopImage}
@@ -309,11 +314,20 @@ const Canvas = ({
                   element.type.includes("thermador") ||
                   element.type.includes("liebherr") ||
                   element.type.includes("refrigerator") ? (
-                    <rect
-                      width={element.width}
-                      height={element.height}
-                      fill={`url(#fridgePattern-${element.id})`}
-                    />
+                    <>
+                      <rect
+                        width={element.width}
+                        height={element.height}
+                        fill={`url(#fridgePattern-${element.id})`}
+                      />
+                      <rect
+                        width={element.width}
+                        height={element.height}
+                        fill="none"
+                        stroke={selectedElement?.id === element.id ? "#3b82f6" : "#d1d5db"}
+                        strokeWidth="2"
+                      />
+                    </>
                   ) : (
                     <>
                       <rect
