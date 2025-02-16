@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 // Static assets
 // Use absolute path for public assets
-const fridgetopImage = "/images/tempo-image-20250216T184521469Z.png";
+const fridgetopImage = "/images/fridgetop.png";
 import { calculatePolygonArea, convertToSquareFeet } from "@/lib/geometry";
 import { Card } from "@/components/ui/card";
 
