@@ -25,35 +25,35 @@ function createPlaceholderModel() {
 // Model paths
 export const MODEL_PATHS = {
   'sub-zero-refrigerator': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/sub-zero/high.glb',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/sub-zero/medium.glb',
-    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/sub-zero/low.glb',
+    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/sub-zero/high.gltf',
+    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/sub-zero/medium.gltf',
+    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/sub-zero/low.gltf',
   },
   'thermador-refrigerator': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/thermador/high.glb',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/thermador/medium.glb',
-    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/thermador/low.glb',
+    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/thermador/high.gltf',
+    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/thermador/medium.gltf',
+    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/thermador/low.gltf',
   },
   'liebherr-refrigerator': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/liebherr/high.glb',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/liebherr/medium.glb',
-    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/liebherr/low.glb',
+    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/liebherr/high.gltf',
+    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/liebherr/medium.gltf',
+    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/liebherr/low.gltf',
   },
   'viking-refrigerator': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/viking/high.glb',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/viking/medium.glb',
-    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/viking/low.glb',
+    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/viking/high.gltf',
+    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/viking/medium.gltf',
+    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/viking/low.gltf',
   },
   'miele-refrigerator': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/miele/high.glb',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/miele/medium.glb',
-    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/miele/low.glb',
+    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/miele/high.gltf',
+    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/miele/medium.gltf',
+    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/miele/low.gltf',
   },
   // Default fallback model
   'default': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/default/high.glb',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/default/medium.glb',
-    [LOD_LEVELS.LOW]: '/models/appliances/default/low.glb',
+    [LOD_LEVELS.HIGH]: '/models/appliances/default/high.gltf',
+    [LOD_LEVELS.MEDIUM]: '/models/appliances/default/medium.gltf',
+    [LOD_LEVELS.LOW]: '/models/appliances/default/low.gltf',
   }
 } as const;
 

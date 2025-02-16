@@ -31,7 +31,8 @@ const downloadFile = (url, brand, quality) => {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    const filename = `${quality}.glb`;
+    // Use .gltf extension since we're downloading GLTF files
+    const filename = `${quality}.gltf`;
     const filepath = path.join(dir, filename);
 
     https.get(url, (response) => {
