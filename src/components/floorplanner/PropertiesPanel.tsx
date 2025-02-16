@@ -25,139 +25,111 @@ interface CanvasElement {
 interface PropertiesPanelProps {
   element: CanvasElement;
   onPropertyChange: (property: string, value: any) => void;
+  onDelete: () => void;
 }
 
-const PropertiesPanel = ({
-  element = {
-    id: "default",
-    type: "cabinet",
-    width: 60,
-    height: 30,
-    rotation: 0,
-    x: 100,
-    y: 100,
-    locked: false,
-  },
-  onPropertyChange = () => {},
-}: PropertiesPanelProps) => {
+const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
+  element,
+  onPropertyChange,
+  onDelete,
+}) => {
   return (
-    <Card className="w-[300px] h-full bg-white border-l">
+    <Card className="w-80 h-full bg-white border-l border-gray-200">
       <ScrollArea className="h-full">
-        <div className="p-6 space-y-6">
-          <div className="space-y-2">
+        <div className="p-4 space-y-4">
+          <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Properties</h3>
-            <p className="text-sm text-muted-foreground">
-              {element
-                ? `${element.type} properties`
-                : "No element selected"}
-            </p>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onDelete}
+              className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
-
-          {element && (
-            <>
-              <Separator />
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Dimensions</Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="width">Width (in)</Label>
-                      <Input
-                        id="width"
-                        type="number"
-                        value={element.width}
-                        onChange={(e) =>
-                          onPropertyChange("width", Number(e.target.value))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="height">Height (in)</Label>
-                      <Input
-                        id="height"
-                        type="number"
-                        value={element.height}
-                        onChange={(e) =>
-                          onPropertyChange("height", Number(e.target.value))
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Position</Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="x">X Position</Label>
-                      <Input
-                        id="x"
-                        type="number"
-                        value={element.x}
-                        onChange={(e) =>
-                          onPropertyChange("x", Number(e.target.value))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="y">Y Position</Label>
-                      <Input
-                        id="y"
-                        type="number"
-                        value={element.y}
-                        onChange={(e) =>
-                          onPropertyChange("y", Number(e.target.value))
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Rotation</Label>
-                  <div className="flex items-center gap-2">
-                    <Rotate3D className="h-4 w-4" />
-                    <Slider
-                      value={[element.rotation]}
-                      max={360}
-                      step={1}
-                      onValueChange={(value) =>
-                        onPropertyChange("rotation", value[0])
-                      }
-                    />
-                    <span className="min-w-[3ch]">
-                      {element.rotation}°
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Move className="h-4 w-4" />
-                    <Label>Lock Position</Label>
-                  </div>
-                  <Switch
-                    checked={element.locked}
-                    onCheckedChange={(checked) =>
-                      onPropertyChange("locked", checked)
+          <Separator />
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Position</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label htmlFor="x">X</Label>
+                  <Input
+                    id="x"
+                    type="number"
+                    value={element.x}
+                    onChange={(e) =>
+                      onPropertyChange("x", parseInt(e.target.value))
                     }
                   />
                 </div>
-
-                <Separator />
-
-                <Button
-                  variant="destructive"
-                  className="w-full"
-                  onClick={() => onPropertyChange("delete", true)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Element
-                </Button>
+                <div className="space-y-1">
+                  <Label htmlFor="y">Y</Label>
+                  <Input
+                    id="y"
+                    type="number"
+                    value={element.y}
+                    onChange={(e) =>
+                      onPropertyChange("y", parseInt(e.target.value))
+                    }
+                  />
+                </div>
               </div>
-            </>
-          )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Size</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label htmlFor="width">Width</Label>
+                  <Input
+                    id="width"
+                    type="number"
+                    value={element.width}
+                    onChange={(e) =>
+                      onPropertyChange("width", parseInt(e.target.value))
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="height">Height</Label>
+                  <Input
+                    id="height"
+                    type="number"
+                    value={element.height}
+                    onChange={(e) =>
+                      onPropertyChange("height", parseInt(e.target.value))
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="rotation">Rotation</Label>
+              <Slider
+                id="rotation"
+                min={0}
+                max={360}
+                step={1}
+                value={[element.rotation]}
+                onValueChange={([value]) => onPropertyChange("rotation", value)}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="locked"
+                checked={element.locked}
+                onCheckedChange={(checked) =>
+                  onPropertyChange("locked", checked)
+                }
+              />
+              <Label htmlFor="locked">Locked</Label>
+            </div>
+          </div>
         </div>
       </ScrollArea>
     </Card>
