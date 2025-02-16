@@ -267,15 +267,44 @@ const Canvas = ({
                   }
                   strokeWidth="2"
                 />
-                <text
-                  x={element.width / 2}
-                  y={element.height / 2}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="select-none text-xs fill-gray-600"
-                >
-                  {element.type}
-                </text>
+                {element.type === "refrigerator" ? (
+                  <image
+                    href="/fridgetop.png"
+                    width={element.width}
+                    height={element.height}
+                    preserveAspectRatio="xMidYMid slice"
+                  />
+                ) : (
+                  <>
+                    <rect
+                      x={2}
+                      y={2}
+                      width={element.width - 4}
+                      height={element.height - 4}
+                      fill="#e2e8f0"
+                      stroke="none"
+                    />
+                    {element.type.includes("upper-") && (
+                      <line
+                        x1={element.width * 0.2}
+                        y1={element.height * 0.3}
+                        x2={element.width * 0.8}
+                        y2={element.height * 0.3}
+                        stroke="#94a3b8"
+                        strokeWidth="2"
+                      />
+                    )}
+                    <text
+                      x={element.width / 2}
+                      y={element.height / 2}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="select-none text-xs fill-gray-600"
+                    >
+                      {element.width}"W
+                    </text>
+                  </>
+                )}
               </g>
             );
           }

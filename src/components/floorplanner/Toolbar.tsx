@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import CatalogDialog from "./CatalogDialog";
+import CabinetDialog from "./CabinetDialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,10 +20,6 @@ import {
   ArrowUpDown,
   Grid,
   ChefHat,
-  Bath,
-  Refrigerator,
-  Waves,
-  Utensils,
 } from "lucide-react";
 
 interface ToolbarItem {
@@ -48,6 +45,7 @@ const Toolbar = ({
   activeDrawingMode = "",
 }: ToolbarProps) => {
   const [showCatalog, setShowCatalog] = useState(false);
+  const [showCabinetDialog, setShowCabinetDialog] = useState(false);
 
   const handleCatalogItemSelect = (item: any) => {
     onItemDragStart(item);
@@ -144,36 +142,10 @@ const Toolbar = ({
       title: "Appliances & Fixtures",
       items: [
         {
-          id: "refrigerator",
-          name: "Refrigerator",
-          icon: <Refrigerator size={24} />,
+          id: "appliances",
+          name: "Add Appliance",
+          icon: <ChefHat size={24} />,
           category: "appliances",
-          width: 36,
-          height: 30,
-        },
-        {
-          id: "stove",
-          name: "Stove",
-          icon: <Utensils size={24} />,
-          category: "appliances",
-          width: 30,
-          height: 24,
-        },
-        {
-          id: "sink",
-          name: "Sink",
-          icon: <Waves size={24} />,
-          category: "fixtures",
-          width: 24,
-          height: 21,
-        },
-        {
-          id: "bathtub",
-          name: "Bathtub",
-          icon: <Bath size={24} />,
-          category: "fixtures",
-          width: 60,
-          height: 32,
         },
       ],
     },
@@ -181,6 +153,22 @@ const Toolbar = ({
 
   return (
     <>
+      <CabinetDialog
+        open={showCabinetDialog}
+        onOpenChange={setShowCabinetDialog}
+        onCabinetSelect={(cabinet) => {
+          onItemDragStart({
+            ...cabinet,
+            category: "cabinets",
+            icon:
+              cabinet.type === "upper" ? (
+                <ArrowUpDown size={24} />
+              ) : (
+                <Box size={24} />
+              ),
+          });
+        }}
+      />
       <CatalogDialog
         open={showCatalog}
         onOpenChange={setShowCatalog}
@@ -194,11 +182,7 @@ const Toolbar = ({
                 <Button
                   variant="ghost"
                   className="w-full justify-start p-0 h-6 text-sm font-medium text-gray-400 hover:text-white hover:bg-transparent"
-                  onClick={() => {
-                    if (category.title === "Appliances & Fixtures") {
-                      setShowCatalog(true);
-                    }
-                  }}
+                  onClick={() => {}}
                 >
                   {category.title}
                 </Button>
@@ -215,7 +199,11 @@ const Toolbar = ({
                             }
                             className="w-full h-[60px] flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-gray-800 border-gray-700"
                             onClick={() => {
-                              if (
+                              if (item.id === "appliances") {
+                                setShowCatalog(true);
+                              } else if (item.category === "cabinets") {
+                                setShowCabinetDialog(true);
+                              } else if (
                                 ["wall", "room", "surface"].includes(item.id)
                               ) {
                                 onDrawingModeChange(
