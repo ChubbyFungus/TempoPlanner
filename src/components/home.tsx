@@ -5,28 +5,7 @@ import PropertiesPanel from "./floorplanner/PropertiesPanel";
 import ActionBar from "./floorplanner/ActionBar";
 import CatalogDialog from "./floorplanner/CatalogDialog";
 import { Button } from "./ui/button";
-import { ToolbarItem, CatalogItem } from "@/types/shared";
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface CanvasElement {
-  id: string;
-  type: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-  locked: boolean;
-  points?: Point[];
-  thickness?: number;
-  color?: string;
-  materialId?: string;
-  overlayId?: string;
-}
+import { ToolbarItem, CatalogItem, CanvasElement, Point, MaterialPreset, OverlayPreset } from "@/types/shared";
 
 const isCatalogItem = (item: ToolbarItem | CatalogItem): item is CatalogItem => {
   return 'model' in item && 'brand' in item;
@@ -131,13 +110,15 @@ const Home = () => {
   const handleItemDragStart = (item: ToolbarItem | CatalogItem) => {
     const newElement: CanvasElement = {
       id: `${item.id}-${Date.now()}`,
-      type: isCatalogItem(item) ? item.model : item.type,
+      type: isCatalogItem(item) ? `${item.brand.toLowerCase()}-${item.type}` : item.type,
       x: 0,
       y: 0,
       width: item.width || 60,
       height: item.height || 60,
       rotation: 0,
       locked: false,
+      materialPreset: isCatalogItem(item) ? item.materialPreset : undefined,
+      overlayPreset: isCatalogItem(item) ? item.overlayPreset : undefined,
     };
 
     setUndoStack([...undoStack, elements]);
@@ -210,6 +191,14 @@ const Home = () => {
     setSelectedElement(null);
   };
 
+  const handleLoadFloorplan = (loadedElements: CanvasElement[]) => {
+    setUndoStack([...undoStack, elements]);
+    setElements(loadedElements);
+    setRedoStack([]);
+    setSelectedElement(null);
+    setDrawingMode("");
+  };
+
   const handleSave = () => {
     const design = {
       elements,
@@ -242,8 +231,23 @@ const Home = () => {
         height: 200,
         rotation: 0,
         locked: false,
-        materialId: 'subZeroStainless',
-        overlayId: 'professionalBrushed'
+        materialPreset: {
+          category: 'appliances',
+          materialId: 'stainlessSteel',
+          settings: {
+            normalScale: 0.6,
+            roughness: 0.25,
+            metalness: 0.95,
+            displacementScale: 0.015
+          }
+        },
+        overlayPreset: {
+          type: 'brushed',
+          angle: 45,
+          opacity: 0.7,
+          scale: 20,
+          strength: 0.8
+        }
       },
       // Sub-Zero with black finish
       {
@@ -255,8 +259,23 @@ const Home = () => {
         height: 200,
         rotation: 0,
         locked: false,
-        materialId: 'subZeroBlack',
-        overlayId: 'obsidianMatte'
+        materialPreset: {
+          category: 'appliances',
+          materialId: 'blackSteel',
+          settings: {
+            normalScale: 0.4,
+            roughness: 0.2,
+            metalness: 0.9,
+            displacementScale: 0.01
+          }
+        },
+        overlayPreset: {
+          type: 'matte',
+          angle: 0,
+          opacity: 0.9,
+          scale: 1,
+          strength: 0.9
+        }
       },
       // Thermador Professional
       {
@@ -268,8 +287,23 @@ const Home = () => {
         height: 200,
         rotation: 0,
         locked: false,
-        materialId: 'thermadorProfessional',
-        overlayId: 'verticalBrushed'
+        materialPreset: {
+          category: 'appliances',
+          materialId: 'brushedSteel',
+          settings: {
+            normalScale: 0.7,
+            roughness: 0.35,
+            metalness: 0.9,
+            displacementScale: 0.02
+          }
+        },
+        overlayPreset: {
+          type: 'brushed',
+          angle: 90,
+          opacity: 0.6,
+          scale: 15,
+          strength: 0.7
+        }
       },
       // Liebherr with glass finish
       {
@@ -281,8 +315,23 @@ const Home = () => {
         height: 200,
         rotation: 0,
         locked: false,
-        materialId: 'liebherrBlueGlass',
-        overlayId: 'glassReflective'
+        materialPreset: {
+          category: 'appliances',
+          materialId: 'glass',
+          settings: {
+            normalScale: 0.2,
+            roughness: 0.1,
+            metalness: 0.9,
+            displacementScale: 0.005
+          }
+        },
+        overlayPreset: {
+          type: 'gloss',
+          angle: 0,
+          opacity: 0.3,
+          scale: 1,
+          strength: 0.95
+        }
       }
     ];
     setElements([...elements, ...testElements]);
@@ -303,8 +352,12 @@ const Home = () => {
         <ActionBar
           onUndo={handleUndo}
           onRedo={handleRedo}
+          onLoad={handleLoadFloorplan}
           onDelete={handleDeleteElement}
           onCatalogOpen={() => setCatalogOpen(true)}
+          canUndo={undoStack.length > 0}
+          canRedo={redoStack.length > 0}
+          elements={elements}
         />
         <div className="flex-1 relative">
           <Button
@@ -320,6 +373,7 @@ const Home = () => {
             onElementSelect={handleElementSelect}
             onElementMove={handleElementMove}
             selectedElement={selectedElement}
+            onCanvasClick={handleCanvasClick}
           />
         </div>
       </div>
@@ -327,6 +381,7 @@ const Home = () => {
         <PropertiesPanel
           element={selectedElement}
           onPropertyChange={handlePropertyChange}
+          onDelete={handleDeleteElement}
         />
       )}
       <CatalogDialog

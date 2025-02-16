@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CatalogItem } from "@/types/shared";
+import { createAppliancePreset } from "@/lib/materialPresetHelpers";
 import {
   Bath,
   Refrigerator,
@@ -19,6 +20,7 @@ import {
   Droplets,
   Fan,
 } from "lucide-react";
+import { MaterialCategory, MaterialId } from '@/types/materials';
 
 interface CatalogDialogProps {
   open: boolean;
@@ -44,34 +46,37 @@ const CatalogDialog = ({
           name: "Pro 48",
           brand: "Sub-Zero",
           model: "PRO48",
+          type: "sub-zero-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 48,
           height: 84,
           depth: 24,
-          description:
-            "Built-in side-by-side refrigerator with professional handles",
+          description: "Built-in side-by-side refrigerator with professional handles",
           price: "$19,500",
+          ...createAppliancePreset("Sub-Zero", "stainless")
         },
         {
           id: "thermador-freedom",
           name: "Freedom Collection",
           brand: "Thermador",
           model: "T36FT820NS",
+          type: "thermador-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
           height: 84,
           depth: 24,
-          description:
-            "French door refrigerator with custom panel ready design",
+          description: "French door refrigerator with custom panel ready design",
           price: "$11,299",
+          ...createAppliancePreset("Thermador", "stainless")
         },
         {
           id: "liebherr-monolith",
           name: "Monolith",
           brand: "Liebherr",
           model: "MRB3000",
+          type: "liebherr-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 30,
@@ -79,12 +84,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Built-in bottom freezer with BioFresh technology",
           price: "$14,999",
+          ...createAppliancePreset("Liebherr", "stainless")
         },
         {
           id: "miele-mastercool",
           name: "MasterCool",
           brand: "Miele",
           model: "KF2982Vi",
+          type: "miele-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -92,12 +99,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Built-in French door with MasterFresh drawers",
           price: "$16,299",
+          ...createAppliancePreset("Miele", "stainless")
         },
         {
           id: "viking-7-series",
           name: "7 Series",
           brand: "Viking",
           model: "VBI7360W",
+          type: "viking-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -105,12 +114,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Professional built-in with dual compressors",
           price: "$13,999",
+          ...createAppliancePreset("Viking", "stainless")
         },
         {
           id: "dacor-modernist",
           name: "Modernist",
           brand: "Dacor",
           model: "DRF36C000SR",
+          type: "dacor-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -118,12 +129,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Smart French door with dual ice maker",
           price: "$12,499",
+          ...createAppliancePreset("Dacor", "stainless")
         },
         {
           id: "jenn-air-rise",
           name: "RISE",
           brand: "JennAir",
           model: "JBRFR36NHL",
+          type: "jenn-air-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -131,12 +144,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Built-in French door with Obsidian interior",
           price: "$13,299",
+          ...createAppliancePreset("JennAir", "stainless")
         },
         {
           id: "gaggenau-vario",
           name: "Vario 400",
           brand: "Gaggenau",
           model: "RB492701",
+          type: "gaggenau-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -144,12 +159,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Bottom freezer with motorized shelf",
           price: "$17,999",
+          ...createAppliancePreset("Gaggenau", "stainless")
         },
         {
           id: "true-residential",
           name: "Professional",
           brand: "True Residential",
           model: "TR36",
+          type: "true-residential-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -157,12 +174,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Commercial-grade built-in refrigerator",
           price: "$18,499",
+          ...createAppliancePreset("True Residential", "stainless")
         },
         {
           id: "fisher-paykel-columns",
           name: "Columns",
           brand: "Fisher & Paykel",
           model: "RS36A72U1",
+          type: "fisher-paykel-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -170,12 +189,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Built-in column with Variable Temperature Zone",
           price: "$10,999",
+          ...createAppliancePreset("Fisher & Paykel", "stainless")
         },
         {
           id: "bertazzoni-column",
           name: "Built-in Column",
           brand: "Bertazzoni",
           model: "REF36RCPRL",
+          type: "bertazzoni-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -183,12 +204,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Professional series with FlexMode",
           price: "$11,499",
+          ...createAppliancePreset("Bertazzoni", "stainless")
         },
         {
           id: "smeg-portofino",
           name: "Portofino",
           brand: "SMEG",
           model: "REF36X",
+          type: "smeg-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -196,12 +219,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Retro-style built-in with MultiZone drawer",
           price: "$10,799",
+          ...createAppliancePreset("SMEG", "stainless")
         },
         {
           id: "monogram-column",
           name: "Statement",
           brand: "Monogram",
           model: "ZKCR362NN",
+          type: "monogram-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -209,12 +234,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Luxury built-in with Autofill pitcher",
           price: "$12,799",
+          ...createAppliancePreset("Monogram", "stainless")
         },
         {
           id: "fulgor-sofia",
           name: "Sofia Professional",
           brand: "Fulgor Milano",
           model: "F36BFPRO",
+          type: "fulgor-milano-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -222,12 +249,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Professional built-in with ProVent",
           price: "$11,999",
+          ...createAppliancePreset("Fulgor Milano", "stainless")
         },
         {
           id: "signature-column",
           name: "Signature",
           brand: "LG Signature",
           model: "UPXC3684N",
+          type: "lg-signature-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -235,12 +264,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Smart InstaView with CustomChill drawer",
           price: "$13,999",
+          ...createAppliancePreset("LG Signature", "stainless")
         },
         {
           id: "perlick-column",
           name: "Collection",
           brand: "Perlick",
           model: "RC36",
+          type: "perlick-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -248,12 +279,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Commercial-grade with QuatroCool",
           price: "$14,499",
+          ...createAppliancePreset("Perlick", "stainless")
         },
         {
           id: "blomberg-built-in",
           name: "Built-in",
           brand: "Blomberg",
           model: "BRFB1900FBI",
+          type: "blomberg-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -261,12 +294,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Premium built-in with Blue Light technology",
           price: "$9,999",
+          ...createAppliancePreset("Blomberg", "stainless")
         },
         {
           id: "beko-premium",
           name: "Premium",
           brand: "Beko",
           model: "BBBF3019IMWESS",
+          type: "beko-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -274,12 +309,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Built-in with NeoFrost dual cooling",
           price: "$9,799",
+          ...createAppliancePreset("Beko", "stainless")
         },
         {
           id: "fhiaba-stand",
           name: "StandPlus",
           brand: "Fhiaba",
           model: "XS8991TST6",
+          type: "fhiaba-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -287,12 +324,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Professional built-in with TriMode",
           price: "$16,999",
+          ...createAppliancePreset("Fhiaba", "stainless")
         },
         {
           id: "ilve-nostalgie",
           name: "Nostalgie",
           brand: "ILVE",
           model: "ILV36",
+          type: "ilve-refrigerator",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "refrigerators",
           width: 36,
@@ -300,6 +339,7 @@ const CatalogDialog = ({
           depth: 24,
           description: "Classic built-in with modern features",
           price: "$11,299",
+          ...createAppliancePreset("ILVE", "stainless")
         },
         // Add 18 more high-end refrigerators here
       ],
@@ -314,6 +354,7 @@ const CatalogDialog = ({
           name: "Dual Fuel Range",
           brand: "Wolf",
           model: "DF48650SP",
+          type: "wolf-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -322,12 +363,14 @@ const CatalogDialog = ({
           description:
             "48-inch dual-fuel range with 6 burners and infrared griddle",
           price: "$15,750",
+          ...createAppliancePreset("Wolf", "stainless")
         },
         {
           id: "la-cornue-chateau",
           name: "Château Series",
           brand: "La Cornue",
           model: "150",
+          type: "la-cornue-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 60,
@@ -335,12 +378,14 @@ const CatalogDialog = ({
           depth: 28,
           description: "Handcrafted luxury range with gas and electric options",
           price: "$159,000",
+          ...createAppliancePreset("La Cornue", "stainless")
         },
         {
           id: "viking-professional",
           name: "Professional Series",
           brand: "Viking",
           model: "VDR5606GSS",
+          type: "viking-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 60,
@@ -348,12 +393,14 @@ const CatalogDialog = ({
           depth: 29,
           description: "6-burner range with griddle and dual ovens",
           price: "$18,999",
+          ...createAppliancePreset("Viking", "stainless")
         },
         {
           id: "thermador-pro-grand",
           name: "Pro Grand",
           brand: "Thermador",
           model: "PRG486WLG",
+          type: "thermador-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -361,12 +408,14 @@ const CatalogDialog = ({
           depth: 28,
           description: "Steam and convection range with grill",
           price: "$14,999",
+          ...createAppliancePreset("Thermador", "stainless")
         },
         {
           id: "miele-range",
           name: "HR1956",
           brand: "Miele",
           model: "HR1956DFGD",
+          type: "miele-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -374,12 +423,14 @@ const CatalogDialog = ({
           depth: 27,
           description: "Dual fuel range with M Touch controls",
           price: "$16,999",
+          ...createAppliancePreset("Miele", "stainless")
         },
         {
           id: "dacor-modernist",
           name: "Modernist",
           brand: "Dacor",
           model: "DOP48M96DLS",
+          type: "dacor-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -387,12 +438,14 @@ const CatalogDialog = ({
           depth: 28,
           description: "Smart dual-fuel range with steam",
           price: "$15,299",
+          ...createAppliancePreset("Dacor", "stainless")
         },
         {
           id: "monogram-statement",
           name: "Statement",
           brand: "Monogram",
           model: "ZDP486NDTSS",
+          type: "monogram-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -400,12 +453,14 @@ const CatalogDialog = ({
           depth: 29,
           description: "Dual-fuel professional range",
           price: "$13,999",
+          ...createAppliancePreset("Monogram", "stainless")
         },
         {
           id: "fisher-paykel-pro",
           name: "Professional",
           brand: "Fisher & Paykel",
           model: "RDV3-488",
+          type: "fisher-paykel-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -413,12 +468,14 @@ const CatalogDialog = ({
           depth: 29,
           description: "Dual fuel range with induction top",
           price: "$12,999",
+          ...createAppliancePreset("Fisher & Paykel", "stainless")
         },
         {
           id: "bertazzoni-heritage",
           name: "Heritage Series",
           brand: "Bertazzoni",
           model: "HERT486GGASNE",
+          type: "bertazzoni-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -426,12 +483,14 @@ const CatalogDialog = ({
           depth: 25,
           description: "6-burner gas range with electric oven",
           price: "$11,999",
+          ...createAppliancePreset("Bertazzoni", "stainless")
         },
         {
           id: "ilve-majestic",
           name: "Majestic II",
           brand: "ILVE",
           model: "UMD10FDNS3",
+          type: "ilve-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 40,
@@ -439,12 +498,14 @@ const CatalogDialog = ({
           depth: 27,
           description: "Dual fuel range with brass trim",
           price: "$13,499",
+          ...createAppliancePreset("ILVE", "stainless")
         },
         {
           id: "smeg-opera",
           name: "Opera Series",
           brand: "SMEG",
           model: "A4BL-8",
+          type: "smeg-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -452,12 +513,14 @@ const CatalogDialog = ({
           depth: 27,
           description: "Dual fuel range with color display",
           price: "$10,999",
+          ...createAppliancePreset("SMEG", "stainless")
         },
         {
           id: "fulgor-sofia",
           name: "Sofia Professional",
           brand: "Fulgor Milano",
           model: "F6PDF486",
+          type: "fulgor-milano-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -465,12 +528,14 @@ const CatalogDialog = ({
           depth: 27,
           description: "Dual fuel range with triple ring burner",
           price: "$12,499",
+          ...createAppliancePreset("Fulgor Milano", "stainless")
         },
         {
           id: "jenn-air-rise",
           name: "RISE",
           brand: "JennAir",
           model: "JDRP548HL",
+          type: "jenn-air-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -478,12 +543,14 @@ const CatalogDialog = ({
           depth: 29,
           description: "Dual fuel pro-style range",
           price: "$14,299",
+          ...createAppliancePreset("JennAir", "stainless")
         },
         {
           id: "gaggenau-400",
           name: "400 Series",
           brand: "Gaggenau",
           model: "RG492701",
+          type: "gaggenau-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -491,12 +558,14 @@ const CatalogDialog = ({
           depth: 28,
           description: "Gas range with wok burner",
           price: "$15,999",
+          ...createAppliancePreset("Gaggenau", "stainless")
         },
         {
           id: "bluestar-platinum",
           name: "Platinum Series",
           brand: "BlueStar",
           model: "BSP6010B",
+          type: "blue-star-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 60,
@@ -504,12 +573,14 @@ const CatalogDialog = ({
           depth: 30,
           description: "Restaurant-style range with charbroiler",
           price: "$16,995",
+          ...createAppliancePreset("BlueStar", "stainless")
         },
         {
           id: "capital-culinarian",
           name: "Culinarian",
           brand: "Capital",
           model: "CGSR604B4",
+          type: "capital-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 60,
@@ -517,12 +588,14 @@ const CatalogDialog = ({
           depth: 29,
           description: "Professional gas range with BBQ grill",
           price: "$17,499",
+          ...createAppliancePreset("Capital", "stainless")
         },
         {
           id: "hallman-dual-fuel",
           name: "Dual Fuel Pro",
           brand: "Hallman",
           model: "HGR60FDBL",
+          type: "hallman-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 60,
@@ -530,12 +603,14 @@ const CatalogDialog = ({
           depth: 27,
           description: "Italian-made range with brass burners",
           price: "$11,999",
+          ...createAppliancePreset("Hallman", "stainless")
         },
         {
           id: "tecnogas-superiore",
           name: "Superiore",
           brand: "Tecnogas",
           model: "DECO6",
+          type: "tecnogas-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -543,12 +618,14 @@ const CatalogDialog = ({
           depth: 27,
           description: "Italian luxury range with color options",
           price: "$13,999",
+          ...createAppliancePreset("Tecnogas", "stainless")
         },
         {
           id: "american-range-performer",
           name: "Performer Series",
           brand: "American Range",
           model: "ARR660",
+          type: "american-range-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 60,
@@ -556,12 +633,14 @@ const CatalogDialog = ({
           depth: 29,
           description: "Commercial-style range with convection",
           price: "$15,999",
+          ...createAppliancePreset("American Range", "stainless")
         },
         {
           id: "dcs-professional",
           name: "Professional",
           brand: "DCS",
           model: "RGV2488N",
+          type: "dcs-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 48,
@@ -569,12 +648,14 @@ const CatalogDialog = ({
           depth: 29,
           description: "Pro-style range with LED lighting",
           price: "$12,999",
+          ...createAppliancePreset("DCS", "stainless")
         },
         {
           id: "verona-prestige",
           name: "Prestige Series",
           brand: "Verona",
           model: "VPFSGE660D",
+          type: "verona-range",
           image: "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1",
           category: "ranges",
           width: 60,
@@ -582,6 +663,7 @@ const CatalogDialog = ({
           depth: 27,
           description: "Double oven range with griddle",
           price: "$10,999",
+          ...createAppliancePreset("Verona", "stainless")
         },
       ],
     },
@@ -595,6 +677,7 @@ const CatalogDialog = ({
           name: "G7966 SCVi SF",
           brand: "Miele",
           model: "G7966SCViSF",
+          type: "miele-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -602,12 +685,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Fully integrated dishwasher with AutoDos",
           price: "$2,999",
+          ...createAppliancePreset("Miele", "stainless")
         },
         {
           id: "bosch-benchmark",
           name: "Benchmark",
           brand: "Bosch",
           model: "SHV89PW73N",
+          type: "bosch-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -615,12 +700,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Panel ready with CrystalDry technology",
           price: "$2,699",
+          ...createAppliancePreset("Bosch", "stainless")
         },
         {
           id: "thermador-sapphire",
           name: "Sapphire",
           brand: "Thermador",
           model: "DWHD870WFP",
+          type: "thermador-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -628,12 +715,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Star-Sapphire with illuminated interior",
           price: "$2,899",
+          ...createAppliancePreset("Thermador", "stainless")
         },
         {
           id: "gaggenau-400",
           name: "400 Series",
           brand: "Gaggenau",
           model: "DF481763",
+          type: "gaggenau-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -641,12 +730,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Push-to-open with flexible rack system",
           price: "$3,299",
+          ...createAppliancePreset("Gaggenau", "stainless")
         },
         {
           id: "viking-professional",
           name: "Professional",
           brand: "Viking",
           model: "VDW524SS",
+          type: "viking-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -654,12 +745,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Multi-level PowerWash system",
           price: "$2,199",
+          ...createAppliancePreset("Viking", "stainless")
         },
         {
           id: "dacor-modernist",
           name: "Modernist",
           brand: "Dacor",
           model: "DDW24M999US",
+          type: "dacor-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -667,12 +760,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "WaterWall with Zone Booster",
           price: "$2,399",
+          ...createAppliancePreset("Dacor", "stainless")
         },
         {
           id: "fisher-paykel-pro",
           name: "Professional",
           brand: "Fisher & Paykel",
           model: "DD24DTI9 N",
+          type: "fisher-paykel-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -680,12 +775,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Double DishDrawer with sanitize",
           price: "$1,899",
+          ...createAppliancePreset("Fisher & Paykel", "stainless")
         },
         {
           id: "asko-pro",
           name: "Pro Series",
           brand: "ASKO",
           model: "DFI676GXXL",
+          type: "asko-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -693,12 +790,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Turbo Drying with 9 spray zones",
           price: "$2,099",
+          ...createAppliancePreset("ASKO", "stainless")
         },
         {
           id: "jenn-air-rise",
           name: "RISE",
           brand: "JennAir",
           model: "JDTSS246GP",
+          type: "jenn-air-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -706,12 +805,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Trifecta Wash System with LED lighting",
           price: "$2,299",
+          ...createAppliancePreset("JennAir", "stainless")
         },
         {
           id: "monogram-pro",
           name: "Professional",
           brand: "Monogram",
           model: "ZDT985SPNSS",
+          type: "monogram-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -719,12 +820,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Third rack with bottle jets",
           price: "$2,199",
+          ...createAppliancePreset("Monogram", "stainless")
         },
         {
           id: "wolf-id24",
           name: "ID24",
           brand: "Wolf",
           model: "ID24F",
+          type: "wolf-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -732,12 +835,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Integrated with Quick Start",
           price: "$2,099",
+          ...createAppliancePreset("Wolf", "stainless")
         },
         {
           id: "bertazzoni-pro",
           name: "Professional Series",
           brand: "Bertazzoni",
           model: "DW24PR",
+          type: "bertazzoni-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -745,12 +850,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "ProWash with flexible racks",
           price: "$1,999",
+          ...createAppliancePreset("Bertazzoni", "stainless")
         },
         {
           id: "smeg-linea",
           name: "Linea",
           brand: "SMEG",
           model: "STU8649",
+          type: "smeg-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -758,12 +865,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Orbital wash system with wine glass holder",
           price: "$2,099",
+          ...createAppliancePreset("SMEG", "stainless")
         },
         {
           id: "fulgor-sofia",
           name: "Sofia Professional",
           brand: "Fulgor Milano",
           model: "F6DW24",
+          type: "fulgor-milano-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -771,12 +880,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "ProClean with zone wash",
           price: "$1,899",
+          ...createAppliancePreset("Fulgor Milano", "stainless")
         },
         {
           id: "signature-panel",
           name: "Signature",
           brand: "LG Signature",
           model: "LUDP8997SN",
+          type: "lg-signature-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -784,12 +895,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "TrueSteam with QuadWash",
           price: "$1,999",
+          ...createAppliancePreset("LG Signature", "stainless")
         },
         {
           id: "cove-24",
           name: "Series 24",
           brand: "Cove",
           model: "DW2450",
+          type: "cove-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -797,12 +910,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Interior lighting with smart features",
           price: "$2,499",
+          ...createAppliancePreset("Cove", "stainless")
         },
         {
           id: "liebherr-premium",
           name: "Premium Plus",
           brand: "Liebherr",
           model: "SBS26S2",
+          type: "liebherr-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -810,12 +925,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "BioFresh with PowerCooling",
           price: "$2,299",
+          ...createAppliancePreset("Liebherr", "stainless")
         },
         {
           id: "beko-premium",
           name: "Premium",
           brand: "Beko",
           model: "DDT39434X",
+          type: "beko-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -823,12 +940,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "AquaIntense with ProSmart Inverter",
           price: "$1,799",
+          ...createAppliancePreset("Beko", "stainless")
         },
         {
           id: "ilve-pro",
           name: "Professional Plus",
           brand: "ILVE",
           model: "ILDW24",
+          type: "ilve-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -836,12 +955,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Turbo Drying Plus with ProWash",
           price: "$1,899",
+          ...createAppliancePreset("ILVE", "stainless")
         },
         {
           id: "verona-prestige",
           name: "Prestige",
           brand: "Verona",
           model: "VEDW24",
+          type: "verona-dishwasher",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "dishwashers",
           width: 24,
@@ -849,6 +970,7 @@ const CatalogDialog = ({
           depth: 24,
           description: "Premium wash system with delay start",
           price: "$1,699",
+          ...createAppliancePreset("Verona", "stainless")
         },
       ],
     },
@@ -862,6 +984,7 @@ const CatalogDialog = ({
           name: "400 Series",
           brand: "Gaggenau",
           model: "BO480613",
+          type: "gaggenau-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -869,12 +992,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Single wall oven with 17 heating methods",
           price: "$8,999",
+          ...createAppliancePreset("Gaggenau", "stainless")
         },
         {
           id: "wolf-m-series",
           name: "M Series",
           brand: "Wolf",
           model: "SO30PM/S/PH",
+          type: "wolf-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -882,12 +1007,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Professional double oven with dual convection",
           price: "$9,400",
+          ...createAppliancePreset("Wolf", "stainless")
         },
         {
           id: "miele-dgc",
           name: "DGC",
           brand: "Miele",
           model: "DGC6865",
+          type: "miele-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -895,12 +1022,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Combination steam oven with M Touch",
           price: "$8,799",
+          ...createAppliancePreset("Miele", "stainless")
         },
         {
           id: "thermador-masterpiece",
           name: "Masterpiece",
           brand: "Thermador",
           model: "ME302WS",
+          type: "thermador-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -908,12 +1037,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Triple convection wall oven",
           price: "$7,999",
+          ...createAppliancePreset("Thermador", "stainless")
         },
         {
           id: "dacor-contemporary",
           name: "Contemporary",
           brand: "Dacor",
           model: "DOB30M977SS",
+          type: "dacor-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -921,12 +1052,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Smart wall oven with Steam Bake",
           price: "$7,299",
+          ...createAppliancePreset("Dacor", "stainless")
         },
         {
           id: "jenn-air-noir",
           name: "NOIR",
           brand: "JennAir",
           model: "JJW3830HL",
+          type: "jenn-air-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -934,12 +1067,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "V2 vertical dual-fan convection",
           price: "$6,999",
+          ...createAppliancePreset("JennAir", "stainless")
         },
         {
           id: "viking-7-series-oven",
           name: "7 Series",
           brand: "Viking",
           model: "VSOE730SS",
+          type: "viking-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -947,12 +1082,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "French-door wall oven with LCD display",
           price: "$8,499",
+          ...createAppliancePreset("Viking", "stainless")
         },
         {
           id: "monogram-statement-oven",
           name: "Statement",
           brand: "Monogram",
           model: "ZTS90DPSNSS",
+          type: "monogram-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -960,12 +1097,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Professional wall oven with hot air fry",
           price: "$7,699",
+          ...createAppliancePreset("Monogram", "stainless")
         },
         {
           id: "fisher-paykel-series-9",
           name: "Series 9",
           brand: "Fisher & Paykel",
           model: "OB30DTEPX3",
+          type: "fisher-paykel-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -973,12 +1112,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Touchscreen wall oven with food probe",
           price: "$6,499",
+          ...createAppliancePreset("Fisher & Paykel", "stainless")
         },
         {
           id: "bertazzoni-master",
           name: "Master Series",
           brand: "Bertazzoni",
           model: "MASFS30XT",
+          type: "bertazzoni-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -986,12 +1127,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Speed oven with microwave function",
           price: "$5,999",
+          ...createAppliancePreset("Bertazzoni", "stainless")
         },
         {
           id: "smeg-linea-oven",
           name: "Linea",
           brand: "SMEG",
           model: "SOU330X1",
+          type: "smeg-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -999,12 +1142,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Multi-function oven with pizza stone",
           price: "$5,499",
+          ...createAppliancePreset("SMEG", "stainless")
         },
         {
           id: "fulgor-sofia-oven",
           name: "Sofia Professional",
           brand: "Fulgor Milano",
           model: "F7SP30S1",
+          type: "fulgor-milano-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -1012,12 +1157,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Steam assist oven with meat probe",
           price: "$6,299",
+          ...createAppliancePreset("Fulgor Milano", "stainless")
         },
         {
           id: "ilve-majestic-oven",
           name: "Majestic II",
           brand: "ILVE",
           model: "ILV30PWV",
+          type: "ilve-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -1025,12 +1172,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Multi-function oven with rotisserie",
           price: "$5,799",
+          ...createAppliancePreset("ILVE", "stainless")
         },
         {
           id: "signature-column-oven",
           name: "Signature",
           brand: "LG Signature",
           model: "UPWS3044ST",
+          type: "lg-signature-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -1038,12 +1187,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Smart ThinQ wall oven with ProBake",
           price: "$4,999",
+          ...createAppliancePreset("LG Signature", "stainless")
         },
         {
           id: "bosch-benchmark-oven",
           name: "Benchmark",
           brand: "Bosch",
           model: "HBLP752UC",
+          type: "bosch-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -1051,12 +1202,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "SideOpening door with HomeConnect",
           price: "$5,299",
+          ...createAppliancePreset("Bosch", "stainless")
         },
         {
           id: "cafe-pro",
           name: "Professional",
           brand: "Café",
           model: "CTS90DP2NS1",
+          type: "cafe-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -1064,12 +1217,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "French-door oven with precision cooking",
           price: "$5,199",
+          ...createAppliancePreset("Café", "stainless")
         },
         {
           id: "kitchenaid-smart",
           name: "Smart Oven+",
           brand: "KitchenAid",
           model: "KOSE900HSS",
+          type: "kitchenaid-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -1077,12 +1232,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Connected wall oven with powered attachments",
           price: "$4,799",
+          ...createAppliancePreset("KitchenAid", "stainless")
         },
         {
           id: "verona-designer",
           name: "Designer Series",
           brand: "Verona",
           model: "VEBIEM3030SS",
+          type: "verona-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -1090,12 +1247,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "European convection with dual fans",
           price: "$4,599",
+          ...createAppliancePreset("Verona", "stainless")
         },
         {
           id: "liebherr-oven",
           name: "Premium Plus",
           brand: "Liebherr",
           model: "HWO060P",
+          type: "liebherr-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -1103,12 +1262,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Pyrolytic self-cleaning with food probe",
           price: "$4,999",
+          ...createAppliancePreset("Liebherr", "stainless")
         },
         {
           id: "aeg-mastery",
           name: "Mastery Range",
           brand: "AEG",
           model: "BSE792320M",
+          type: "aeg-oven",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ovens",
           width: 30,
@@ -1116,6 +1277,7 @@ const CatalogDialog = ({
           depth: 24,
           description: "SteamPro with sous vide function",
           price: "$4,699",
+          ...createAppliancePreset("AEG", "stainless")
         },
       ],
     },
@@ -1129,6 +1291,7 @@ const CatalogDialog = ({
           name: "Sorpresa",
           brand: "Best",
           model: "IS70IQ12SB",
+          type: "best-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 70,
@@ -1136,12 +1299,14 @@ const CatalogDialog = ({
           depth: 20,
           description: "Island-mount range hood with perimeter aspiration",
           price: "$3,499",
+          ...createAppliancePreset("Best", "stainless")
         },
         {
           id: "wolf-pro-hood",
           name: "Pro Wall Hood",
           brand: "Wolf",
           model: "PW482718",
+          type: "wolf-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1149,12 +1314,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Professional wall hood with heat lamps",
           price: "$4,299",
+          ...createAppliancePreset("Wolf", "stainless")
         },
         {
           id: "miele-da6708",
           name: "DA 6708",
           brand: "Miele",
           model: "DA6708D",
+          type: "miele-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1162,12 +1329,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Island hood with Con@ctivity",
           price: "$4,599",
+          ...createAppliancePreset("Miele", "stainless")
         },
         {
           id: "thermador-professional",
           name: "Professional Series",
           brand: "Thermador",
           model: "HPCN48NS",
+          type: "thermador-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1175,12 +1344,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Low-profile canopy hood",
           price: "$3,799",
+          ...createAppliancePreset("Thermador", "stainless")
         },
         {
           id: "viking-5-series",
           name: "5 Series",
           brand: "Viking",
           model: "VWH548481SS",
+          type: "viking-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1188,12 +1359,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Wall mount hood with heat sensor",
           price: "$3,999",
+          ...createAppliancePreset("Viking", "stainless")
         },
         {
           id: "dacor-modernist-hood",
           name: "Modernist",
           brand: "Dacor",
           model: "DHD48M967WS",
+          type: "dacor-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1201,12 +1374,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Smart wall hood with auto function",
           price: "$3,699",
+          ...createAppliancePreset("Dacor", "stainless")
         },
         {
           id: "zephyr-roma",
           name: "Roma Pro",
           brand: "Zephyr",
           model: "ZRM-E48DS",
+          type: "zephyr-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1214,12 +1389,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Pro-style hood with ICON Touch",
           price: "$2,999",
+          ...createAppliancePreset("Zephyr", "stainless")
         },
         {
           id: "fisher-paykel-hood",
           name: "Professional",
           brand: "Fisher & Paykel",
           model: "HC48PHTX1",
+          type: "fisher-paykel-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1227,12 +1404,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Power pack hood with LED lighting",
           price: "$2,799",
+          ...createAppliancePreset("Fisher & Paykel", "stainless")
         },
         {
           id: "faber-stratus",
           name: "Stratus",
           brand: "Faber",
           model: "STRS48SS",
+          type: "faber-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1240,12 +1419,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Island hood with ambient light",
           price: "$3,299",
+          ...createAppliancePreset("Faber", "stainless")
         },
         {
           id: "vent-a-hood-pro",
           name: "Professional",
           brand: "Vent-A-Hood",
           model: "PRH18-248",
+          type: "vent-a-hood-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1253,12 +1434,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Magic Lung blower system",
           price: "$3,199",
+          ...createAppliancePreset("Vent-A-Hood", "stainless")
         },
         {
           id: "bertazzoni-kg",
           name: "K&G Series",
           brand: "Bertazzoni",
           model: "KG48XV",
+          type: "bertazzoni-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1266,12 +1449,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Professional wall mount hood",
           price: "$2,899",
+          ...createAppliancePreset("Bertazzoni", "stainless")
         },
         {
           id: "smeg-portofino-hood",
           name: "Portofino",
           brand: "SMEG",
           model: "KPF48X",
+          type: "smeg-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1279,12 +1464,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Chimney hood with perimeter extraction",
           price: "$2,699",
+          ...createAppliancePreset("SMEG", "stainless")
         },
         {
           id: "fulgor-sofia-hood",
           name: "Sofia Professional",
           brand: "Fulgor Milano",
           model: "F4PI48S1",
+          type: "fulgor-milano-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1292,12 +1479,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Island hood with touch controls",
           price: "$3,099",
+          ...createAppliancePreset("Fulgor Milano", "stainless")
         },
         {
           id: "ilve-majestic-hood",
           name: "Majestic II",
           brand: "ILVE",
           model: "UAM150",
+          type: "ilve-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1305,12 +1494,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Wall mount hood with brass accents",
           price: "$3,399",
+          ...createAppliancePreset("ILVE", "stainless")
         },
         {
           id: "signature-hood",
           name: "Signature",
           brand: "LG Signature",
           model: "UPLED48",
+          type: "lg-signature-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1318,12 +1509,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Smart hood with auto sensing",
           price: "$2,999",
+          ...createAppliancePreset("LG Signature", "stainless")
         },
         {
           id: "gaggenau-400-hood",
           name: "400 Series",
           brand: "Gaggenau",
           model: "AW442720",
+          type: "gaggenau-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1331,12 +1524,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Wall-mounted hood with guided air",
           price: "$4,799",
+          ...createAppliancePreset("Gaggenau", "stainless")
         },
         {
           id: "monogram-pro-hood",
           name: "Professional",
           brand: "Monogram",
           model: "ZV48SSJSS",
+          type: "monogram-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1344,12 +1539,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Pro hood with vertical extraction",
           price: "$3,599",
+          ...createAppliancePreset("Monogram", "stainless")
         },
         {
           id: "jenn-air-pro-hood",
           name: "Pro-Style",
           brand: "JennAir",
           model: "JXW8948HS",
+          type: "jenn-air-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1357,12 +1554,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "Commercial-style hood with baffle filters",
           price: "$3,299",
+          ...createAppliancePreset("JennAir", "stainless")
         },
         {
           id: "kobe-premium",
           name: "Premium Series",
           brand: "KOBE",
           model: "RA3830SQB",
+          type: "kobe-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1370,12 +1569,14 @@ const CatalogDialog = ({
           depth: 24,
           description: "QuietMode hood with ECO mode",
           price: "$2,499",
+          ...createAppliancePreset("KOBE", "stainless")
         },
         {
           id: "air-king-pro",
           name: "Professional",
           brand: "Air King",
           model: "ESDQ48",
+          type: "air-king-ventilation",
           image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30",
           category: "ventilation",
           width: 48,
@@ -1383,6 +1584,7 @@ const CatalogDialog = ({
           depth: 24,
           description: "Energy Star qualified hood",
           price: "$1,999",
+          ...createAppliancePreset("Air King", "stainless")
         },
       ],
     },

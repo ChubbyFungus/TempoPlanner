@@ -1,0 +1,94 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "Manual"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [0]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "name": "Refrigerator"
+    }
+  ],
+  "materials": [
+    {
+      "name": "RefrigeratorMaterial",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [0.8, 0.8, 0.8, 1.0],
+        "metallicFactor": 0.9,
+        "roughnessFactor": 0.3
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "refrigerator_basic.bin",
+      "byteLength": 2880
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 1152,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1152,
+      "byteLength": 1152,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2304,
+      "byteLength": 576,
+      "target": 34962
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 96,
+      "type": "VEC3",
+      "min": [-0.5, -1.0, -0.4],
+      "max": [0.5, 1.0, 0.4]
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 96,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 96,
+      "type": "VEC2"
+    }
+  ]
+} 

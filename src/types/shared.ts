@@ -1,4 +1,46 @@
+import { MaterialCategory, MaterialId } from './materials';
 import { ReactNode } from 'react';
+
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface MaterialPreset {
+  category: MaterialCategory;
+  materialId: MaterialId;
+  settings: {
+    normalScale: number;
+    roughness: number;
+    metalness: number;
+    displacementScale: number;
+  };
+}
+
+export interface OverlayPreset {
+  type: "brushed" | "matte" | "gloss" | "textured";
+  angle: number;
+  opacity: number;
+  scale: number;
+  strength: number;
+}
+
+export interface CanvasElement {
+  id: string;
+  type: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  depth?: number;
+  rotation: number;
+  locked: boolean;
+  points?: Point[];
+  thickness?: number;
+  color?: string;
+  materialPreset?: MaterialPreset;
+  overlayPreset?: OverlayPreset;
+}
 
 export interface ToolbarItem {
   id: string;
@@ -10,16 +52,30 @@ export interface ToolbarItem {
   height?: number;
 }
 
-export interface CatalogItem {
-  id: string;
-  name: string;
+export interface CatalogItem extends ToolbarItem {
   brand: string;
   model: string;
   image: string;
-  category: string;
   width: number;
   height: number;
   depth: number;
   description: string;
-  price?: string;
+  price: string;
+  materialPreset: {
+    category: MaterialCategory;
+    materialId: MaterialId;
+    settings: {
+      normalScale: number;
+      roughness: number;
+      metalness: number;
+      displacementScale: number;
+    };
+  };
+  overlayPreset: {
+    type: 'brushed' | 'matte' | 'gloss' | 'textured';
+    angle: number;
+    opacity: number;
+    scale: number;
+    strength: number;
+  };
 } 
