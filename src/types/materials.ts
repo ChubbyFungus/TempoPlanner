@@ -1,3 +1,68 @@
+import { Vector2 } from 'three';
+
+// Material Categories
+export type MaterialCategory = 
+  | 'appliances'
+  | 'countertops'
+  | 'flooring'
+  | 'walls';
+
+// Material IDs
+export type MaterialId = 
+  | 'stainlessSteel'
+  | 'blackSteel'
+  | 'glass'
+  | 'brushedSteel'
+  | 'granite'
+  | 'marble'
+  | 'quartz'
+  | 'hardwood'
+  | 'tile'
+  | 'concrete'
+  | 'paint'
+  | 'stone';
+
+// Material Settings Interface
+export interface MaterialSettings {
+  normalScale: number;
+  roughness: number;
+  metalness: number;
+  displacementScale: number;
+  textureScale: Vector2;
+}
+
+// PBR Material Interface
+export interface PBRMaterial {
+  category: MaterialCategory;
+  materialId: MaterialId;
+  settings: MaterialSettings;
+}
+
+// Material Textures Interface
+export interface MaterialTextures {
+  baseColorMap?: string;
+  normalMap?: string;
+  roughnessMap?: string;
+  metalnessMap?: string;
+  displacementMap?: string;
+}
+
+// Material IDs constant
+export const MATERIAL_IDS = [
+  'stainlessSteel',
+  'blackSteel',
+  'glass',
+  'brushedSteel',
+  'granite',
+  'marble',
+  'quartz',
+  'hardwood',
+  'tile',
+  'concrete',
+  'paint',
+  'stone'
+] as const;
+
 export interface MaterialDefinition {
   id: string;
   name: string;
