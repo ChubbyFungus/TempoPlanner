@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Save, FolderOpen, Undo, Redo, Plus } from "lucide-react";
+import { Save, FolderOpen, Undo, Redo } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -62,24 +62,6 @@ const ActionBar = ({
             </TooltipTrigger>
             <TooltipContent>
               <p>Redo</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                onClick={onAddAppliance}
-                className="flex items-center gap-2 ml-4"
-              >
-                <Plus className="h-4 w-4" />
-                Add Appliance
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Add Appliance or Fixture</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
