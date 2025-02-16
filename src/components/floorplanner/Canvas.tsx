@@ -127,19 +127,32 @@ const Canvas = ({
         className={`${drawingMode ? "cursor-crosshair" : "cursor-default"}`}
       >
         <defs>
-          <pattern
-            id="fridgePattern"
-            patternUnits="objectBoundingBox"
-            width="1"
-            height="1"
-          >
-            <image
-              href={fridgetopImage}
-              width="100%"
-              height="100%"
-              preserveAspectRatio="none"
-            />
-          </pattern>
+          {elements.map((element) => {
+            if (element.type.includes("sub-zero") ||
+                element.type.includes("thermador") ||
+                element.type.includes("liebherr") ||
+                element.type.includes("refrigerator")) {
+              return (
+                <pattern
+                  key={`pattern-${element.id}`}
+                  id={`fridgePattern-${element.id}`}
+                  patternUnits="userSpaceOnUse"
+                  width={element.width}
+                  height={element.height}
+                >
+                  <image
+                    href={fridgetopImage}
+                    x="0"
+                    y="0"
+                    width={element.width}
+                    height={element.height}
+                    preserveAspectRatio="xMidYMid slice"
+                  />
+                </pattern>
+              );
+            }
+            return null;
+          })}
         </defs>
         <g
           onClick={(e) => {
@@ -299,7 +312,7 @@ const Canvas = ({
                     <rect
                       width={element.width}
                       height={element.height}
-                      fill="url(#fridgePattern)"
+                      fill={`url(#fridgePattern-${element.id})`}
                     />
                   ) : (
                     <>
