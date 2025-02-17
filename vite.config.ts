@@ -1,35 +1,43 @@
-import path from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import { tempo } from "tempo-devtools/dist/vite";
+import { resolve } from "path";
 
-const conditionalPlugins: [string, Record<string, any>][] = [];
-
-// @ts-ignore
+const conditionalPlugins = [];
 if (process.env.TEMPO === "true") {
   conditionalPlugins.push(["tempo-devtools/swc", {}]);
 }
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  base: process.env.NODE_ENV === "development" ? "/" : process.env.VITE_BASE_PATH || "/",
   optimizeDeps: {
-    entries: ["src/main.tsx", "src/tempobook/**/*"],
+    include: ["three"],
+    exclude: [],
+  },
+  define: {
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
   },
   plugins: [
     react({
-      plugins: conditionalPlugins,
+      plugins: [...conditionalPlugins],
     }),
     tempo(),
   ],
-  resolve: {
-    preserveSymlinks: true,
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
   server: {
     // @ts-ignore
-    allowedHosts: true,
-  }
+    allowedHosts: process.env.TEMPO === "true" ? true : undefined,
+  },
+  build: {
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
+    },
+    rollupOptions: {
+      external: ["@google/model-viewer"],
+    },
+  },
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "./src"),
+    },
+  },
 });

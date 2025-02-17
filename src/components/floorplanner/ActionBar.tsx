@@ -1,146 +1,34 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Save, FolderOpen, Undo, Redo, ZoomIn, ZoomOut } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { SaveLoadDialog } from "./SaveLoadDialog";
-import { CanvasElement } from "@/types/shared";
+import React from "react";
+import { Button } from "../ui/button";
+import { View, Box } from "lucide-react";
 
-interface ActionBarProps {
-  onSave?: () => void;
-  onLoad?: (elements: CanvasElement[]) => void;
-  onUndo?: () => void;
-  onRedo?: () => void;
-  onZoomIn?: () => void;
-  onZoomOut?: () => void;
-  onAddAppliance?: () => void;
-  canUndo?: boolean;
-  canRedo?: boolean;
-  onDelete: () => void;
-  onCatalogOpen: () => void;
-  elements: CanvasElement[];
+interface Props {
+  viewMode?: "2d" | "3d";
+  onViewModeChange?: (mode: "2d" | "3d") => void;
 }
 
-const ActionBar = ({
-  onSave = () => console.log("Save clicked"),
-  onLoad = () => console.log("Load clicked"),
-  onUndo = () => console.log("Undo clicked"),
-  onRedo = () => console.log("Redo clicked"),
-  onZoomIn = () => console.log("Zoom in clicked"),
-  onZoomOut = () => console.log("Zoom out clicked"),
-  onAddAppliance = () => console.log("Add appliance clicked"),
-  canUndo = false,
-  canRedo = false,
-  onDelete,
-  onCatalogOpen,
-  elements,
-}: ActionBarProps) => {
-  const [saveLoadOpen, setSaveLoadOpen] = useState(false);
-
+const ActionBar = ({ viewMode = "2d", onViewModeChange }: Props) => {
   return (
-    <>
-      <div className="w-full h-[60px] bg-white border-b border-gray-200 px-4 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={onUndo}
-                  disabled={!canUndo}
-                >
-                  <Undo className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Undo</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={onRedo}
-                  disabled={!canRedo}
-                >
-                  <Redo className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Redo</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={onZoomIn}
-                >
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Zoom In</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={onZoomOut}
-                >
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Zoom Out</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setSaveLoadOpen(true)}
-                >
-                  <Save className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Save/Load Floorplan</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+    <div className="h-[60px] border-b flex items-center px-4 justify-between bg-background">
+      <div className="flex items-center gap-2">
+        <Button
+          variant={viewMode === "2d" ? "default" : "outline"}
+          size="sm"
+          onClick={() => onViewModeChange?.("2d")}
+        >
+          <View className="w-4 h-4 mr-2" />
+          2D
+        </Button>
+        <Button
+          variant={viewMode === "3d" ? "default" : "outline"}
+          size="sm"
+          onClick={() => onViewModeChange?.("3d")}
+        >
+          <Box className="w-4 h-4 mr-2" />
+          3D
+        </Button>
       </div>
-
-      <SaveLoadDialog
-        open={saveLoadOpen}
-        onOpenChange={setSaveLoadOpen}
-        onLoad={onLoad}
-        currentElements={elements}
-      />
-    </>
+    </div>
   );
 };
 

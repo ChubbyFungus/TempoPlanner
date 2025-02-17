@@ -1,6 +1,12 @@
-import * as THREE from 'three';
-import { TextureLoader } from 'three';
-import { MaterialCategory, MaterialId, PBRMaterial, MaterialTextures, MATERIAL_IDS } from '@/types/materials';
+import * as THREE from "three";
+import { TextureLoader } from "three";
+import {
+  MaterialCategory,
+  MaterialId,
+  PBRMaterial,
+  MaterialTextures,
+  MATERIAL_IDS,
+} from "@/types/materials";
 
 // Singleton texture loader
 const textureLoader = new TextureLoader();
@@ -15,11 +21,15 @@ const DEFAULT_SETTINGS = {
   roughness: 0.2,
   metalness: 0.95,
   displacementScale: 0.01,
-  textureScale: { x: 2, y: 2 }
+  textureScale: { x: 2, y: 2 },
 };
 
 // Helper to get texture path
-function getTexturePath(category: MaterialCategory, materialId: MaterialId, textureType: keyof MaterialTextures): string {
+function getTexturePath(
+  category: MaterialCategory,
+  materialId: MaterialId,
+  textureType: keyof MaterialTextures,
+): string {
   return `/materials/${category}/${materialId}/${String(textureType)}.jpg`;
 }
 
@@ -29,24 +39,28 @@ async function loadTexture(path: string): Promise<THREE.Texture> {
     return textureCache.get(path)!;
   }
 
-  console.log('Attempting to load texture from:', path);
+  console.log("Attempting to load texture from:", path);
 
   return new Promise((resolve, reject) => {
     textureLoader.load(
       path,
       (texture) => {
-        console.log('Successfully loaded texture from:', path);
+        console.log("Successfully loaded texture from:", path);
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
         textureCache.set(path, texture);
         resolve(texture);
       },
       (progress) => {
-        console.log('Loading texture progress:', path, Math.round((progress.loaded / progress.total) * 100) + '%');
+        console.log(
+          "Loading texture progress:",
+          path,
+          Math.round((progress.loaded / progress.total) * 100) + "%",
+        );
       },
       (error) => {
-        console.error('Failed to load texture:', path, error);
+        console.error("Failed to load texture:", path, error);
         reject(error);
-      }
+      },
     );
   });
 }
@@ -54,16 +68,16 @@ async function loadTexture(path: string): Promise<THREE.Texture> {
 // Load all textures for a material
 async function loadMaterialTextures(
   category: MaterialCategory,
-  materialId: MaterialId
+  materialId: MaterialId,
 ): Promise<Record<keyof MaterialTextures, THREE.Texture>> {
-  console.log('Loading textures for material:', { category, materialId });
-  
+  console.log("Loading textures for material:", { category, materialId });
+
   const textureTypes: (keyof MaterialTextures)[] = [
-    'baseColorMap',
-    'displacementMap',
-    'normalMap',
-    'roughnessMap',
-    'metalnessMap'
+    "baseColorMap",
+    "displacementMap",
+    "normalMap",
+    "roughnessMap",
+    "metalnessMap",
   ];
 
   try {
@@ -71,16 +85,23 @@ async function loadMaterialTextures(
       textureTypes.map(async (type) => {
         const path = getTexturePath(category, materialId, type);
         return loadTexture(path);
-      })
+      }),
     );
 
-    console.log('Successfully loaded all textures for:', { category, materialId });
+    console.log("Successfully loaded all textures for:", {
+      category,
+      materialId,
+    });
 
     return Object.fromEntries(
-      textureTypes.map((type, index) => [type, textures[index]])
+      textureTypes.map((type, index) => [type, textures[index]]),
     ) as Record<keyof MaterialTextures, THREE.Texture>;
   } catch (error) {
-    console.error('Failed to load textures for material:', { category, materialId, error });
+    console.error("Failed to load textures for material:", {
+      category,
+      materialId,
+      error,
+    });
     throw error;
   }
 }
@@ -89,27 +110,30 @@ async function loadMaterialTextures(
 export async function createPBRMaterial(
   category: MaterialCategory,
   materialId: MaterialId,
-  options: Partial<typeof DEFAULT_SETTINGS> = {}
+  options: Partial<typeof DEFAULT_SETTINGS> = {},
 ): Promise<THREE.MeshStandardMaterial> {
-  console.log('Creating PBR material with:', { category, materialId, options });
+  console.log("Creating PBR material with:", { category, materialId, options });
 
   // Validate inputs
   if (!category || !materialId) {
-    console.warn('Missing category or materialId, using defaults:', { category, materialId });
-    category = category || 'appliances';
-    materialId = materialId || 'stainlessSteel';
+    console.warn("Missing category or materialId, using defaults:", {
+      category,
+      materialId,
+    });
+    category = category || "appliances";
+    materialId = materialId || "stainlessSteel";
   }
 
   const cacheKey = `${category}-${materialId}-${JSON.stringify(options)}`;
-  
+
   if (materialCache.has(cacheKey)) {
-    console.log('Returning cached material for:', cacheKey);
+    console.log("Returning cached material for:", cacheKey);
     return materialCache.get(cacheKey)!;
   }
 
   const settings = { ...DEFAULT_SETTINGS, ...options };
-  console.log('Using settings:', settings);
-  
+  console.log("Using settings:", settings);
+
   // Create a basic material with appropriate settings for the material type
   const material = new THREE.MeshStandardMaterial({
     color: getMaterialColor(category, materialId),
@@ -121,49 +145,59 @@ export async function createPBRMaterial(
   if (settings.textureScale) {
     material.userData.textureScale = new THREE.Vector2(
       settings.textureScale.x,
-      settings.textureScale.y
+      settings.textureScale.y,
     );
   }
 
-  console.log('Created material with color:', material.color, 'and texture scale:', material.userData.textureScale);
+  console.log(
+    "Created material with color:",
+    material.color,
+    "and texture scale:",
+    material.userData.textureScale,
+  );
   materialCache.set(cacheKey, material);
   return material;
 }
 
 // Helper function to get appropriate colors for different materials
-function getMaterialColor(category: MaterialCategory, materialId: MaterialId): THREE.Color {
+function getMaterialColor(
+  category: MaterialCategory,
+  materialId: MaterialId,
+): THREE.Color {
   const materialColors = {
     appliances: {
-      stainlessSteel: new THREE.Color(0xCCCCCC), // Light gray for stainless steel
-      brushedSteel: new THREE.Color(0xB0B0B0),   // Additional mapping for brushed steel
-      liebherrMonolith: new THREE.Color(0xE8E8E8), // Slightly lighter gray for Liebherr
-      subZeroStainless: new THREE.Color(0xD4D4D4), // Different shade of gray for Sub-Zero
-      thermadorProfessional: new THREE.Color(0xC0C0C0), // Another gray variant for Thermador
+      stainlessSteel: new THREE.Color(0xcccccc), // Light gray for stainless steel
+      brushedSteel: new THREE.Color(0xb0b0b0), // Additional mapping for brushed steel
+      liebherrMonolith: new THREE.Color(0xe8e8e8), // Slightly lighter gray for Liebherr
+      subZeroStainless: new THREE.Color(0xd4d4d4), // Different shade of gray for Sub-Zero
+      thermadorProfessional: new THREE.Color(0xc0c0c0), // Another gray variant for Thermador
       blackSteel: new THREE.Color(0x333333), // Added mapping for black steel (dark gray)
-      glass: new THREE.Color(0xE0E0E0)        // Added mapping for glass finish (light gray)
+      glass: new THREE.Color(0xe0e0e0), // Added mapping for glass finish (light gray)
     },
     countertops: {
       granite: new THREE.Color(0x666666), // Dark gray for granite
-      marble: new THREE.Color(0xF5F5F5), // Off-white for marble
-      quartz: new THREE.Color(0xE0E0E0), // Light gray for quartz
+      marble: new THREE.Color(0xf5f5f5), // Off-white for marble
+      quartz: new THREE.Color(0xe0e0e0), // Light gray for quartz
     },
     flooring: {
-      hardwood: new THREE.Color(0x8B4513), // Saddle brown for hardwood
-      tile: new THREE.Color(0xD3D3D3), // Light gray for tile
-      laminate: new THREE.Color(0xDEB887), // Burlywood for laminate
+      hardwood: new THREE.Color(0x8b4513), // Saddle brown for hardwood
+      tile: new THREE.Color(0xd3d3d3), // Light gray for tile
+      laminate: new THREE.Color(0xdeb887), // Burlywood for laminate
     },
   };
 
   const categoryColors = materialColors[category];
   if (!categoryColors) {
     console.warn(`Unknown category: ${category}, using default color`);
-    return new THREE.Color(0xCCCCCC);
+    return new THREE.Color(0xcccccc);
   }
 
   const color = categoryColors[materialId];
   if (!color) {
-    console.warn(`Unknown materialId: ${materialId} for category: ${category}, using default color`);
-    return new THREE.Color(0xCCCCCC);
+    console.warn(
+      `Unknown materialId: ${materialId} for category: ${category}, using default color`,
+    );
+    return new THREE.Color(0xcccccc);
   }
 
   return color;
@@ -183,22 +217,25 @@ export function clearMaterialCache() {
 }
 
 // Get all available materials for a category
-export function getAvailableMaterials(category: MaterialCategory): MaterialId[] {
-  return MATERIAL_IDS.filter(id => 
-    // You might want to add a mapping of which materials belong to which category
-    true // For now, return all materials
+export function getAvailableMaterials(
+  category: MaterialCategory,
+): MaterialId[] {
+  return MATERIAL_IDS.filter(
+    (id) =>
+      // You might want to add a mapping of which materials belong to which category
+      true, // For now, return all materials
   );
 }
 
 // Preload commonly used materials
 export async function preloadCommonMaterials() {
   const commonMaterials = [
-    { category: 'appliances' as const, id: 'stainlessSteel' as MaterialId },
-    { category: 'countertops' as const, id: 'granite' as MaterialId },
-    { category: 'flooring' as const, id: 'hardwood' as MaterialId },
+    { category: "appliances" as const, id: "stainlessSteel" as MaterialId },
+    { category: "countertops" as const, id: "granite" as MaterialId },
+    { category: "flooring" as const, id: "hardwood" as MaterialId },
   ];
 
   await Promise.all(
-    commonMaterials.map(({ category, id }) => createPBRMaterial(category, id))
+    commonMaterials.map(({ category, id }) => createPBRMaterial(category, id)),
   );
-} 
+}
