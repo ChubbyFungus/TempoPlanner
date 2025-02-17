@@ -14,6 +14,10 @@ export interface MaterialPreset {
     roughness: number;
     metalness: number;
     displacementScale: number;
+    textureScale: {
+      x: number;
+      y: number;
+    };
   };
 }
 
@@ -69,6 +73,10 @@ export interface CatalogItem extends ToolbarItem {
       roughness: number;
       metalness: number;
       displacementScale: number;
+      textureScale: {
+        x: number;
+        y: number;
+      };
     };
   };
   overlayPreset: {

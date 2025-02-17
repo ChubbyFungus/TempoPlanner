@@ -11,11 +11,11 @@ const textureCache = new Map<string, THREE.Texture>();
 
 // Default material settings
 const DEFAULT_SETTINGS = {
-  normalScale: 1.0,
-  roughness: 0.5,
-  metalness: 0.5,
-  displacementScale: 0.1,
-  textureScale: new THREE.Vector2(1, 1),
+  normalScale: 0.45,
+  roughness: 0.2,
+  metalness: 0.95,
+  displacementScale: 0.01,
+  textureScale: { x: 2, y: 2 }
 };
 
 // Helper to get texture path
@@ -117,7 +117,15 @@ export async function createPBRMaterial(
     metalness: settings.metalness,
   });
 
-  console.log('Created material with color:', material.color);
+  // Apply texture scaling if provided
+  if (settings.textureScale) {
+    material.userData.textureScale = new THREE.Vector2(
+      settings.textureScale.x,
+      settings.textureScale.y
+    );
+  }
+
+  console.log('Created material with color:', material.color, 'and texture scale:', material.userData.textureScale);
   materialCache.set(cacheKey, material);
   return material;
 }
