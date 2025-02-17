@@ -1595,7 +1595,7 @@ const CatalogDialog = ({
       <DialogContent className="max-w-6xl max-h-[80vh]" aria-describedby="catalog-description">
         <DialogHeader>
           <DialogTitle>Appliance Catalog</DialogTitle>
-          <p id="catalog-description" className="text-sm text-muted-foreground">
+          <p id="catalog-description" role="description" className="text-sm text-muted-foreground">
             Browse and select from our collection of high-end appliances for your kitchen design.
           </p>
         </DialogHeader>

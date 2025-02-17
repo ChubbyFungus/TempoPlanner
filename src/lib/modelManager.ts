@@ -112,14 +112,14 @@ export async function loadModelProgressively(
   
   try {
     console.log('Starting GLB model load from:', modelPath);
-    const gltf = await gltfLoader.loadAsync(modelPath);
+    const gltf = await gltfLoader.loadAsync('/' + modelPath);
     console.log('GLB model loaded successfully:', gltf);
     if (onProgress) onProgress(100);
     return gltf.scene as Group;
   } catch (error) {
     console.error('Failed to load GLB model:', {
       modelPath,
-      error
+      error: error instanceof Error ? error.message : String(error)
     });
     return createPlaceholderModel();
   }

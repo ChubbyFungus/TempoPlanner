@@ -238,7 +238,8 @@ const Home = () => {
             normalScale: 0.6,
             roughness: 0.25,
             metalness: 0.95,
-            displacementScale: 0.015
+            displacementScale: 0.015,
+            textureScale: { x: 2, y: 2 }
           }
         },
         overlayPreset: {
@@ -266,7 +267,8 @@ const Home = () => {
             normalScale: 0.4,
             roughness: 0.2,
             metalness: 0.9,
-            displacementScale: 0.01
+            displacementScale: 0.01,
+            textureScale: { x: 2, y: 2 }
           }
         },
         overlayPreset: {
@@ -294,7 +296,8 @@ const Home = () => {
             normalScale: 0.7,
             roughness: 0.35,
             metalness: 0.9,
-            displacementScale: 0.02
+            displacementScale: 0.02,
+            textureScale: { x: 2, y: 2 }
           }
         },
         overlayPreset: {
@@ -322,7 +325,8 @@ const Home = () => {
             normalScale: 0.2,
             roughness: 0.1,
             metalness: 0.9,
-            displacementScale: 0.005
+            displacementScale: 0.005,
+            textureScale: { x: 2, y: 2 }
           }
         },
         overlayPreset: {
