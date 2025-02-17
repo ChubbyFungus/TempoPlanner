@@ -1,0 +1,37 @@
+
+Request Template for SUB-ZERO 3D Models
+
+Website: https://www.subzero-wolf.com/trade-resources
+Contact: trade@subzero.com
+
+Subject: Request for Professional 3D Model Files - [Your Company Name]
+
+Dear Sub-zero Team,
+
+I am writing to request access to the 3D model files for your refrigeration products. We are [Your Company Name], and we are developing [Brief Project Description].
+
+Specifically, we are looking for:
+1. High-quality GLB/GLTF format 3D models of your refrigeration line
+2. Models with proper materials and textures
+3. If possible, multiple LOD (Level of Detail) versions
+
+Our intended use:
+[Describe your specific use case]
+
+We understand these are proprietary assets and will comply with all usage guidelines and restrictions.
+
+Additional Information:
+- Company Name: [Your Company]
+- Contact Person: [Your Name]
+- Role: [Your Role]
+- Phone: [Your Phone]
+- Email: [Your Email]
+- Project Description: [Brief Description]
+
+Requires trade account. Contact regional distributor.
+
+Thank you for your assistance.
+
+Best regards,
+[Your Name]
+[Your Company]
