@@ -66,6 +66,12 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
       // Create and apply material
       const applyMaterial = async () => {
         try {
+          console.log('Attempting to create PBR material with:', {
+            category: materialPreset.category,
+            materialId: materialPreset.materialId,
+            settings: materialPreset.settings
+          });
+
           const material = await createPBRMaterial(
             materialPreset.category,
             materialPreset.materialId,
@@ -85,7 +91,24 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
             }
           });
         } catch (error) {
-          console.error('Error applying material:', error);
+          console.error('Error applying PBR material:', error);
+          
+          // Apply fallback material if PBR material fails
+          const fallbackMaterial = new THREE.MeshStandardMaterial({
+            color: '#cccccc',
+            roughness: materialPreset?.settings?.roughness || 0.5,
+            metalness: materialPreset?.settings?.metalness || 0.5,
+          });
+
+          scene.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              const originalMaterial = child.material;
+              child.material = fallbackMaterial;
+              child.castShadow = true;
+              child.receiveShadow = true;
+              child.userData.originalMaterial = originalMaterial;
+            }
+          });
         }
       };
 
@@ -96,10 +119,18 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
         scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             if (child.material) {
-              child.material.dispose();
+              if (Array.isArray(child.material)) {
+                child.material.forEach(mat => mat.dispose());
+              } else {
+                child.material.dispose();
+              }
             }
             if (child.userData.originalMaterial) {
-              child.userData.originalMaterial.dispose();
+              if (Array.isArray(child.userData.originalMaterial)) {
+                child.userData.originalMaterial.forEach(mat => mat.dispose());
+              } else {
+                child.userData.originalMaterial.dispose();
+              }
             }
             if (child.geometry) {
               child.geometry.dispose();
