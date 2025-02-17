@@ -25,35 +25,35 @@ function createPlaceholderModel() {
 // Model paths
 export const MODEL_PATHS = {
   'sub-zero-refrigerator': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/sub-zero/high.gltf',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/sub-zero/medium.gltf',
-    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/sub-zero/low.gltf',
+    [LOD_LEVELS.HIGH]: 'models/appliances/refrigerators/sub-zero/high.glb',
+    [LOD_LEVELS.MEDIUM]: 'models/appliances/refrigerators/sub-zero/medium.glb',
+    [LOD_LEVELS.LOW]: 'models/appliances/refrigerators/sub-zero/low.glb',
   },
   'thermador-refrigerator': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/thermador/high.gltf',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/thermador/medium.gltf',
-    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/thermador/low.gltf',
+    [LOD_LEVELS.HIGH]: 'models/appliances/refrigerators/thermador/high.glb',
+    [LOD_LEVELS.MEDIUM]: 'models/appliances/refrigerators/thermador/medium.glb',
+    [LOD_LEVELS.LOW]: 'models/appliances/refrigerators/thermador/low.glb',
   },
   'liebherr-refrigerator': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/liebherr/high.gltf',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/liebherr/medium.gltf',
-    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/liebherr/low.gltf',
+    [LOD_LEVELS.HIGH]: 'models/appliances/refrigerators/liebherr/high.glb',
+    [LOD_LEVELS.MEDIUM]: 'models/appliances/refrigerators/liebherr/medium.glb',
+    [LOD_LEVELS.LOW]: 'models/appliances/refrigerators/liebherr/low.glb',
   },
   'viking-refrigerator': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/viking/high.gltf',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/viking/medium.gltf',
-    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/viking/low.gltf',
+    [LOD_LEVELS.HIGH]: 'models/appliances/refrigerators/viking/high.glb',
+    [LOD_LEVELS.MEDIUM]: 'models/appliances/refrigerators/viking/medium.glb',
+    [LOD_LEVELS.LOW]: 'models/appliances/refrigerators/viking/low.glb',
   },
   'miele-refrigerator': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/refrigerators/miele/high.gltf',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/refrigerators/miele/medium.gltf',
-    [LOD_LEVELS.LOW]: '/models/appliances/refrigerators/miele/low.gltf',
+    [LOD_LEVELS.HIGH]: 'models/appliances/refrigerators/miele/high.glb',
+    [LOD_LEVELS.MEDIUM]: 'models/appliances/refrigerators/miele/medium.glb',
+    [LOD_LEVELS.LOW]: 'models/appliances/refrigerators/miele/low.glb',
   },
   // Default fallback model
   'default': {
-    [LOD_LEVELS.HIGH]: '/models/appliances/default/high.gltf',
-    [LOD_LEVELS.MEDIUM]: '/models/appliances/default/medium.gltf',
-    [LOD_LEVELS.LOW]: '/models/appliances/default/low.gltf',
+    [LOD_LEVELS.HIGH]: 'models/appliances/default/high.glb',
+    [LOD_LEVELS.MEDIUM]: 'models/appliances/default/medium.glb',
+    [LOD_LEVELS.LOW]: 'models/appliances/default/low.glb',
   }
 } as const;
 
@@ -103,15 +103,30 @@ export function createLODGroup(type: string): LOD {
   return lod;
 }
 
-// Progressive loading helper
+// Updated loadModelProgressively function
 export async function loadModelProgressively(
   type: string, 
   onProgress?: (progress: number) => void
 ): Promise<Group> {
-  // For now, return the placeholder model
-  const placeholderModel = createPlaceholderModel();
-  if (onProgress) onProgress(100);
-  return placeholderModel;
+  const modelPath = getModelPath(type, 'HIGH');
+  const fullUrl = window.location.origin + modelPath;
+  
+  // This will show a popup with the URL
+  alert('Attempting to load GLB model from: ' + fullUrl);
+  
+  try {
+    console.log('Starting GLB model load...');
+    const gltf = await gltfLoader.loadAsync(modelPath);
+    console.log('GLB model loaded successfully:', gltf);
+    if (onProgress) onProgress(100);
+    return gltf.scene as Group;
+  } catch (error) {
+    console.error('Failed to load GLB model:', {
+      url: fullUrl,
+      error
+    });
+    return createPlaceholderModel();
+  }
 }
 
 // Preload common models

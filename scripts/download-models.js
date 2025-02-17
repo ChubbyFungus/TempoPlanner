@@ -10,12 +10,12 @@ const __dirname = dirname(__filename);
 const LOD_LEVELS = ['high', 'medium', 'low'];
 const BRANDS = ['sub-zero', 'thermador', 'liebherr', 'viking', 'miele'];
 
-// Base URLs for different quality models (using Sketchfab's sample models)
+// Base URLs for different quality models (using self-contained GLB files)
 const MODEL_URLS = {
   'default': {
-    high: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF/Box.gltf',
-    medium: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF/Box.gltf',
-    low: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF/Box.gltf'
+    high: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb',
+    medium: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb',
+    low: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb'
   }
 };
 
@@ -31,8 +31,8 @@ const downloadFile = (url, brand, quality) => {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    // Use .gltf extension since we're downloading GLTF files
-    const filename = `${quality}.gltf`;
+    // Use .glb extension for binary GLTF files
+    const filename = `${quality}.glb`;
     const filepath = path.join(dir, filename);
 
     https.get(url, (response) => {
