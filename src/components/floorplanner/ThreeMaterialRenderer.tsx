@@ -172,6 +172,8 @@ export const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
   height,
   type
 }) => {
+  console.log('ThreeMaterialRenderer received materialPreset:', materialPreset);
+  
   return (
     <div style={{ width, height }}>
       <Canvas shadows>

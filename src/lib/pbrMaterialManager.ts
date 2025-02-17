@@ -99,41 +99,32 @@ export async function createPBRMaterial(
 
   const settings = { ...DEFAULT_SETTINGS, ...options };
   
-  try {
-    const textures = await loadMaterialTextures(category, materialId);
+  // Create a basic material with appropriate settings for the material type
+  const material = new THREE.MeshStandardMaterial({
+    color: getMaterialColor(category, materialId),
+    roughness: settings.roughness,
+    metalness: settings.metalness,
+  });
 
-    // Apply texture scaling
-    Object.values(textures).forEach((texture: THREE.Texture) => {
-      texture.repeat.copy(settings.textureScale);
-    });
+  materialCache.set(cacheKey, material);
+  return material;
+}
 
-    const material = new THREE.MeshStandardMaterial({
-      map: textures.baseColorMap,
-      normalMap: textures.normalMap,
-      normalScale: new THREE.Vector2(settings.normalScale, settings.normalScale),
-      roughnessMap: textures.roughnessMap,
-      roughness: settings.roughness,
-      metalnessMap: textures.metalnessMap,
-      metalness: settings.metalness,
-      displacementMap: textures.displacementMap,
-      displacementScale: settings.displacementScale,
-    });
+// Helper function to get appropriate colors for different materials
+function getMaterialColor(category: MaterialCategory, materialId: MaterialId): THREE.Color {
+  const materialColors = {
+    appliances: {
+      stainlessSteel: new THREE.Color(0xCCCCCC), // Light gray for stainless steel
+    },
+    countertops: {
+      granite: new THREE.Color(0x666666), // Dark gray for granite
+    },
+    flooring: {
+      hardwood: new THREE.Color(0x8B4513), // Saddle brown for hardwood
+    },
+  };
 
-    materialCache.set(cacheKey, material);
-    return material;
-  } catch (error) {
-    console.warn('Failed to load textures, creating basic material:', error);
-    
-    // Create a basic material without textures
-    const material = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(0xcccccc),
-      roughness: settings.roughness,
-      metalness: settings.metalness,
-    });
-
-    materialCache.set(cacheKey, material);
-    return material;
-  }
+  return materialColors[category]?.[materialId] || new THREE.Color(0xCCCCCC);
 }
 
 // Clear material and texture caches
