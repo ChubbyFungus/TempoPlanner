@@ -22,6 +22,12 @@ declare global {
           onError?: React.ReactEventHandler<HTMLElement>;
           'loading-strategy'?: 'auto' | 'lazy';
           poster?: string;
+          'skybox-image'?: string;
+          'interaction-prompt'?: string;
+          'tone-mapping'?: string;
+          'disable-zoom'?: boolean;
+          'min-camera-orbit'?: string;
+          'max-camera-orbit'?: string;
         },
         HTMLElement
       >;
@@ -138,16 +144,22 @@ export const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
         ref={modelViewerRef}
         src={modelPath}
         camera-controls
-        auto-rotate
-        shadow-intensity="1"
-        exposure="0.5"
-        environment-image="neutral"
-        camera-orbit="45deg 55deg 2.5m"
+        auto-rotate={false}
+        shadow-intensity="0"
+        exposure="1"
+        environment-image="legacy"
+        skybox-image="legacy"
+        camera-orbit="0deg 90deg 2.5m"
         field-of-view="30deg"
-        style={{ width: '100%', height: '100%' }}
+        style={{ width: '100%', height: '100%', backgroundColor: '#ffffff' }}
         onError={handleError}
         onLoad={handleLoad}
         loading-strategy="auto"
+        interaction-prompt="none"
+        tone-mapping="aces"
+        disable-zoom
+        min-camera-orbit="0deg 90deg 2m"
+        max-camera-orbit="0deg 90deg 3m"
       >
         <div slot="progress-bar" style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
           <div style={{ 
