@@ -54,14 +54,34 @@ function FallbackBox({ materialPreset }: { materialPreset: any }) {
 function Model({ type, materialPreset }: { type: string; materialPreset: any }) {
   const modelPath = getModelPath(type);
   console.log('Attempting to load model from path:', modelPath);
+  console.log('Material preset details:', {
+    type: typeof materialPreset,
+    keys: materialPreset ? Object.keys(materialPreset) : [],
+    category: materialPreset?.category,
+    materialId: materialPreset?.materialId,
+    settings: materialPreset?.settings,
+    fullPreset: materialPreset
+  });
   
   try {
     const { scene } = useGLTF(modelPath, true);
     
     useEffect(() => {
-      if (!scene || !materialPreset) return;
+      if (!scene || !materialPreset) {
+        console.log('Scene or material preset missing:', { 
+          hasScene: !!scene, 
+          hasMaterialPreset: !!materialPreset 
+        });
+        return;
+      }
       
-      console.log('Model loaded successfully:', scene);
+      console.log('Model loaded successfully:', {
+        sceneChildren: scene.children.length,
+        firstChild: scene.children[0]?.type,
+        meshCount: scene.children.reduce((count, child) => 
+          count + (child instanceof THREE.Mesh ? 1 : 0), 0
+        )
+      });
 
       // Create and apply material
       const applyMaterial = async () => {
@@ -73,13 +93,15 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
           });
 
           const material = await createPBRMaterial(
-            materialPreset.category,
-            materialPreset.materialId,
-            materialPreset.settings
+            materialPreset.category || 'appliances',
+            materialPreset.materialId || 'stainlessSteel',
+            materialPreset.settings || {}
           );
           
+          let meshCount = 0;
           scene.traverse((child) => {
             if (child instanceof THREE.Mesh) {
+              meshCount++;
               // Store original material for cleanup
               const originalMaterial = child.material;
               child.material = material;
@@ -90,6 +112,8 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
               child.userData.originalMaterial = originalMaterial;
             }
           });
+          console.log(`Applied material to ${meshCount} meshes`);
+
         } catch (error) {
           console.error('Error applying PBR material:', error);
           
@@ -100,8 +124,10 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
             metalness: materialPreset?.settings?.metalness || 0.5,
           });
 
+          let fallbackMeshCount = 0;
           scene.traverse((child) => {
             if (child instanceof THREE.Mesh) {
+              fallbackMeshCount++;
               const originalMaterial = child.material;
               child.material = fallbackMaterial;
               child.castShadow = true;
@@ -109,6 +135,7 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
               child.userData.originalMaterial = originalMaterial;
             }
           });
+          console.log(`Applied fallback material to ${fallbackMeshCount} meshes`);
         }
       };
 
