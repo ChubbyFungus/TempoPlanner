@@ -91,13 +91,24 @@ export async function createPBRMaterial(
   materialId: MaterialId,
   options: Partial<typeof DEFAULT_SETTINGS> = {}
 ): Promise<THREE.MeshStandardMaterial> {
+  console.log('Creating PBR material with:', { category, materialId, options });
+
+  // Validate inputs
+  if (!category || !materialId) {
+    console.warn('Missing category or materialId, using defaults:', { category, materialId });
+    category = category || 'appliances';
+    materialId = materialId || 'stainlessSteel';
+  }
+
   const cacheKey = `${category}-${materialId}-${JSON.stringify(options)}`;
   
   if (materialCache.has(cacheKey)) {
+    console.log('Returning cached material for:', cacheKey);
     return materialCache.get(cacheKey)!;
   }
 
   const settings = { ...DEFAULT_SETTINGS, ...options };
+  console.log('Using settings:', settings);
   
   // Create a basic material with appropriate settings for the material type
   const material = new THREE.MeshStandardMaterial({
@@ -106,6 +117,7 @@ export async function createPBRMaterial(
     metalness: settings.metalness,
   });
 
+  console.log('Created material with color:', material.color);
   materialCache.set(cacheKey, material);
   return material;
 }
@@ -115,16 +127,35 @@ function getMaterialColor(category: MaterialCategory, materialId: MaterialId): T
   const materialColors = {
     appliances: {
       stainlessSteel: new THREE.Color(0xCCCCCC), // Light gray for stainless steel
+      liebherrMonolith: new THREE.Color(0xE8E8E8), // Slightly lighter gray for Liebherr
+      subZeroStainless: new THREE.Color(0xD4D4D4), // Different shade of gray for Sub-Zero
+      thermadorProfessional: new THREE.Color(0xC0C0C0), // Another gray variant for Thermador
     },
     countertops: {
       granite: new THREE.Color(0x666666), // Dark gray for granite
+      marble: new THREE.Color(0xF5F5F5), // Off-white for marble
+      quartz: new THREE.Color(0xE0E0E0), // Light gray for quartz
     },
     flooring: {
       hardwood: new THREE.Color(0x8B4513), // Saddle brown for hardwood
+      tile: new THREE.Color(0xD3D3D3), // Light gray for tile
+      laminate: new THREE.Color(0xDEB887), // Burlywood for laminate
     },
   };
 
-  return materialColors[category]?.[materialId] || new THREE.Color(0xCCCCCC);
+  const categoryColors = materialColors[category];
+  if (!categoryColors) {
+    console.warn(`Unknown category: ${category}, using default color`);
+    return new THREE.Color(0xCCCCCC);
+  }
+
+  const color = categoryColors[materialId];
+  if (!color) {
+    console.warn(`Unknown materialId: ${materialId} for category: ${category}, using default color`);
+    return new THREE.Color(0xCCCCCC);
+  }
+
+  return color;
 }
 
 // Clear material and texture caches
