@@ -135,9 +135,12 @@ function getMaterialColor(category: MaterialCategory, materialId: MaterialId): T
   const materialColors = {
     appliances: {
       stainlessSteel: new THREE.Color(0xCCCCCC), // Light gray for stainless steel
+      brushedSteel: new THREE.Color(0xB0B0B0),   // Additional mapping for brushed steel
       liebherrMonolith: new THREE.Color(0xE8E8E8), // Slightly lighter gray for Liebherr
       subZeroStainless: new THREE.Color(0xD4D4D4), // Different shade of gray for Sub-Zero
       thermadorProfessional: new THREE.Color(0xC0C0C0), // Another gray variant for Thermador
+      blackSteel: new THREE.Color(0x333333), // Added mapping for black steel (dark gray)
+      glass: new THREE.Color(0xE0E0E0)        // Added mapping for glass finish (light gray)
     },
     countertops: {
       granite: new THREE.Color(0x666666), // Dark gray for granite

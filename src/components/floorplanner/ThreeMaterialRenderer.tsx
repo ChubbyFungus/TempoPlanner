@@ -1,202 +1,37 @@
-import React, { Suspense, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Stage, PerspectiveCamera, useGLTF, useProgress, Html, Center } from '@react-three/drei';
-import * as THREE from 'three';
-import { createPBRMaterial } from '@/lib/pbrMaterialManager';
-import { getModelPath, createLODGroup, loadModelProgressively, preloadCommonModels } from '@/lib/modelManager';
+import React, { useEffect, useRef, useState } from 'react';
+import '@google/model-viewer';
 import { MaterialPreset } from '@/types/shared';
+import { createPBRMaterial } from '@/lib/pbrMaterialManager';
 
-// Preload common models on module load
-preloadCommonModels();
-
-// Loading Screen Component
-function LoadingScreen() {
-  const { progress, active } = useProgress();
-  return active ? (
-    <Html center>
-      <div className="flex flex-col items-center">
-        <div className="text-lg font-bold">{progress.toFixed(0)}% loaded</div>
-        <div className="text-sm text-gray-500">Loading {active ? 'high quality' : 'preview'} model...</div>
-      </div>
-    </Html>
-  ) : null;
-}
-
-// Error Fallback Component
-function ErrorFallback() {
-  return (
-    <Html center>
-      <div className="text-red-500">
-        Error loading model. Using fallback box.
-      </div>
-    </Html>
-  );
-}
-
-// Fallback Box Component
-function FallbackBox({ materialPreset }: { materialPreset: any }) {
-  const material = React.useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      color: '#cccccc',
-      roughness: materialPreset?.settings?.roughness || 0.5,
-      metalness: materialPreset?.settings?.metalness || 0.5,
-    });
-  }, [materialPreset]);
-
-  return (
-    <mesh>
-      <boxGeometry args={[1, 2, 1]} />
-      <primitive object={material} />
-    </mesh>
-  );
-}
-
-// Model Component
-function Model({ type, materialPreset }: { type: string; materialPreset: MaterialPreset }) {
-  const modelPath = getModelPath(type);
-  console.log('Attempting to load model from path:', modelPath);
-  console.log('Material preset details:', {
-    type: typeof materialPreset,
-    keys: materialPreset ? Object.keys(materialPreset) : [],
-    category: materialPreset?.category,
-    materialId: materialPreset?.materialId,
-    settings: JSON.stringify(materialPreset?.settings),
-    fullPreset: JSON.stringify(materialPreset)
-  });
-  
-  try {
-    const { scene } = useGLTF(modelPath, true);
-    
-    useEffect(() => {
-      if (!scene || !materialPreset) {
-        console.log('Scene or material preset missing:', { 
-          hasScene: !!scene, 
-          hasMaterialPreset: !!materialPreset,
-          materialPreset: JSON.stringify(materialPreset)
-        });
-        return;
-      }
-      
-      console.log('Model loaded successfully:', {
-        sceneChildren: scene.children.length,
-        firstChild: scene.children[0]?.type,
-        meshCount: scene.children.reduce((count, child) => 
-          count + (child instanceof THREE.Mesh ? 1 : 0), 0
-        )
-      });
-
-      // Create and apply material
-      const applyMaterial = async () => {
-        try {
-          const materialSettings = {
-            category: materialPreset.category || 'appliances',
-            materialId: materialPreset.materialId || 'stainlessSteel',
-            settings: {
-              normalScale: materialPreset.settings?.normalScale || 0.45,
-              roughness: materialPreset.settings?.roughness || 0.2,
-              metalness: materialPreset.settings?.metalness || 0.95,
-              displacementScale: materialPreset.settings?.displacementScale || 0.01,
-              textureScale: materialPreset.settings?.textureScale || { x: 2, y: 2 }
-            }
-          };
-
-          console.log('Attempting to create PBR material with:', JSON.stringify(materialSettings, null, 2));
-
-          const material = await createPBRMaterial(
-            materialSettings.category,
-            materialSettings.materialId,
-            materialSettings.settings
-          );
-          
-          let meshCount = 0;
-          scene.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              meshCount++;
-              // Store original material for cleanup
-              const originalMaterial = child.material;
-              child.material = material.clone(); // Clone the material for each mesh
-              child.castShadow = true;
-              child.receiveShadow = true;
-              
-              // Store reference to dispose later
-              child.userData.originalMaterial = originalMaterial;
-            }
-          });
-          console.log(`Applied material to ${meshCount} meshes`);
-
-        } catch (error) {
-          console.error('Error applying PBR material:', error);
-          
-          // Apply fallback material if PBR material fails
-          const fallbackMaterial = new THREE.MeshStandardMaterial({
-            color: '#cccccc',
-            roughness: materialPreset?.settings?.roughness || 0.5,
-            metalness: materialPreset?.settings?.metalness || 0.5,
-          });
-
-          let fallbackMeshCount = 0;
-          scene.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              fallbackMeshCount++;
-              const originalMaterial = child.material;
-              child.material = fallbackMaterial.clone(); // Clone the material for each mesh
-              child.castShadow = true;
-              child.receiveShadow = true;
-              child.userData.originalMaterial = originalMaterial;
-            }
-          });
-          console.log(`Applied fallback material to ${fallbackMeshCount} meshes`);
-        }
-      };
-
-      applyMaterial();
-
-      return () => {
-        // Cleanup
-        scene.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            if (child.material) {
-              if (Array.isArray(child.material)) {
-                child.material.forEach(mat => mat.dispose());
-              } else {
-                child.material.dispose();
-              }
-            }
-            if (child.userData.originalMaterial) {
-              if (Array.isArray(child.userData.originalMaterial)) {
-                child.userData.originalMaterial.forEach(mat => mat.dispose());
-              } else {
-                child.userData.originalMaterial.dispose();
-              }
-            }
-            if (child.geometry) {
-              child.geometry.dispose();
-            }
-          }
-        });
-      };
-    }, [scene, materialPreset]);
-
-    // Center the model and adjust scale
-    return (
-      <primitive 
-        object={scene} 
-        scale={[0.01, 0.01, 0.01]} 
-        position={[0, 0, 0]}
-      />
-    );
-  } catch (error) {
-    console.error('Error loading model:', {
-      error,
-      modelPath,
-    });
-    return <FallbackBox materialPreset={materialPreset} />;
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'model-viewer': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & {
+          src?: string;
+          'camera-controls'?: boolean;
+          'auto-rotate'?: boolean;
+          ar?: boolean;
+          exposure?: string;
+          'shadow-intensity'?: string;
+          'environment-image'?: string;
+          'camera-orbit'?: string;
+          'field-of-view'?: string;
+          style?: React.CSSProperties;
+          onLoad?: React.ReactEventHandler<HTMLElement>;
+          onError?: React.ReactEventHandler<HTMLElement>;
+          'loading-strategy'?: 'auto' | 'lazy';
+          poster?: string;
+        },
+        HTMLElement
+      >;
+    }
   }
 }
 
 interface ThreeMaterialRendererProps {
   elementId: string;
-  materialPreset: MaterialPreset;
+  materialPreset?: MaterialPreset;
   width: number;
   height: number;
   type: string;
@@ -209,51 +44,130 @@ export const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
   height,
   type
 }) => {
-  console.log('ThreeMaterialRenderer received materialPreset:', JSON.stringify(materialPreset, null, 2));
-  
+  const modelViewerRef = useRef<HTMLElement>(null);
+  const [modelPath, setModelPath] = useState<string>('/models/appliances/refrigerators/default/high.glb');
+
+  useEffect(() => {
+    const loadModel = async () => {
+      try {
+        const brand = type.split('-')[0];
+        // Special case for Liebherr
+        if (brand === 'liebherr') {
+          const liebherrPath = `/models/appliances/refrigerators/liebherr/leibherr.glb`;
+          const liebherrResponse = await fetch(liebherrPath);
+          
+          if (liebherrResponse.ok) {
+            setModelPath(liebherrPath);
+            return;
+          }
+        }
+
+        // For other brands or if Liebherr specific model fails
+        const brandPath = `/models/appliances/refrigerators/${brand}/high.glb`;
+        const brandResponse = await fetch(brandPath);
+        
+        if (brandResponse.ok) {
+          setModelPath(brandPath);
+        } else {
+          // If brand model doesn't exist, fall back to default
+          const defaultPath = '/models/appliances/refrigerators/default/high.glb';
+          const defaultResponse = await fetch(defaultPath);
+          
+          if (defaultResponse.ok) {
+            setModelPath(defaultPath);
+          } else {
+            console.error('Neither brand-specific nor default model could be found');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking model availability:', error);
+      }
+    };
+
+    loadModel();
+  }, [type]);
+
+  useEffect(() => {
+    const applyMaterial = async () => {
+      if (!modelViewerRef.current || !materialPreset) return;
+
+      try {
+        const material = await createPBRMaterial(
+          materialPreset.category || 'appliances',
+          materialPreset.materialId || 'stainlessSteel',
+          {
+            normalScale: materialPreset.settings?.normalScale || 0.45,
+            roughness: materialPreset.settings?.roughness || 0.2,
+            metalness: materialPreset.settings?.metalness || 0.95,
+            displacementScale: materialPreset.settings?.displacementScale || 0.01,
+            textureScale: materialPreset.settings?.textureScale || { x: 2, y: 2 }
+          }
+        );
+
+        // Access the model-viewer's model and apply material
+        const modelViewer = modelViewerRef.current as any;
+        if (modelViewer.model) {
+          const mesh = modelViewer.model;
+          mesh.traverse((child: any) => {
+            if (child.isMesh) {
+              child.material = material.clone();
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error applying material:', error);
+      }
+    };
+
+    applyMaterial();
+  }, [materialPreset]);
+
+  const handleError: React.ReactEventHandler<HTMLElement> = (event) => {
+    console.error('Error loading model:', event);
+    // If model loading fails, try to load the default model
+    setModelPath('/models/appliances/refrigerators/default/high.glb');
+  };
+
+  const handleLoad: React.ReactEventHandler<HTMLElement> = (event) => {
+    console.log('Model loaded successfully');
+  };
+
   return (
     <div style={{ width, height }}>
-      <Canvas shadows>
-        <PerspectiveCamera makeDefault position={[0, 0, 3]} />
-        <Stage 
-          environment="apartment" 
-          intensity={0.5}
-          shadows={{ type: 'contact', opacity: 0.8, blur: 3 }}
-          adjustCamera={false}
-        >
-          <React.Suspense fallback={<LoadingScreen />}>
-            <ErrorBoundary fallback={<FallbackBox materialPreset={materialPreset} />}>
-              <Model type={type} materialPreset={materialPreset} />
-            </ErrorBoundary>
-          </React.Suspense>
-        </Stage>
-      </Canvas>
+      <model-viewer
+        ref={modelViewerRef}
+        src={modelPath}
+        camera-controls
+        auto-rotate
+        shadow-intensity="1"
+        exposure="0.5"
+        environment-image="neutral"
+        camera-orbit="45deg 55deg 2.5m"
+        field-of-view="30deg"
+        style={{ width: '100%', height: '100%' }}
+        onError={handleError}
+        onLoad={handleLoad}
+        loading-strategy="auto"
+      >
+        <div slot="progress-bar" style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+          <div style={{ 
+            width: '100%', 
+            height: '2px', 
+            background: '#ddd',
+            position: 'relative' 
+          }}>
+            <div style={{ 
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              background: '#4CAF50',
+              transition: 'width 0.3s',
+              width: '0%'
+            }} />
+          </div>
+        </div>
+      </model-viewer>
     </div>
   );
-};
-
-// Error Boundary Component
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback: React.ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error) {
-    console.error('Model loading error:', error);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback;
-    }
-    return this.props.children;
-  }
-} 
+}; 

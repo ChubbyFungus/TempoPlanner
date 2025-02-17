@@ -10,19 +10,66 @@ const __dirname = dirname(__filename);
 const LOD_LEVELS = ['high', 'medium', 'low'];
 const BRANDS = ['sub-zero', 'thermador', 'liebherr', 'viking', 'miele'];
 
-// Base URLs for different quality models (using self-contained GLB files)
+// Version tracking for models
+const MODEL_VERSION = '1.0.0';
+const MODEL_MANIFEST_FILE = path.join(__dirname, '../public/models/manifest.json');
+
+// Base URLs for different quality models
 const MODEL_URLS = {
+  'sub-zero': {
+    high: 'https://storage.yourdomain.com/models/refrigerators/sub-zero/v1/high.glb',
+    medium: 'https://storage.yourdomain.com/models/refrigerators/sub-zero/v1/medium.glb',
+    low: 'https://storage.yourdomain.com/models/refrigerators/sub-zero/v1/low.glb'
+  },
+  'thermador': {
+    high: 'https://storage.yourdomain.com/models/refrigerators/thermador/v1/high.glb',
+    medium: 'https://storage.yourdomain.com/models/refrigerators/thermador/v1/medium.glb',
+    low: 'https://storage.yourdomain.com/models/refrigerators/thermador/v1/low.glb'
+  },
+  'liebherr': {
+    high: 'https://storage.yourdomain.com/models/refrigerators/liebherr/v1/high.glb',
+    medium: 'https://storage.yourdomain.com/models/refrigerators/liebherr/v1/medium.glb',
+    low: 'https://storage.yourdomain.com/models/refrigerators/liebherr/v1/low.glb'
+  },
+  'viking': {
+    high: 'https://storage.yourdomain.com/models/refrigerators/viking/v1/high.glb',
+    medium: 'https://storage.yourdomain.com/models/refrigerators/viking/v1/medium.glb',
+    low: 'https://storage.yourdomain.com/models/refrigerators/viking/v1/low.glb'
+  },
+  'miele': {
+    high: 'https://storage.yourdomain.com/models/refrigerators/miele/v1/high.glb',
+    medium: 'https://storage.yourdomain.com/models/refrigerators/miele/v1/medium.glb',
+    low: 'https://storage.yourdomain.com/models/refrigerators/miele/v1/low.glb'
+  },
   'default': {
-    high: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb',
-    medium: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb',
-    low: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb'
+    high: 'https://storage.yourdomain.com/models/refrigerators/default/v1/high.glb',
+    medium: 'https://storage.yourdomain.com/models/refrigerators/default/v1/medium.glb',
+    low: 'https://storage.yourdomain.com/models/refrigerators/default/v1/low.glb'
   }
 };
 
-// Create URLs for each brand using the default model temporarily
-BRANDS.forEach(brand => {
-  MODEL_URLS[brand] = MODEL_URLS['default'];
-});
+// Validate GLB file
+const validateGLBFile = (buffer) => {
+  // Check magic bytes for GLB
+  const magic = buffer.toString('ascii', 0, 4);
+  if (magic !== 'glTF') {
+    throw new Error('Invalid GLB file: Incorrect magic bytes');
+  }
+
+  // Check version
+  const version = buffer.readUInt32LE(4);
+  if (version !== 2) {
+    throw new Error(`Invalid GLB file: Unsupported version ${version}`);
+  }
+
+  // Check file length
+  const length = buffer.readUInt32LE(8);
+  if (buffer.length !== length) {
+    throw new Error('Invalid GLB file: File length mismatch');
+  }
+
+  return true;
+};
 
 const downloadFile = (url, brand, quality) => {
   return new Promise((resolve, reject) => {
@@ -31,9 +78,9 @@ const downloadFile = (url, brand, quality) => {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    // Use .glb extension for binary GLTF files
     const filename = `${quality}.glb`;
     const filepath = path.join(dir, filename);
+    const tempFilepath = `${filepath}.temp`;
 
     https.get(url, (response) => {
       if (response.statusCode !== 200) {
@@ -45,39 +92,93 @@ const downloadFile = (url, brand, quality) => {
       response.on('data', (chunk) => chunks.push(chunk));
       response.on('end', () => {
         const buffer = Buffer.concat(chunks);
-        fs.writeFileSync(filepath, buffer);
-        console.log(`Downloaded ${brand}/${filename}`);
-        resolve();
+        
+        try {
+          // Validate the GLB file
+          validateGLBFile(buffer);
+          
+          // Write to temp file first
+          fs.writeFileSync(tempFilepath, buffer);
+          
+          // Rename temp file to final filename
+          fs.renameSync(tempFilepath, filepath);
+          
+          console.log(`Downloaded and validated ${brand}/${filename}`);
+          resolve();
+        } catch (error) {
+          // Clean up temp file if it exists
+          if (fs.existsSync(tempFilepath)) {
+            fs.unlinkSync(tempFilepath);
+          }
+          reject(error);
+        }
       });
     }).on('error', (err) => {
+      // Clean up temp file if it exists
+      if (fs.existsSync(tempFilepath)) {
+        fs.unlinkSync(tempFilepath);
+      }
       reject(err);
     });
   });
 };
 
+const updateManifest = () => {
+  const manifest = {
+    version: MODEL_VERSION,
+    lastUpdated: new Date().toISOString(),
+    models: {}
+  };
+
+  // Add information for each brand and quality level
+  for (const brand of [...BRANDS, 'default']) {
+    manifest.models[brand] = {};
+    for (const quality of LOD_LEVELS) {
+      const filepath = path.join(__dirname, '../public/models/appliances/refrigerators', brand, `${quality}.glb`);
+      if (fs.existsSync(filepath)) {
+        const stats = fs.statSync(filepath);
+        manifest.models[brand][quality] = {
+          size: stats.size,
+          lastModified: stats.mtime.toISOString(),
+          path: `models/appliances/refrigerators/${brand}/${quality}.glb`
+        };
+      }
+    }
+  }
+
+  fs.writeFileSync(MODEL_MANIFEST_FILE, JSON.stringify(manifest, null, 2));
+};
+
 async function downloadModels() {
   try {
-    // Create default model directory
-    const defaultDir = path.join(__dirname, '../public/models/appliances/default');
-    if (!fs.existsSync(defaultDir)) {
-      fs.mkdirSync(defaultDir, { recursive: true });
-    }
-
-    // Download default models
-    for (const quality of LOD_LEVELS) {
-      await downloadFile(MODEL_URLS['default'][quality], 'default', quality);
+    console.log('Starting model download process...');
+    
+    // Create models directory if it doesn't exist
+    const modelsDir = path.join(__dirname, '../public/models');
+    if (!fs.existsSync(modelsDir)) {
+      fs.mkdirSync(modelsDir, { recursive: true });
     }
 
     // Download models for each brand
-    for (const brand of BRANDS) {
+    for (const brand of [...BRANDS, 'default']) {
+      console.log(`Downloading models for ${brand}...`);
       for (const quality of LOD_LEVELS) {
-        await downloadFile(MODEL_URLS[brand][quality], brand, quality);
+        try {
+          await downloadFile(MODEL_URLS[brand][quality], brand, quality);
+        } catch (error) {
+          console.error(`Error downloading ${brand}/${quality}.glb:`, error.message);
+          // Continue with other downloads even if one fails
+        }
       }
     }
 
-    console.log('All models downloaded successfully');
+    // Update the manifest file
+    updateManifest();
+    
+    console.log('Model download process completed');
+    console.log('Manifest updated at:', MODEL_MANIFEST_FILE);
   } catch (error) {
-    console.error('Error downloading models:', error);
+    console.error('Fatal error during model download:', error);
     process.exit(1);
   }
 }
