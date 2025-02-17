@@ -8,6 +8,7 @@ interface MaterialPreset {
     roughness: number;
     metalness: number;
     displacementScale: number;
+    textureScale: { x: number; y: number };
   };
 }
 
@@ -33,7 +34,8 @@ export function createAppliancePreset(
             normalScale: 0.6,
             roughness: 0.25,
             metalness: 0.95,
-            displacementScale: 0.015
+            displacementScale: 0.015,
+            textureScale: { x: 2, y: 2 }
           }
         },
         overlayPreset: {
@@ -52,7 +54,8 @@ export function createAppliancePreset(
             normalScale: 0.4,
             roughness: 0.2,
             metalness: 0.9,
-            displacementScale: 0.01
+            displacementScale: 0.01,
+            textureScale: { x: 2, y: 2 }
           }
         },
         overlayPreset: {
@@ -73,7 +76,8 @@ export function createAppliancePreset(
             normalScale: 0.7,
             roughness: 0.35,
             metalness: 0.9,
-            displacementScale: 0.02
+            displacementScale: 0.02,
+            textureScale: { x: 2, y: 2 }
           }
         },
         overlayPreset: {
@@ -94,7 +98,8 @@ export function createAppliancePreset(
             normalScale: 0.45,
             roughness: 0.2,
             metalness: 0.95,
-            displacementScale: 0.01
+            displacementScale: 0.01,
+            textureScale: { x: 2, y: 2 }
           }
         },
         overlayPreset: {
@@ -115,7 +120,8 @@ export function createAppliancePreset(
             normalScale: 0.5,
             roughness: 0.2,
             metalness: 0.95,
-            displacementScale: 0.01
+            displacementScale: 0.01,
+            textureScale: { x: 2, y: 2 }
           }
         },
         overlayPreset: {
@@ -136,7 +142,8 @@ export function createAppliancePreset(
             normalScale: 0.65,
             roughness: 0.3,
             metalness: 0.92,
-            displacementScale: 0.018
+            displacementScale: 0.018,
+            textureScale: { x: 2, y: 2 }
           }
         },
         overlayPreset: {
