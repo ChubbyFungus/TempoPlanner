@@ -94,7 +94,6 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
     console.error('Error loading model:', {
       error,
       modelPath,
-      fullUrl: window.location.origin + modelPath
     });
     return <FallbackBox materialPreset={materialPreset} />;
   }
