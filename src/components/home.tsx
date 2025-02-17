@@ -20,16 +20,21 @@ const Home = () => {
   const [wallStartPoint, setWallStartPoint] = useState<Point | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [scale, setScale] = useState(1);
+  const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
+  const [mousePosition, setMousePosition] = useState<Point | null>(null);
 
   const handleDrawingModeChange = (mode: string) => {
     setDrawingMode(mode);
     setWallStartPoint(null);
+    setDrawingPoints([]);
   };
 
   const handleCanvasClick = (x: number, y: number) => {
+    const point = { x, y };
+
     if (drawingMode === "wall") {
       if (!wallStartPoint) {
-        setWallStartPoint({ x, y });
+        setWallStartPoint(point);
       } else {
         // Create wall element
         const newWall: CanvasElement = {
@@ -41,7 +46,7 @@ const Home = () => {
           height: Math.abs(y - wallStartPoint.y),
           rotation: 0,
           locked: false,
-          points: [wallStartPoint, { x, y }],
+          points: [wallStartPoint, point],
           thickness: 8,
         };
 
@@ -52,7 +57,7 @@ const Home = () => {
       }
     } else if (drawingMode === "surface") {
       if (!wallStartPoint) {
-        setWallStartPoint({ x, y });
+        setWallStartPoint(point);
       } else {
         // Create surface element
         const newSurface: CanvasElement = {
@@ -66,8 +71,8 @@ const Home = () => {
           locked: false,
           points: [
             wallStartPoint,
-            { x: x, y: wallStartPoint.y },
-            { x, y },
+            { x, y: wallStartPoint.y },
+            point,
             { x: wallStartPoint.x, y },
           ],
           color: "#e5e7eb",
@@ -79,25 +84,74 @@ const Home = () => {
         setWallStartPoint(null);
         setDrawingMode("");
       }
+    } else if (drawingMode === "room") {
+      setDrawingPoints(prev => {
+        const newPoints = [...prev, point];
+        
+        // Only check for closing the shape if we have at least 3 points
+        if (newPoints.length >= 3) {
+          // Check if clicking near the start point to close the room
+          const startPoint = newPoints[0];
+          const distance = Math.sqrt(
+            Math.pow(point.x - startPoint.x, 2) + Math.pow(point.y - startPoint.y, 2)
+          );
+          
+          if (distance < 20) { // Within one grid cell
+            return completeRoom(newPoints);
+          }
+        }
+        return newPoints;
+      });
     }
   };
 
-  const handleDrawComplete = (points: Point[]) => {
-    if (drawingMode === "room") {
+  const completeRoom = (points: Point[]) => {
+    if (points.length < 3) return points;
+
+    const startPoint = points[0];
+    // Replace the last point with the exact start point to close the shape perfectly
+    points[points.length - 1] = startPoint;
+    
+    const newRoom: CanvasElement = {
+      id: `room-${Date.now()}`,
+      type: "room",
+      x: Math.min(...points.map(p => p.x)),
+      y: Math.min(...points.map(p => p.y)),
+      width: Math.max(...points.map(p => p.x)) - Math.min(...points.map(p => p.x)),
+      height: Math.max(...points.map(p => p.y)) - Math.min(...points.map(p => p.y)),
+      rotation: 0,
+      locked: false,
+      points: points,
+      color: "#f3f4f6",
+    };
+
+    setUndoStack([...undoStack, elements]);
+    setElements([...elements, newRoom]);
+    setRedoStack([]);
+    setDrawingMode("");
+    setDrawingPoints([]);
+    return [];
+  };
+
+  const handleDrawComplete = () => {
+    if (drawingMode === "wall" && wallStartPoint && mousePosition) {
+      handleCanvasClick(mousePosition.x, mousePosition.y);
+    } else if (drawingMode === "surface" && wallStartPoint && mousePosition) {
+      handleCanvasClick(mousePosition.x, mousePosition.y);
+    } else if (drawingMode === "room" && drawingPoints.length >= 3) {
+      // Create a closed shape by adding the first point to the end
+      const closedPoints = [...drawingPoints, drawingPoints[0]];
+      
       const newRoom: CanvasElement = {
         id: `room-${Date.now()}`,
         type: "room",
-        x: Math.min(...points.map((p) => p.x)),
-        y: Math.min(...points.map((p) => p.y)),
-        width:
-          Math.max(...points.map((p) => p.x)) -
-          Math.min(...points.map((p) => p.x)),
-        height:
-          Math.max(...points.map((p) => p.y)) -
-          Math.min(...points.map((p) => p.y)),
+        x: Math.min(...closedPoints.map(p => p.x)),
+        y: Math.min(...closedPoints.map(p => p.y)),
+        width: Math.max(...closedPoints.map(p => p.x)) - Math.min(...closedPoints.map(p => p.x)),
+        height: Math.max(...closedPoints.map(p => p.y)) - Math.min(...closedPoints.map(p => p.y)),
         rotation: 0,
         locked: false,
-        points,
+        points: closedPoints,
         color: "#f3f4f6",
       };
 
@@ -105,6 +159,7 @@ const Home = () => {
       setElements([...elements, newRoom]);
       setRedoStack([]);
       setDrawingMode("");
+      setDrawingPoints([]);
     }
   };
 
@@ -134,9 +189,30 @@ const Home = () => {
   const handleElementMove = (element: CanvasElement, newX: number, newY: number) => {
     if (element.locked) return;
 
-    const updatedElements = elements.map((el) =>
-      el.id === element.id ? { ...el, x: newX, y: newY } : el,
-    );
+    const updatedElements = elements.map((el) => {
+      if (el.id === element.id) {
+        if (el.type === "room" && el.points) {
+          // Calculate the difference in position
+          const dx = newX - el.x;
+          const dy = newY - el.y;
+          
+          // Update all points by the same offset
+          const newPoints = el.points.map(point => ({
+            x: point.x + dx,
+            y: point.y + dy
+          }));
+          
+          return {
+            ...el,
+            x: newX,
+            y: newY,
+            points: newPoints
+          };
+        }
+        return { ...el, x: newX, y: newY };
+      }
+      return el;
+    });
 
     setElements(updatedElements);
   };
@@ -384,12 +460,14 @@ const Home = () => {
           <Canvas
             elements={elements}
             drawingMode={drawingMode}
-            onDrawComplete={handleDrawComplete}
             onElementSelect={handleElementSelect}
             onElementMove={handleElementMove}
             selectedElement={selectedElement}
             onCanvasClick={handleCanvasClick}
+            onDoubleClick={handleDrawComplete}
             scale={scale}
+            wallStartPoint={wallStartPoint}
+            drawingPoints={drawingPoints}
           />
         </div>
       </div>
