@@ -1,0 +1,108 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-02-17T01:38:42.564Z",
+  "models": {
+    "sub-zero": {
+      "high": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:00.975Z",
+        "path": "models/appliances/refrigerators/sub-zero/high.glb"
+      },
+      "medium": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:00.983Z",
+        "path": "models/appliances/refrigerators/sub-zero/medium.glb"
+      },
+      "low": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:00.991Z",
+        "path": "models/appliances/refrigerators/sub-zero/low.glb"
+      }
+    },
+    "thermador": {
+      "high": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:00.997Z",
+        "path": "models/appliances/refrigerators/thermador/high.glb"
+      },
+      "medium": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:01.003Z",
+        "path": "models/appliances/refrigerators/thermador/medium.glb"
+      },
+      "low": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:01.008Z",
+        "path": "models/appliances/refrigerators/thermador/low.glb"
+      }
+    },
+    "liebherr": {
+      "high": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:01.014Z",
+        "path": "models/appliances/refrigerators/liebherr/high.glb"
+      },
+      "medium": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:01.020Z",
+        "path": "models/appliances/refrigerators/liebherr/medium.glb"
+      },
+      "low": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:01.026Z",
+        "path": "models/appliances/refrigerators/liebherr/low.glb"
+      }
+    },
+    "viking": {
+      "high": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:01.031Z",
+        "path": "models/appliances/refrigerators/viking/high.glb"
+      },
+      "medium": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:01.038Z",
+        "path": "models/appliances/refrigerators/viking/medium.glb"
+      },
+      "low": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:01.044Z",
+        "path": "models/appliances/refrigerators/viking/low.glb"
+      }
+    },
+    "miele": {
+      "high": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:01.050Z",
+        "path": "models/appliances/refrigerators/miele/high.glb"
+      },
+      "medium": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:01.056Z",
+        "path": "models/appliances/refrigerators/miele/medium.glb"
+      },
+      "low": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:01.061Z",
+        "path": "models/appliances/refrigerators/miele/low.glb"
+      }
+    },
+    "default": {
+      "high": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:00.945Z",
+        "path": "models/appliances/refrigerators/default/high.glb"
+      },
+      "medium": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:00.958Z",
+        "path": "models/appliances/refrigerators/default/medium.glb"
+      },
+      "low": {
+        "size": 1664,
+        "lastModified": "2025-02-16T21:04:00.968Z",
+        "path": "models/appliances/refrigerators/default/low.glb"
+      }
+    }
+  }
+}
