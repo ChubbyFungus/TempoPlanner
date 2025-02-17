@@ -1,6 +1,6 @@
 import { Point } from '@/types/shared';
 
-export const calculatePolygonArea = (points: Point[]): number => {
+export const calculatePolygonArea = (points: { x: number; y: number }[]) => {
   let area = 0;
   for (let i = 0; i < points.length; i++) {
     const j = (i + 1) % points.length;
@@ -10,10 +10,11 @@ export const calculatePolygonArea = (points: Point[]): number => {
   return Math.abs(area / 2);
 };
 
-export const convertToSquareFeet = (area: number): number => {
-  // Assuming the grid is in inches (20px = 1 inch)
-  const squareInches = area / 400; // 20 * 20 = 400 square pixels per square inch
-  return Math.round(squareInches / 144); // 144 square inches in a square foot
+// Convert pixels to square feet (1 grid cell = 1 foot)
+export const convertToSquareFeet = (areaInPixels: number) => {
+  // Each grid cell is 20x20 pixels and represents 1x1 foot
+  const squareFeet = areaInPixels / (20 * 20);
+  return Math.round(squareFeet);
 };
 
 export const calculateDistance = (point1: Point, point2: Point): number => {
