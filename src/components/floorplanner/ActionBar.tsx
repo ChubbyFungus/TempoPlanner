@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Save, FolderOpen, Undo, Redo } from "lucide-react";
+import { Save, FolderOpen, Undo, Redo, ZoomIn, ZoomOut } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -15,6 +15,8 @@ interface ActionBarProps {
   onLoad?: (elements: CanvasElement[]) => void;
   onUndo?: () => void;
   onRedo?: () => void;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
   onAddAppliance?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
@@ -28,6 +30,8 @@ const ActionBar = ({
   onLoad = () => console.log("Load clicked"),
   onUndo = () => console.log("Undo clicked"),
   onRedo = () => console.log("Redo clicked"),
+  onZoomIn = () => console.log("Zoom in clicked"),
+  onZoomOut = () => console.log("Zoom out clicked"),
   onAddAppliance = () => console.log("Add appliance clicked"),
   canUndo = false,
   canRedo = false,
@@ -73,6 +77,40 @@ const ActionBar = ({
               </TooltipTrigger>
               <TooltipContent>
                 <p>Redo</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={onZoomIn}
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Zoom In</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={onZoomOut}
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Zoom Out</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
