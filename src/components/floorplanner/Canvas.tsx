@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 // Static assets
 // Use absolute path for public assets
 const fridgetopImage = "https://placehold.co/600x400";
@@ -24,6 +24,7 @@ interface CanvasProps {
   onElementMove: (element: CanvasElement, newX: number, newY: number) => void;
   onCanvasClick?: (x: number, y: number) => void;
   onAddElements?: (elements: CanvasElement[]) => void;
+  scale?: number;
 }
 
 const getDefaultMaterialForType = (type: string) => {
@@ -75,74 +76,106 @@ const Canvas: React.FC<CanvasProps> = ({
   onElementSelect = () => {},
   onElementMove = () => {},
   onAddElements = () => {},
+  scale = 1
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
+  const [isPanning, setIsPanning] = useState(false);
+  const [viewBox, setViewBox] = useState({ x: 0, y: 0, width: 932, height: 982 });
+  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+  const [dimensions, setDimensions] = useState({ width: 932, height: 982 });
 
-  // Create grid lines
-  const gridLines = [];
-  const canvasWidth = 932; // From design spec
-  const canvasHeight = 982; // From design spec
+  // Update dimensions when container size changes
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        setDimensions({ width, height });
+        setViewBox(prev => ({ ...prev, width, height }));
+      }
+    };
 
-  // Vertical lines
-  for (let x = 0; x <= canvasWidth; x += 20) {
-    gridLines.push(
-      <line
-        key={`v${x}`}
-        x1={x}
-        y1={0}
-        x2={x}
-        y2={canvasHeight}
-        stroke="#e5e7eb"
-        strokeWidth="1"
-      />,
-    );
-  }
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
 
-  // Horizontal lines
-  for (let y = 0; y <= canvasHeight; y += 20) {
-    gridLines.push(
-      <line
-        key={`h${y}`}
-        x1={0}
-        y1={y}
-        x2={canvasWidth}
-        y2={y}
-        stroke="#e5e7eb"
-        strokeWidth="1"
-      />,
-    );
-  }
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !e.repeat) {
+        setIsPanning(true);
+        document.body.style.cursor = 'grab';
+      }
+    };
 
-  const handleMouseDown = (element: CanvasElement, e: React.MouseEvent) => {
-    onElementSelect(element);
-    setIsDragging(true);
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        setIsPanning(false);
+        document.body.style.cursor = 'default';
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      document.body.style.cursor = 'default';
+    };
+  }, []);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (isPanning) {
+      setLastMousePos({ x: e.clientX, y: e.clientY });
+      document.body.style.cursor = 'grabbing';
+      return;
+    }
+
+    if (e.target instanceof Element && (e.target as HTMLElement).closest('g')) {
+      const element = elements.find(el => el.id === (e.target as HTMLElement).closest('g')?.getAttribute('data-id'));
+      if (element) {
+        onElementSelect(element);
+        setIsDragging(true);
+        const rect = (e.target as HTMLElement).getBoundingClientRect();
+        setDragOffset({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        });
+      }
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && selectedElement) {
-      const canvasRect = (
-        e.currentTarget as HTMLElement
-      ).getBoundingClientRect();
-      const newX =
-        Math.round((e.clientX - canvasRect.left - dragOffset.x) / 20) *
-        20;
-      const newY =
-        Math.round((e.clientY - canvasRect.top - dragOffset.y) / 20) *
-        20;
+    if (isPanning && e.buttons === 1) {
+      const dx = (e.clientX - lastMousePos.x) / scale;
+      const dy = (e.clientY - lastMousePos.y) / scale;
+      
+      setViewBox(prev => ({
+        ...prev,
+        x: prev.x - dx,
+        y: prev.y - dy
+      }));
+      
+      setLastMousePos({ x: e.clientX, y: e.clientY });
+      return;
+    }
 
+    if (isDragging && selectedElement) {
+      const canvasRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const newX = Math.round((e.clientX - canvasRect.left - dragOffset.x) / 20) * 20;
+      const newY = Math.round((e.clientY - canvasRect.top - dragOffset.y) / 20) * 20;
       onElementMove(selectedElement, newX, newY);
     }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    if (isPanning) {
+      document.body.style.cursor = 'grab';
+    }
   };
 
   const renderElement = (element: CanvasElement) => {
@@ -153,7 +186,7 @@ const Canvas: React.FC<CanvasProps> = ({
       return (
         <g
           key={element.id}
-          onMouseDown={(e) => handleMouseDown(element, e)}
+          onMouseDown={(e) => handleMouseDown(e)}
           className={selectedElement?.id === element.id ? "stroke-blue-500" : ""}
         >
           <foreignObject
@@ -176,7 +209,7 @@ const Canvas: React.FC<CanvasProps> = ({
       return (
         <g
           key={element.id}
-          onMouseDown={(e) => handleMouseDown(element, e)}
+          onMouseDown={(e) => handleMouseDown(e)}
           className={selectedElement?.id === element.id ? "stroke-blue-500" : ""}
         >
           <foreignObject
@@ -210,7 +243,7 @@ const Canvas: React.FC<CanvasProps> = ({
       return (
         <g
           key={element.id}
-          onMouseDown={(e) => handleMouseDown(element, e)}
+          onMouseDown={(e) => handleMouseDown(e)}
           className={selectedElement?.id === element.id ? "stroke-blue-500" : ""}
         >
           <foreignObject
@@ -236,7 +269,7 @@ const Canvas: React.FC<CanvasProps> = ({
         <g
           key={element.id}
           transform={`translate(${element.x},${element.y})`}
-          onMouseDown={(e) => handleMouseDown(element, e)}
+          onMouseDown={(e) => handleMouseDown(e)}
           className={`cursor-move ${selectedElement?.id === element.id ? "stroke-blue-500" : ""}`}
         >
           {isAppliance ? (
@@ -296,50 +329,58 @@ const Canvas: React.FC<CanvasProps> = ({
   };
 
   return (
-    <Card className="w-full h-full bg-white overflow-hidden relative">
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden">
       <svg
-        width={canvasWidth}
-        height={canvasHeight}
-        xmlns="http://www.w3.org/2000/svg"
-        xmlnsXlink="http://www.w3.org/1999/xlink"
+        width="100%"
+        height="100%"
+        viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
+        preserveAspectRatio="xMidYMid meet"
+        onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        className={`${drawingMode ? "cursor-crosshair" : "cursor-default"}`}
-        onClick={(e) => {
-          if (drawingMode) {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = Math.round((e.clientX - rect.left) / 20) * 20;
-            const y = Math.round((e.clientY - rect.top) / 20) * 20;
-            onCanvasClick(x, y);
-          }
+        className="bg-white"
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: 'center',
+          transition: 'transform 0.2s ease-out'
         }}
       >
+        {/* Grid Lines */}
         <g>
-          {/* Grid */}
-          {gridLines}
-
-          {/* Drawing Preview */}
-          {drawingMode === "room" && drawingPoints.length > 0 && (
-            <g>
-              <path
-                d={`M ${drawingPoints[0].x} ${drawingPoints[0].y} ${drawingPoints
-                  .slice(1)
-                  .map((p) => `L ${p.x} ${p.y}`)
-                  .join(" ")}`}
-                fill="none"
-                stroke="#3b82f6"
-                strokeWidth="2"
-                strokeDasharray="4"
-              />
-            </g>
-          )}
-
-          {/* Elements */}
-          {elements.map(renderElement)}
+          {/* Vertical lines */}
+          {Array.from({ length: Math.ceil(dimensions.width / 20) + 1 }, (_, i) => (
+            <line
+              key={`v${i}`}
+              x1={i * 20}
+              y1={0}
+              x2={i * 20}
+              y2={dimensions.height}
+              stroke="#e5e7eb"
+              strokeWidth="1"
+            />
+          ))}
+          {/* Horizontal lines */}
+          {Array.from({ length: Math.ceil(dimensions.height / 20) + 1 }, (_, i) => (
+            <line
+              key={`h${i}`}
+              x1={0}
+              y1={i * 20}
+              x2={dimensions.width}
+              y2={i * 20}
+              stroke="#e5e7eb"
+              strokeWidth="1"
+            />
+          ))}
         </g>
+
+        {/* Elements */}
+        {elements.map(element => (
+          <g key={element.id} data-id={element.id}>
+            {renderElement(element)}
+          </g>
+        ))}
       </svg>
-    </Card>
+    </div>
   );
 };
 

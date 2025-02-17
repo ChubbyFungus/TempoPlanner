@@ -29,6 +29,8 @@ declare global {
           'min-camera-orbit'?: string;
           'max-camera-orbit'?: string;
           intensity?: string;
+          'rotation-per-second'?: string;
+          'interaction-policy'?: 'allow-when-focused' | 'none';
         },
         HTMLElement
       >;
@@ -146,10 +148,12 @@ export const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
         src={modelPath}
         camera-controls={false}
         auto-rotate={false}
+        rotation-per-second="0deg"
+        interaction-policy="none"
         shadow-intensity="0"
         exposure="1"
         environment-image="neutral"
-        camera-orbit="0deg 90deg 2.5m"
+        camera-orbit="0deg 0deg 2.5m"
         field-of-view="30deg"
         style={{ 
           width: '100%', 
@@ -161,8 +165,8 @@ export const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
         loading-strategy="auto"
         interaction-prompt="none"
         disable-zoom
-        min-camera-orbit="0deg 90deg 2.5m"
-        max-camera-orbit="0deg 90deg 2.5m"
+        min-camera-orbit="0deg 0deg 2.5m"
+        max-camera-orbit="0deg 0deg 2.5m"
       >
         <div slot="progress-bar" style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
           <div style={{ 

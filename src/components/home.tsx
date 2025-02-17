@@ -19,6 +19,7 @@ const Home = () => {
   const [drawingMode, setDrawingMode] = useState("");
   const [wallStartPoint, setWallStartPoint] = useState<Point | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [scale, setScale] = useState(1);
 
   const handleDrawingModeChange = (mode: string) => {
     setDrawingMode(mode);
@@ -345,6 +346,14 @@ const Home = () => {
     setElements([...elements, ...newElements]);
   };
 
+  const handleZoomIn = () => {
+    setScale(prev => Math.min(prev + 0.1, 2));
+  };
+
+  const handleZoomOut = () => {
+    setScale(prev => Math.max(prev - 0.1, 0.5));
+  };
+
   return (
     <div className="flex h-screen bg-[#1C1C1C]">
       <Toolbar
@@ -356,6 +365,8 @@ const Home = () => {
         <ActionBar
           onUndo={handleUndo}
           onRedo={handleRedo}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
           onLoad={handleLoadFloorplan}
           onDelete={handleDeleteElement}
           onCatalogOpen={() => setCatalogOpen(true)}
@@ -363,7 +374,7 @@ const Home = () => {
           canRedo={redoStack.length > 0}
           elements={elements}
         />
-        <div className="flex-1 relative">
+        <div className="flex-1 relative overflow-hidden">
           <Button
             onClick={handleAddTestElements}
             className="absolute top-4 right-4 z-10"
@@ -378,6 +389,7 @@ const Home = () => {
             onElementMove={handleElementMove}
             selectedElement={selectedElement}
             onCanvasClick={handleCanvasClick}
+            scale={scale}
           />
         </div>
       </div>
