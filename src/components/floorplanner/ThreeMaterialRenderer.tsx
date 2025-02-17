@@ -28,6 +28,7 @@ declare global {
           'disable-zoom'?: boolean;
           'min-camera-orbit'?: string;
           'max-camera-orbit'?: string;
+          intensity?: string;
         },
         HTMLElement
       >;
@@ -143,23 +144,25 @@ export const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
       <model-viewer
         ref={modelViewerRef}
         src={modelPath}
-        camera-controls
+        camera-controls={false}
         auto-rotate={false}
         shadow-intensity="0"
         exposure="1"
-        environment-image="legacy"
-        skybox-image="legacy"
+        environment-image="neutral"
         camera-orbit="0deg 90deg 2.5m"
         field-of-view="30deg"
-        style={{ width: '100%', height: '100%', backgroundColor: '#ffffff' }}
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          backgroundColor: 'transparent'
+        }}
         onError={handleError}
         onLoad={handleLoad}
         loading-strategy="auto"
         interaction-prompt="none"
-        tone-mapping="aces"
         disable-zoom
-        min-camera-orbit="0deg 90deg 2m"
-        max-camera-orbit="0deg 90deg 3m"
+        min-camera-orbit="0deg 90deg 2.5m"
+        max-camera-orbit="0deg 90deg 2.5m"
       >
         <div slot="progress-bar" style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
           <div style={{ 
