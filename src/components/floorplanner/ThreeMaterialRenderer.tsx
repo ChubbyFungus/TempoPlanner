@@ -53,13 +53,15 @@ function FallbackBox({ materialPreset }: { materialPreset: any }) {
 // Model Component
 function Model({ type, materialPreset }: { type: string; materialPreset: any }) {
   const modelPath = getModelPath(type);
-  console.log('Loading model from path:', modelPath); // Debug log
+  console.log('Attempting to load model from path:', modelPath);
   
   try {
-    const { scene } = useGLTF(modelPath);
+    const { scene } = useGLTF(modelPath, true); // Added 'true' to enable error logging
     
     useEffect(() => {
       if (!scene || !materialPreset) return;
+      
+      console.log('Model loaded successfully:', scene);
 
       // Create and apply material
       createPBRMaterial(
@@ -89,7 +91,11 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
 
     return <primitive object={scene} scale={[0.01, 0.01, 0.01]} position={[0, -1, 0]} />;
   } catch (error) {
-    console.error('Error loading model:', error);
+    console.error('Error loading model:', {
+      error,
+      modelPath,
+      fullUrl: window.location.origin + modelPath
+    });
     return <FallbackBox materialPreset={materialPreset} />;
   }
 }
