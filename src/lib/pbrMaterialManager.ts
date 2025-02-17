@@ -29,16 +29,24 @@ async function loadTexture(path: string): Promise<THREE.Texture> {
     return textureCache.get(path)!;
   }
 
+  console.log('Attempting to load texture from:', path);
+
   return new Promise((resolve, reject) => {
     textureLoader.load(
       path,
       (texture) => {
+        console.log('Successfully loaded texture from:', path);
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
         textureCache.set(path, texture);
         resolve(texture);
       },
-      undefined,
-      reject
+      (progress) => {
+        console.log('Loading texture progress:', path, Math.round((progress.loaded / progress.total) * 100) + '%');
+      },
+      (error) => {
+        console.error('Failed to load texture:', path, error);
+        reject(error);
+      }
     );
   });
 }
@@ -48,6 +56,8 @@ async function loadMaterialTextures(
   category: MaterialCategory,
   materialId: MaterialId
 ): Promise<Record<keyof MaterialTextures, THREE.Texture>> {
+  console.log('Loading textures for material:', { category, materialId });
+  
   const textureTypes: (keyof MaterialTextures)[] = [
     'baseColorMap',
     'displacementMap',
@@ -56,16 +66,23 @@ async function loadMaterialTextures(
     'metalnessMap'
   ];
 
-  const textures = await Promise.all(
-    textureTypes.map(async (type) => {
-      const path = getTexturePath(category, materialId, type);
-      return loadTexture(path);
-    })
-  );
+  try {
+    const textures = await Promise.all(
+      textureTypes.map(async (type) => {
+        const path = getTexturePath(category, materialId, type);
+        return loadTexture(path);
+      })
+    );
 
-  return Object.fromEntries(
-    textureTypes.map((type, index) => [type, textures[index]])
-  ) as Record<keyof MaterialTextures, THREE.Texture>;
+    console.log('Successfully loaded all textures for:', { category, materialId });
+
+    return Object.fromEntries(
+      textureTypes.map((type, index) => [type, textures[index]])
+    ) as Record<keyof MaterialTextures, THREE.Texture>;
+  } catch (error) {
+    console.error('Failed to load textures for material:', { category, materialId, error });
+    throw error;
+  }
 }
 
 // Create a PBR material
@@ -81,27 +98,42 @@ export async function createPBRMaterial(
   }
 
   const settings = { ...DEFAULT_SETTINGS, ...options };
-  const textures = await loadMaterialTextures(category, materialId);
+  
+  try {
+    const textures = await loadMaterialTextures(category, materialId);
 
-  // Apply texture scaling
-  Object.values(textures).forEach((texture: THREE.Texture) => {
-    texture.repeat.copy(settings.textureScale);
-  });
+    // Apply texture scaling
+    Object.values(textures).forEach((texture: THREE.Texture) => {
+      texture.repeat.copy(settings.textureScale);
+    });
 
-  const material = new THREE.MeshStandardMaterial({
-    map: textures.baseColorMap,
-    normalMap: textures.normalMap,
-    normalScale: new THREE.Vector2(settings.normalScale, settings.normalScale),
-    roughnessMap: textures.roughnessMap,
-    roughness: settings.roughness,
-    metalnessMap: textures.metalnessMap,
-    metalness: settings.metalness,
-    displacementMap: textures.displacementMap,
-    displacementScale: settings.displacementScale,
-  });
+    const material = new THREE.MeshStandardMaterial({
+      map: textures.baseColorMap,
+      normalMap: textures.normalMap,
+      normalScale: new THREE.Vector2(settings.normalScale, settings.normalScale),
+      roughnessMap: textures.roughnessMap,
+      roughness: settings.roughness,
+      metalnessMap: textures.metalnessMap,
+      metalness: settings.metalness,
+      displacementMap: textures.displacementMap,
+      displacementScale: settings.displacementScale,
+    });
 
-  materialCache.set(cacheKey, material);
-  return material;
+    materialCache.set(cacheKey, material);
+    return material;
+  } catch (error) {
+    console.warn('Failed to load textures, creating basic material:', error);
+    
+    // Create a basic material without textures
+    const material = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(0xcccccc),
+      roughness: settings.roughness,
+      metalness: settings.metalness,
+    });
+
+    materialCache.set(cacheKey, material);
+    return material;
+  }
 }
 
 // Clear material and texture caches
