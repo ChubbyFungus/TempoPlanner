@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Stage, PerspectiveCamera, useGLTF, useProgress, Html } from '@react-three/drei';
+import { Stage, PerspectiveCamera, useGLTF, useProgress, Html, Center } from '@react-three/drei';
 import * as THREE from 'three';
 import { createPBRMaterial } from '@/lib/pbrMaterialManager';
 import { getModelPath, createLODGroup, loadModelProgressively, preloadCommonModels } from '@/lib/modelManager';
@@ -56,7 +56,7 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
   console.log('Attempting to load model from path:', modelPath);
   
   try {
-    const { scene } = useGLTF(modelPath, true); // Added 'true' to enable error logging
+    const { scene } = useGLTF(modelPath, true);
     
     useEffect(() => {
       if (!scene || !materialPreset) return;
@@ -64,32 +64,59 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
       console.log('Model loaded successfully:', scene);
 
       // Create and apply material
-      createPBRMaterial(
-        materialPreset.category,
-        materialPreset.materialId,
-        materialPreset.settings
-      ).then(material => {
-        scene.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            child.material = material;
-            child.castShadow = true;
-            child.receiveShadow = true;
-          }
-        });
-      });
+      const applyMaterial = async () => {
+        try {
+          const material = await createPBRMaterial(
+            materialPreset.category,
+            materialPreset.materialId,
+            materialPreset.settings
+          );
+          
+          scene.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              // Store original material for cleanup
+              const originalMaterial = child.material;
+              child.material = material;
+              child.castShadow = true;
+              child.receiveShadow = true;
+              
+              // Store reference to dispose later
+              child.userData.originalMaterial = originalMaterial;
+            }
+          });
+        } catch (error) {
+          console.error('Error applying material:', error);
+        }
+      };
+
+      applyMaterial();
 
       return () => {
         // Cleanup
         scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
-            child.material.dispose();
-            child.geometry.dispose();
+            if (child.material) {
+              child.material.dispose();
+            }
+            if (child.userData.originalMaterial) {
+              child.userData.originalMaterial.dispose();
+            }
+            if (child.geometry) {
+              child.geometry.dispose();
+            }
           }
         });
       };
     }, [scene, materialPreset]);
 
-    return <primitive object={scene} scale={[0.01, 0.01, 0.01]} position={[0, -1, 0]} />;
+    // Center the model and adjust scale
+    return (
+      <primitive 
+        object={scene} 
+        scale={[0.01, 0.01, 0.01]} 
+        position={[0, 0, 0]}
+      />
+    );
   } catch (error) {
     console.error('Error loading model:', {
       error,
