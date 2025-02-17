@@ -4,6 +4,7 @@ import { Stage, PerspectiveCamera, useGLTF, useProgress, Html, Center } from '@r
 import * as THREE from 'three';
 import { createPBRMaterial } from '@/lib/pbrMaterialManager';
 import { getModelPath, createLODGroup, loadModelProgressively, preloadCommonModels } from '@/lib/modelManager';
+import { MaterialPreset } from '@/types/shared';
 
 // Preload common models on module load
 preloadCommonModels();
@@ -51,7 +52,7 @@ function FallbackBox({ materialPreset }: { materialPreset: any }) {
 }
 
 // Model Component
-function Model({ type, materialPreset }: { type: string; materialPreset: any }) {
+function Model({ type, materialPreset }: { type: string; materialPreset: MaterialPreset }) {
   const modelPath = getModelPath(type);
   console.log('Attempting to load model from path:', modelPath);
   console.log('Material preset details:', {
@@ -59,8 +60,8 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
     keys: materialPreset ? Object.keys(materialPreset) : [],
     category: materialPreset?.category,
     materialId: materialPreset?.materialId,
-    settings: materialPreset?.settings,
-    fullPreset: materialPreset
+    settings: JSON.stringify(materialPreset?.settings),
+    fullPreset: JSON.stringify(materialPreset)
   });
   
   try {
@@ -70,7 +71,8 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
       if (!scene || !materialPreset) {
         console.log('Scene or material preset missing:', { 
           hasScene: !!scene, 
-          hasMaterialPreset: !!materialPreset 
+          hasMaterialPreset: !!materialPreset,
+          materialPreset: JSON.stringify(materialPreset)
         });
         return;
       }
@@ -86,16 +88,23 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
       // Create and apply material
       const applyMaterial = async () => {
         try {
-          console.log('Attempting to create PBR material with:', {
-            category: materialPreset.category,
-            materialId: materialPreset.materialId,
-            settings: materialPreset.settings
-          });
+          const materialSettings = {
+            category: materialPreset.category || 'appliances',
+            materialId: materialPreset.materialId || 'stainlessSteel',
+            settings: {
+              normalScale: materialPreset.settings?.normalScale || 0.45,
+              roughness: materialPreset.settings?.roughness || 0.2,
+              metalness: materialPreset.settings?.metalness || 0.95,
+              displacementScale: materialPreset.settings?.displacementScale || 0.01,
+            }
+          };
+
+          console.log('Attempting to create PBR material with:', JSON.stringify(materialSettings, null, 2));
 
           const material = await createPBRMaterial(
-            materialPreset.category || 'appliances',
-            materialPreset.materialId || 'stainlessSteel',
-            materialPreset.settings || {}
+            materialSettings.category,
+            materialSettings.materialId,
+            materialSettings.settings
           );
           
           let meshCount = 0;
@@ -104,7 +113,7 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
               meshCount++;
               // Store original material for cleanup
               const originalMaterial = child.material;
-              child.material = material;
+              child.material = material.clone(); // Clone the material for each mesh
               child.castShadow = true;
               child.receiveShadow = true;
               
@@ -129,7 +138,7 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
             if (child instanceof THREE.Mesh) {
               fallbackMeshCount++;
               const originalMaterial = child.material;
-              child.material = fallbackMaterial;
+              child.material = fallbackMaterial.clone(); // Clone the material for each mesh
               child.castShadow = true;
               child.receiveShadow = true;
               child.userData.originalMaterial = originalMaterial;
@@ -186,7 +195,7 @@ function Model({ type, materialPreset }: { type: string; materialPreset: any }) 
 
 interface ThreeMaterialRendererProps {
   elementId: string;
-  materialPreset: any;
+  materialPreset: MaterialPreset;
   width: number;
   height: number;
   type: string;
@@ -199,7 +208,7 @@ export const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
   height,
   type
 }) => {
-  console.log('ThreeMaterialRenderer received materialPreset:', materialPreset);
+  console.log('ThreeMaterialRenderer received materialPreset:', JSON.stringify(materialPreset, null, 2));
   
   return (
     <div style={{ width, height }}>
