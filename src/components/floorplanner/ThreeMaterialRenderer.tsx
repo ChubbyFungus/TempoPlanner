@@ -96,6 +96,7 @@ function Model({ type, materialPreset }: { type: string; materialPreset: Materia
               roughness: materialPreset.settings?.roughness || 0.2,
               metalness: materialPreset.settings?.metalness || 0.95,
               displacementScale: materialPreset.settings?.displacementScale || 0.01,
+              textureScale: materialPreset.settings?.textureScale || { x: 2, y: 2 }
             }
           };
 
