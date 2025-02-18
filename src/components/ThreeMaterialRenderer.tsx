@@ -70,6 +70,11 @@ const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
 
     const loadModel = async () => {
       try {
+        // Only load 3D models for appliances
+        if (!type.includes("appliance")) {
+          return;
+        }
+
         const brand = type.split("-")[0];
         let finalPath = "/models/appliances/refrigerators/default/high.glb";
 
@@ -168,57 +173,67 @@ const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
 
   return (
     <div style={{ width, height }}>
-      <model-viewer
-        ref={modelViewerRef}
-        src={modelPath}
-        camera-controls={false}
-        auto-rotate={false}
-        rotation-per-second="0deg"
-        interaction-policy="none"
-        shadow-intensity="0"
-        exposure="1"
-        environment-image="neutral"
-        camera-orbit="0deg 0deg 2.5m"
-        field-of-view="30deg"
-        style={{
-          width: "100%",
-          height: "100%",
-          backgroundColor: "#f0f0f0",
-        }}
-        onError={handleError}
-        onLoad={handleLoad}
-        loading-strategy="auto"
-        interaction-prompt="none"
-        disable-zoom
-        min-camera-orbit="0deg 0deg 2.5m"
-        max-camera-orbit="0deg 0deg 2.5m"
-      >
-        <div
-          slot="progress-bar"
-          style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}
+      {type.includes("appliance") ? (
+        <model-viewer
+          ref={modelViewerRef}
+          src={modelPath}
+          camera-controls={false}
+          auto-rotate={false}
+          rotation-per-second="0deg"
+          interaction-policy="none"
+          shadow-intensity="0"
+          exposure="1"
+          environment-image="neutral"
+          camera-orbit="0deg 0deg 2.5m"
+          field-of-view="30deg"
+          style={{
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#f0f0f0",
+          }}
+          onError={handleError}
+          onLoad={handleLoad}
+          loading-strategy="auto"
+          interaction-prompt="none"
+          disable-zoom
+          min-camera-orbit="0deg 0deg 2.5m"
+          max-camera-orbit="0deg 0deg 2.5m"
         >
           <div
-            style={{
-              width: "100%",
-              height: "2px",
-              background: "#ddd",
-              position: "relative",
-            }}
+            slot="progress-bar"
+            style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}
           >
             <div
               style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                bottom: 0,
-                background: "#4CAF50",
-                transition: "width 0.3s",
-                width: "0%",
+                width: "100%",
+                height: "2px",
+                background: "#ddd",
+                position: "relative",
               }}
-            />
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  background: "#4CAF50",
+                  transition: "width 0.3s",
+                  width: "0%",
+                }}
+              />
+            </div>
           </div>
-        </div>
-      </model-viewer>
+        </model-viewer>
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            backgroundColor: type === "wall" ? "#e0e0e0" : "#f0f0f0",
+          }}
+        />
+      )}
     </div>
   );
 };

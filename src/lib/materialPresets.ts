@@ -281,7 +281,7 @@ export const MATERIAL_PRESETS = {
   },
 
   // Wall Materials
-  "wall-paint-matte": {
+  "wall": {
     category: "walls",
     materialId: "paint",
     settings: {
@@ -292,37 +292,15 @@ export const MATERIAL_PRESETS = {
       textureScale: new Vector2(4, 4),
     },
   },
-  "wall-paint-eggshell": {
+  "wall-painted": {
     category: "walls",
     materialId: "paint",
     settings: {
-      normalScale: 0.25,
-      roughness: 0.85,
-      metalness: 0.05,
-      displacementScale: 0.008,
+      normalScale: 0.1,
+      roughness: 0.9,
+      metalness: 0.0,
+      displacementScale: 0.002,
       textureScale: new Vector2(4, 4),
-    },
-  },
-  "backsplash-tile-ceramic": {
-    category: "walls",
-    materialId: "tile",
-    settings: {
-      normalScale: 0.8,
-      roughness: 0.5,
-      metalness: 0.15,
-      displacementScale: 0.04,
-      textureScale: new Vector2(8, 8),
-    },
-  },
-  "backsplash-tile-glass": {
-    category: "walls",
-    materialId: "tile",
-    settings: {
-      normalScale: 0.6,
-      roughness: 0.2,
-      metalness: 0.3,
-      displacementScale: 0.03,
-      textureScale: new Vector2(8, 8),
     },
   },
 
@@ -491,7 +469,7 @@ export function getMaterialPreset(elementType: string) {
 
   // Handle walls and backsplash
   if (elementType === "wall") {
-    return MATERIAL_PRESETS["wall-paint-eggshell"];
+    return MATERIAL_PRESETS["wall-painted"];
   }
 
   if (elementType === "backsplash") {
@@ -530,5 +508,5 @@ export function getMaterialPreset(elementType: string) {
   }
 
   // Default to wall material if no match
-  return MATERIAL_PRESETS["wall-paint-matte"];
+  return MATERIAL_PRESETS["wall-painted"];
 }

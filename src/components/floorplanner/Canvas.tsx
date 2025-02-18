@@ -118,21 +118,43 @@ const Canvas = ({
         />
 
         {/* Drawing Preview */}
-        {drawingMode === "wall" && wallStartPoint && (
-          <div
-            className="absolute border-2 border-primary"
-            style={{
-              left: wallStartPoint.x - 1000,
-              top: wallStartPoint.y - 1000,
-              width: "4px",
-              height: "4px",
-              transform: "translate(-50%, -50%)",
-            }}
-          />
+        {drawingMode === "draw-wall" && wallStartPoint && (
+          <>
+            <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 999 }}>
+              <circle
+                cx={wallStartPoint.x - 1000}
+                cy={wallStartPoint.y - 1000}
+                r={4}
+                fill="#000"
+                stroke="white"
+                strokeWidth="2"
+              />
+              {mousePos && (
+                <>
+                  <line
+                    x1={wallStartPoint.x - 1000}
+                    y1={wallStartPoint.y - 1000}
+                    x2={mousePos.x - 1000}
+                    y2={mousePos.y - 1000}
+                    stroke="#000"
+                    strokeWidth="4"
+                  />
+                  <circle
+                    cx={mousePos.x - 1000}
+                    cy={mousePos.y - 1000}
+                    r={4}
+                    fill="#000"
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                </>
+              )}
+            </svg>
+          </>
         )}
 
-        {/* Room Drawing Preview */}
-        {drawingMode === "draw-room" && (
+        {/* Surface Drawing Preview */}
+        {drawingMode === "draw-surface" && (
           <>
             <svg
               className="absolute inset-0 pointer-events-none"
@@ -151,7 +173,7 @@ const Canvas = ({
                         y1={prevPoint.y - 1000}
                         x2={point.x - 1000}
                         y2={point.y - 1000}
-                        stroke="#000"
+                        stroke="#666"
                         strokeWidth="2"
                       />
                     );
@@ -194,7 +216,7 @@ const Canvas = ({
                 />
               )}
             </svg>
-            {drawingPoints.length > 2 && (
+            {drawingPoints.length > 2 && viewMode === "3d" && (
               <div
                 className="absolute inset-0"
                 style={{
