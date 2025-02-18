@@ -94,7 +94,7 @@ export const WithAppliance: Story = {
 export const RoomDrawingMode: Story = {
   args: {
     elements: [],
-    drawingMode: "room",
+    drawingMode: "draw-room",
     selectedElement: null,
     scale: 1,
     drawingPoints: [

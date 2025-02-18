@@ -11,6 +11,7 @@ import {
   Lightbulb,
   Home,
   Layers,
+  MousePointer,
 } from "lucide-react";
 
 interface ToolbarItem {
@@ -20,6 +21,7 @@ interface ToolbarItem {
 }
 
 const toolbarItems: ToolbarItem[] = [
+  { id: "select", name: "Select", icon: <MousePointer className="w-4 h-4" /> },
   { id: "draw-room", name: "Draw Room", icon: <Home className="w-4 h-4" /> },
   {
     id: "draw-surface",

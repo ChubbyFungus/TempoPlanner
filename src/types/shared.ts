@@ -6,15 +6,27 @@ export interface Point {
   y: number;
 }
 
+export interface WallSegment {
+  start: Point;
+  end: Point;
+  thickness: number;
+}
+
+export interface Corner {
+  x: number;
+  y: number;
+  wallSegments: WallSegment[];
+}
+
 export interface MaterialPreset {
-  category: MaterialCategory;
-  materialId: MaterialId;
-  settings: {
-    normalScale: number;
-    roughness: number;
-    metalness: number;
-    displacementScale: number;
-    textureScale: {
+  category: string;
+  materialId: string;
+  settings?: {
+    normalScale?: number;
+    roughness?: number;
+    metalness?: number;
+    displacementScale?: number;
+    textureScale?: {
       x: number;
       y: number;
     };
@@ -22,7 +34,7 @@ export interface MaterialPreset {
 }
 
 export interface OverlayPreset {
-  type: "brushed" | "matte" | "gloss" | "textured";
+  type: string;
   angle: number;
   opacity: number;
   scale: number;
@@ -44,6 +56,17 @@ export interface CanvasElement {
   color?: string;
   materialPreset?: MaterialPreset;
   overlayPreset?: OverlayPreset;
+  wallSegments?: WallSegment[];
+  corners?: Corner[];
+}
+
+export interface Layer {
+  id: string;
+  name: string;
+  visible: boolean;
+  allowedTools: string[];
+  elements: CanvasElement[];
+  locked: boolean;
 }
 
 export interface ToolbarItem {
@@ -56,34 +79,38 @@ export interface ToolbarItem {
   height?: number;
 }
 
-export interface CatalogItem extends ToolbarItem {
+export interface CatalogItem {
+  id: string;
+  name: string;
+  type: string;
+  category: string;
   brand: string;
   model: string;
-  image: string;
   width: number;
   height: number;
   depth: number;
-  description: string;
   price: string;
-  materialPreset: {
-    category: MaterialCategory;
-    materialId: MaterialId;
-    settings: {
-      normalScale: number;
-      roughness: number;
-      metalness: number;
-      displacementScale: number;
-      textureScale: {
-        x: number;
-        y: number;
-      };
-    };
-  };
-  overlayPreset: {
-    type: 'brushed' | 'matte' | 'gloss' | 'textured';
-    angle: number;
-    opacity: number;
-    scale: number;
-    strength: number;
-  };
+  image: string;
+  description: string;
+  materialPreset: MaterialPreset;
+  overlayPreset?: OverlayPreset;
+}
+
+export interface RoomLayout {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  points: Point[];
+  wallSegments: WallSegment[];
+  corners: Corner[];
+  sqft: number;
+  description: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: JSX.Element;
+  items: RoomLayout[] | CatalogItem[];
 } 

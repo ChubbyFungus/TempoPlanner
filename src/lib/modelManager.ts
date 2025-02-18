@@ -1,9 +1,9 @@
-import { Cache, LOD, Group, Mesh, Material, BufferGeometry, BoxGeometry, MeshStandardMaterial } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 
 // Enable caching
-Cache.enabled = true;
+THREE.Cache.enabled = true;
 
 // Model quality levels
 export const LOD_LEVELS = {
@@ -59,34 +59,77 @@ async function loadModelManifest(): Promise<ModelManifest> {
 // Get model path from manifest
 export async function getModelPath(type: string, quality: keyof typeof LOD_LEVELS = 'HIGH'): Promise<string> {
   try {
-    const manifest = await loadModelManifest();
-    const normalizedType = type.toLowerCase();
-    const brand = normalizedType.split('-')[0];
-    
-    // Check if brand exists in manifest
-    if (manifest.models[brand] && manifest.models[brand][quality.toLowerCase()]) {
-      return manifest.models[brand][quality.toLowerCase()].path;
+    // For refrigerator types, use the appropriate model based on brand
+    if (type.includes('refrigerator') || type.includes('ice-maker') || type.includes('beverage-center') || type.includes('panel-ready')) {
+      const brand = type.split('-')[0];
+      const model = type.split('-')[1];
+      
+      // Handle Panel Ready models
+      if (type.includes('panel-ready')) {
+        const modelPath = `/models/appliances/3ds/${model.toUpperCase()}_3ds/high.glb`;
+        try {
+          const response = await fetch(modelPath, { method: 'HEAD' });
+          if (response.ok) {
+            return modelPath;
+          }
+        } catch (e) {
+          console.warn(`Panel ready model not found for ${model}, using default`);
+        }
+      }
+      
+      // Handle Cove models
+      if (brand === 'cove') {
+        const modelPath = `/models/appliances/3ds/${model.toUpperCase()}_3ds/high.glb`;
+        try {
+          const response = await fetch(modelPath, { method: 'HEAD' });
+          if (response.ok) {
+            return modelPath;
+          }
+        } catch (e) {
+          console.warn(`Cove model not found for ${model}, using default`);
+        }
+      }
+      
+      // Try brand-specific model
+      const brandPath = `/models/appliances/refrigerators/${brand}/testglb.glb`;
+      try {
+        const response = await fetch(brandPath, { method: 'HEAD' });
+        if (response.ok) {
+          return brandPath;
+        }
+      } catch (e) {
+        console.warn(`Brand specific model not found for ${brand}, using default`);
+      }
+      
+      // Fallback to default model
+      return "/models/appliances/refrigerators/default/high.glb";
     }
     
-    console.warn(`Model not found for ${brand}/${quality}, using default`);
-    return manifest.models.default[quality.toLowerCase()].path;
+    // For other types, use the manifest
+    const manifest = await loadModelManifest();
+    const modelConfig = manifest[type];
+    if (!modelConfig) {
+      throw new Error(`No model configuration found for type: ${type}`);
+    }
+    
+    return modelConfig[quality.toLowerCase()];
   } catch (error) {
     console.error('Error getting model path:', error);
-    // Return a basic fallback path if manifest fails
-    return `models/appliances/refrigerators/default/${quality.toLowerCase()}.glb`;
+    // Return default model as fallback
+    return "/models/appliances/refrigerators/default/high.glb";
   }
 }
 
 // Create a placeholder model
-function createPlaceholderModel(): Group {
-  const geometry = new BoxGeometry(1, 1, 1);
-  const material = new MeshStandardMaterial({ 
+function createPlaceholderModel(): THREE.Group {
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
+  const material = new THREE.MeshStandardMaterial({ 
     color: 0xff0000,
     metalness: 0.5,
     roughness: 0.5
   });
-  const mesh = new Mesh(geometry, material);
-  const group = new Group();
+  const mesh = new THREE.Mesh(geometry, material);
+  const group = new THREE.Group();
   group.add(mesh);
   return group;
 }
@@ -95,7 +138,7 @@ function createPlaceholderModel(): Group {
 export async function loadModelProgressively(
   type: string,
   onProgress?: (progress: number) => void
-): Promise<Group> {
+): Promise<THREE.Group> {
   try {
     const modelPath = await getModelPath(type, 'HIGH');
     console.log('Loading model from path:', modelPath);
@@ -106,7 +149,9 @@ export async function loadModelProgressively(
         (gltf) => {
           console.log('Model loaded successfully:', gltf);
           if (onProgress) onProgress(100);
-          resolve(gltf.scene);
+          const group = new THREE.Group();
+          group.add(gltf.scene);
+          resolve(group);
         },
         (progressEvent) => {
           if (progressEvent.lengthComputable && onProgress) {
@@ -135,7 +180,7 @@ export async function preloadCommonModels() {
     for (const model of commonModels) {
       if (manifest.models[model]) {
         const modelPath = manifest.models[model].low.path;
-        Cache.add(modelPath, await loadModelProgressively(model));
+        THREE.Cache.add(modelPath, await loadModelProgressively(model));
         console.log(`Preloaded model: ${model}`);
       }
     }
