@@ -18,6 +18,7 @@ interface Layer {
   visible: boolean;
   allowedTools?: string[];
   elements: CanvasElement[];
+  locked?: boolean;
 }
 
 const defaultLayers: Layer[] = [
@@ -98,34 +99,64 @@ const Home = () => {
   const handleCanvasClick = (x: number, y: number) => {
     const point = { x, y };
 
-    if (drawingMode === "draw-room") {
-      // Add new point
+    if (drawingMode === "draw-room" || drawingMode === "draw-surface") {
+      // Add new point for room or surface drawing
       setDrawingPoints((prev) => [...prev, point]);
+    } else if (drawingMode === "draw-wall") {
+      if (!wallStartPoint) {
+        setWallStartPoint(point);
+      } else {
+        // Create a wall element from start to current point
+        const wallElement = {
+          id: `wall-${Date.now()}`,
+          type: "wall",
+          x: Math.min(wallStartPoint.x, point.x),
+          y: Math.min(wallStartPoint.y, point.y),
+          width: Math.abs(point.x - wallStartPoint.x),
+          height: Math.abs(point.y - wallStartPoint.y),
+          color: "#000",
+          rotation: 0,
+          locked: false,
+        };
+        handleElementAdd(wallElement);
+        setWallStartPoint(null);
+      }
     }
   };
 
   const handleDoubleClick = () => {
     if (drawingMode === "draw-room" && drawingPoints.length >= 3) {
-      // Close the room on double click
+      // Create room element from drawingPoints
       const roomElement: CanvasElement = {
         id: `room-${Date.now()}`,
         type: "room",
         x: Math.min(...drawingPoints.map((p) => p.x)),
         y: Math.min(...drawingPoints.map((p) => p.y)),
-        width:
-          Math.max(...drawingPoints.map((p) => p.x)) -
-          Math.min(...drawingPoints.map((p) => p.x)),
-        height:
-          Math.max(...drawingPoints.map((p) => p.y)) -
-          Math.min(...drawingPoints.map((p) => p.y)),
-        points: [...drawingPoints], // Use all points
+        width: Math.max(...drawingPoints.map((p) => p.x)) - Math.min(...drawingPoints.map((p) => p.x)),
+        height: Math.max(...drawingPoints.map((p) => p.y)) - Math.min(...drawingPoints.map((p) => p.y)),
+        points: [...drawingPoints],
         color: "#f3f4f6",
         rotation: 0,
         locked: false,
       };
       handleElementAdd(roomElement);
       setDrawingPoints([]);
-      setDrawingMode("");
+    } else if (drawingMode === "draw-surface" && drawingPoints.length >= 3) {
+      // Create surface element from drawingPoints
+      const surfaceElement: CanvasElement = {
+        id: `surface-${Date.now()}`,
+        type: "surface",
+        x: Math.min(...drawingPoints.map((p) => p.x)),
+        y: Math.min(...drawingPoints.map((p) => p.y)),
+        width: Math.max(...drawingPoints.map((p) => p.x)) - Math.min(...drawingPoints.map((p) => p.x)),
+        height: Math.max(...drawingPoints.map((p) => p.y)) - Math.min(...drawingPoints.map((p) => p.y)),
+        points: [...drawingPoints],
+        color: "#f3f4f6",
+        rotation: 0,
+        locked: false,
+      };
+      handleElementAdd(surfaceElement);
+      setDrawingPoints([]);
     }
   };
 
