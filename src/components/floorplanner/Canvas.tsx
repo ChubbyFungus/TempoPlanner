@@ -100,8 +100,17 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
   const [selectedPart, setSelectedPart] = useState<string | null>(null);
   const [isDraggingCorner, setIsDraggingCorner] = useState(false);
 
+  const handleRoomClick = (e: React.MouseEvent) => {
+    if (drawingMode !== "select") return;
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Room clicked:', element.id);
+    onSelect(element);
+  };
+
   const handleCornerMouseDown = (e: React.MouseEvent, point: Point, index: number) => {
     if (drawingMode !== "select") return;
+    e.preventDefault();
     e.stopPropagation();
     setSelectedPart(`corner-${index}`);
     setIsDraggingCorner(true);
@@ -111,17 +120,20 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
     });
   };
 
-  const handleCornerMouseUp = () => {
+  const handleCornerMouseUp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsDraggingCorner(false);
   };
 
   const handleCornerMouseMove = (e: React.MouseEvent) => {
     if (!isDraggingCorner || element.selectedCornerIndex === undefined) return;
-
+    e.preventDefault();
     e.stopPropagation();
+
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = element.x + (e.clientX - rect.left);
-    const y = element.y + (e.clientY - rect.top);
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
     // Update the selected corner's position
     const updatedPoints = [...(element.points || [])];
@@ -143,17 +155,10 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
     });
   };
 
-  const handleRoomClick = (e: React.MouseEvent) => {
-    if (drawingMode === "select") {
-      e.stopPropagation();
-      onSelect(element);
-    }
-  };
-
   return (
     <div
       data-id={element.id}
-      className={`absolute room-element ${selected ? "ring-2 ring-primary" : ""}`}
+      className={`absolute room-element ${selected ? "ring-2 ring-blue-500" : ""}`}
       style={{
         position: 'absolute',
         left: `${element.x}px`,
@@ -163,8 +168,10 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
         transform: `rotate(${element.rotation}deg)`,
         cursor: drawingMode === "select" ? "pointer" : "default",
         pointerEvents: drawingMode === "select" ? "all" : "none",
-        zIndex: 10,
-        transformOrigin: "top left"
+        zIndex: selected ? 20 : 10,
+        transformOrigin: "top left",
+        border: selected ? "2px solid #3b82f6" : "none",
+        backgroundColor: selected ? "rgba(59, 130, 246, 0.1)" : "transparent"
       }}
       onClick={handleRoomClick}
       onMouseMove={handleCornerMouseMove}
@@ -183,19 +190,19 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
           <path
             d={`M ${element.points?.map(p => `${p.x - element.x} ${p.y - element.y}`).join(" L ")} Z`}
             fill={element.color || "#f3f4f6"}
-            stroke="#000"
-            strokeWidth="4"
+            stroke={selected ? "#3b82f6" : "#000"}
+            strokeWidth="2"
             style={{ pointerEvents: drawingMode === "select" ? "all" : "none" }}
           />
-          {/* Corners */}
-          {element.points?.map((point, index) => (
+          {/* Corners - only show if selected */}
+          {selected && element.points?.map((point, index) => (
             <circle
               key={index}
               cx={point.x - element.x}
               cy={point.y - element.y}
               r={selectedPart === `corner-${index}` ? 8 : 6}
-              fill={selectedPart === `corner-${index}` ? "#0066cc" : "#000"}
-              stroke="#fff"
+              fill={selectedPart === `corner-${index}` ? "#3b82f6" : "#fff"}
+              stroke="#3b82f6"
               strokeWidth={2}
               style={{ 
                 cursor: drawingMode === "select" ? "move" : "default",
@@ -518,20 +525,10 @@ const Canvas = ({
       const target = e.target as HTMLElement;
       const roomElement = target.closest('.room-element');
       
-      if (roomElement) {
-        // If clicked on a room element, find the corresponding element data
-        const roomId = roomElement.getAttribute('data-id');
-        const targetLayer = layers.find(layer => layer.visible);
-        const element = targetLayer?.elements.find(el => el.id === roomId);
-        
-        if (element) {
-          e.stopPropagation();
-          onElementSelect?.(element);
-          return;
-        }
-      } else {
+      if (!roomElement) {
         // If clicked outside any room, deselect
         onElementSelect?.(null);
+        return;
       }
       return;
     }
