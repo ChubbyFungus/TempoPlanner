@@ -355,6 +355,7 @@ const Home = () => {
             onElementSelect={handleElementSelect}
             onElementUpdate={handlePropertyChange}
             drawingMode={drawingMode}
+            setDrawingMode={setDrawingMode}
             onCanvasClick={handleCanvasClick}
             onDoubleClick={handleDoubleClick}
             scale={scale}
