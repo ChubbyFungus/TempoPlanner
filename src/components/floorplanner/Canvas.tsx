@@ -44,6 +44,14 @@ interface ViewportState {
   offsetY: number;
 }
 
+interface DragState {
+  startX: number;
+  startY: number;
+  originalWidth: number;
+  originalHeight: number;
+  aspectRatio: number;
+}
+
 interface Props {
   viewMode?: "2d" | "3d";
   selectedElement?: Element;
@@ -56,6 +64,7 @@ interface Props {
   onLayerVisibilityToggle?: (id: string) => void;
   onLayerSelect?: (id: string) => void;
   drawingMode: string;
+  setDrawingMode: (mode: string) => void;
   onCanvasClick?: (x: number, y: number) => void;
   onDoubleClick?: () => void;
   scale?: number;
@@ -132,17 +141,16 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
     <div
       className={`absolute room-element ${selected ? "ring-2 ring-primary" : ""}`}
       style={{
+        position: 'absolute',
         left: `${element.x}px`,
         top: `${element.y}px`,
-        width: element.width || 400,
-        height: element.height || 300,
+        width: `${element.width}px`,
+        height: `${element.height}px`,
         transform: `rotate(${element.rotation}deg)`,
         cursor: drawingMode === "select" ? "pointer" : "default",
         pointerEvents: drawingMode === "select" ? "all" : "none",
         zIndex: 10,
-        transformOrigin: "top left",
-        willChange: "transform",
-        position: "absolute"
+        transformOrigin: "top left"
       }}
       onClick={(e) => {
         if (drawingMode === "select") {
@@ -156,12 +164,12 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
           width={element.width}
           height={element.height}
           className="absolute inset-0"
-          viewBox={`0 0 ${element.width || 400} ${element.height || 300}`}
+          viewBox={`0 0 ${element.width} ${element.height}`}
           style={{ overflow: 'visible', pointerEvents: drawingMode === "select" ? "all" : "none" }}
         >
           {/* Room outline */}
           <path
-            d={`M ${element.points?.map(p => `${p.x} ${p.y}`).join(" L ")} Z`}
+            d={`M ${element.points?.map(p => `${p.x - element.x} ${p.y - element.y}`).join(" L ")} Z`}
             fill={element.color || "#f3f4f6"}
             stroke="#000"
             strokeWidth="4"
@@ -171,10 +179,10 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
           {element.wallSegments?.map((wall, index) => (
             <line
               key={index}
-              x1={wall.start.x}
-              y1={wall.start.y}
-              x2={wall.end.x}
-              y2={wall.end.y}
+              x1={wall.start.x - element.x}
+              y1={wall.start.y - element.y}
+              x2={wall.end.x - element.x}
+              y2={wall.end.y - element.y}
               stroke={selectedPart === `wall-${index}` ? "#0066cc" : "#000"}
               strokeWidth={wall.thickness + (selectedPart === `wall-${index}` ? 2 : 0)}
               strokeLinecap="round"
@@ -189,8 +197,8 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
           {element.corners?.map((corner, index) => (
             <circle
               key={index}
-              cx={corner.x}
-              cy={corner.y}
+              cx={corner.x - element.x}
+              cy={corner.y - element.y}
               r={selectedPart === `corner-${index}` ? 6 : 4}
               fill={selectedPart === `corner-${index}` ? "#0066cc" : "#000"}
               stroke="#fff"
@@ -227,6 +235,7 @@ const Canvas = ({
   onLayerVisibilityToggle,
   onLayerSelect,
   drawingMode,
+  setDrawingMode,
   onCanvasClick,
   onDoubleClick,
   scale = 1,
@@ -250,6 +259,8 @@ const Canvas = ({
   const [isSpacePressed, setIsSpacePressed] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragState, setDragState] = useState<DragState | null>(null);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isPanning) {
@@ -264,6 +275,40 @@ const Canvas = ({
       }));
       
       setLastMousePos({ x: e.clientX, y: e.clientY });
+      return;
+    }
+
+    if (isDragging && dragState) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const currentX = (e.clientX - rect.left - viewport.offsetX) / viewport.scale;
+      const currentY = (e.clientY - rect.top - viewport.offsetY) / viewport.scale;
+      
+      let width = Math.abs(currentX - dragState.startX);
+      let height = width / dragState.aspectRatio;
+      
+      width = Math.max(width, 200);
+      height = Math.max(height, 200);
+      
+      const updatedElement: Partial<Element> = {
+        width,
+        height,
+        points: [
+          { x: dragState.startX, y: dragState.startY },
+          { x: dragState.startX + width, y: dragState.startY },
+          { x: dragState.startX + width, y: dragState.startY + height },
+          { x: dragState.startX, y: dragState.startY + height }
+        ]
+      };
+      
+      const targetLayer = layers.find(layer => layer.id === activeLayer) || layers[0];
+      const roomElement = targetLayer?.elements.find(el => el.type === "room" && el === selectedElement);
+      
+      if (roomElement) {
+        onElementUpdate?.({
+          ...roomElement,
+          ...updatedElement
+        });
+      }
       return;
     }
 
@@ -288,7 +333,7 @@ const Canvas = ({
     }
 
     setMousePos(snappedPoint);
-  }, [scale, corners, wallSegments, isPanning, lastMousePos.x, lastMousePos.y]);
+  }, [scale, corners, wallSegments, isPanning, lastMousePos, isDragging, dragState, layers, onElementUpdate, selectedElement, activeLayer, viewport]);
 
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
     if (!onCanvasClick) return;
@@ -462,23 +507,66 @@ const Canvas = ({
   }, [isSpacePressed, drawingMode]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (isSpacePressed && e.button === 0) {
-      setIsPanning(true);
-      setLastMousePos({ x: e.clientX, y: e.clientY });
-      if (canvasRef.current) {
-        canvasRef.current.style.cursor = 'grabbing';
+    console.log('MouseDown - Drawing Mode:', drawingMode);
+    
+    if (drawingMode === "draw-room") {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = (e.clientX - rect.left - viewport.offsetX) / viewport.scale;
+      const y = (e.clientY - rect.top - viewport.offsetY) / viewport.scale;
+      
+      console.log('Room Start Position:', { x, y });
+      
+      const initialWidth = 200;
+      const initialHeight = 200;
+      const aspectRatio = 1;
+      
+      setDragState({
+        startX: x,
+        startY: y,
+        originalWidth: initialWidth,
+        originalHeight: initialHeight,
+        aspectRatio
+      });
+      
+      setIsDragging(true);
+      
+      const newElement: Element = {
+        id: `room-${Date.now()}`,
+        type: "room",
+        x,
+        y,
+        width: initialWidth,
+        height: initialHeight,
+        rotation: 0,
+        locked: false,
+        points: [
+          { x, y },
+          { x: x + initialWidth, y },
+          { x: x + initialWidth, y: y + initialHeight },
+          { x, y: y + initialHeight }
+        ],
+        wallSegments: [],
+        corners: []
+      };
+
+      console.log('Created Room Element:', newElement);
+
+      const targetLayer = layers.find(layer => layer.id === activeLayer) || layers[0];
+      if (targetLayer) {
+        console.log('Target Layer:', targetLayer.id);
+        onElementUpdate?.(newElement);
+        onElementSelect?.(newElement);
       }
     }
-  }, [isSpacePressed]);
+  }, [drawingMode, onElementSelect, onElementUpdate, layers, activeLayer, viewport]);
 
   const handleMouseUp = useCallback(() => {
-    if (isPanning) {
-      setIsPanning(false);
-      if (canvasRef.current) {
-        canvasRef.current.style.cursor = isSpacePressed ? 'grab' : (drawingMode === "select" ? "default" : "crosshair");
-      }
+    if (isDragging) {
+      setIsDragging(false);
+      setDragState(null);
+      setDrawingMode("select");
     }
-  }, [isPanning, isSpacePressed, drawingMode]);
+  }, [isDragging, setDrawingMode]);
 
   return (
     <div className="relative w-full h-full bg-background flex overflow-hidden">
@@ -718,6 +806,51 @@ const Canvas = ({
                         viewMode={viewMode}
                         drawingMode={drawingMode}
                       />
+                    );
+                  }
+
+                  if (element.type?.startsWith('appliance-')) {
+                    return (
+                      <div
+                        className={`absolute ${selectedElement?.id === element.id ? "ring-2 ring-primary" : ""}`}
+                        style={{
+                          position: 'absolute',
+                          left: `${element.x}px`,
+                          top: `${element.y}px`,
+                          width: `${element.width}px`,
+                          height: `${element.height}px`,
+                          transform: `rotate(${element.rotation}deg)`,
+                          transformOrigin: 'center',
+                          cursor: drawingMode === "select" ? "pointer" : "default",
+                          zIndex: 2
+                        }}
+                        onClick={(e) => {
+                          if (drawingMode === "select") {
+                            e.stopPropagation();
+                            onElementSelect?.(element);
+                          }
+                        }}
+                      >
+                        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                          <ThreeMaterialRenderer
+                            elementId={element.id}
+                            materialPreset={element.materialPreset || getMaterialPreset(element.type)}
+                            width={element.width}
+                            height={element.height}
+                            type={element.type}
+                            position={{ 
+                              x: element.x,
+                              y: 0, // Keep at ground level
+                              z: element.y  // Use y coordinate for z position
+                            }}
+                            rotation={{ 
+                              x: 0,
+                              y: element.rotation * (Math.PI / 180), // Convert degrees to radians
+                              z: 0 
+                            }}
+                          />
+                        </div>
+                      </div>
                     );
                   }
 
