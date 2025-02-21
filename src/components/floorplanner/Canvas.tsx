@@ -44,14 +44,6 @@ interface ViewportState {
   offsetY: number;
 }
 
-interface DragState {
-  startX: number;
-  startY: number;
-  originalWidth: number;
-  originalHeight: number;
-  aspectRatio: number;
-}
-
 interface Props {
   viewMode?: "2d" | "3d";
   selectedElement?: Element;
@@ -64,7 +56,6 @@ interface Props {
   onLayerVisibilityToggle?: (id: string) => void;
   onLayerSelect?: (id: string) => void;
   drawingMode: string;
-  setDrawingMode: (mode: string) => void;
   onCanvasClick?: (x: number, y: number) => void;
   onDoubleClick?: () => void;
   scale?: number;
@@ -98,117 +89,112 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
   drawingMode: string;
 }) => {
   const [selectedPart, setSelectedPart] = useState<string | null>(null);
-  const [isDraggingCorner, setIsDraggingCorner] = useState(false);
 
-  const handleRoomClick = (e: React.MouseEvent) => {
-    if (drawingMode !== "select") return;
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Room clicked:', element.id);
-    onSelect(element);
-  };
+  console.log('RoomElement render:', {
+    element,
+    points: element.points,
+    width: element.width,
+    height: element.height,
+    x: element.x,
+    y: element.y
+  });
 
-  const handleCornerMouseDown = (e: React.MouseEvent, point: Point, index: number) => {
+  const handleCornerClick = (e: React.MouseEvent, corner: Corner, index: number) => {
     if (drawingMode !== "select") return;
-    e.preventDefault();
     e.stopPropagation();
     setSelectedPart(`corner-${index}`);
-    setIsDraggingCorner(true);
     onSelect({
       ...element,
+      selectedCorner: corner,
       selectedCornerIndex: index
     });
   };
 
-  const handleCornerMouseUp = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleWallClick = (e: React.MouseEvent, wall: WallSegment, index: number) => {
+    if (drawingMode !== "select") return;
     e.stopPropagation();
-    setIsDraggingCorner(false);
-  };
-
-  const handleCornerMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingCorner || element.selectedCornerIndex === undefined) return;
-    e.preventDefault();
-    e.stopPropagation();
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Update the selected corner's position
-    const updatedPoints = [...(element.points || [])];
-    updatedPoints[element.selectedCornerIndex] = { x, y };
-
-    // Update the element with new points and recalculate width/height
-    const minX = Math.min(...updatedPoints.map(p => p.x));
-    const maxX = Math.max(...updatedPoints.map(p => p.x));
-    const minY = Math.min(...updatedPoints.map(p => p.y));
-    const maxY = Math.max(...updatedPoints.map(p => p.y));
-
+    setSelectedPart(`wall-${index}`);
     onSelect({
       ...element,
-      points: updatedPoints,
-      x: minX,
-      y: minY,
-      width: maxX - minX,
-      height: maxY - minY
+      selectedWall: wall,
+      selectedWallIndex: index
     });
+  };
+
+  const handleRoomClick = (e: React.MouseEvent) => {
+    if (drawingMode !== "select") return;
+    e.stopPropagation();
+    setSelectedPart(null);
+    onSelect(element);
   };
 
   return (
     <div
-      data-id={element.id}
-      className={`absolute room-element ${selected ? "ring-2 ring-blue-500" : ""}`}
+      className={`absolute room-element ${selected ? "ring-2 ring-primary" : ""}`}
       style={{
-        position: 'absolute',
         left: `${element.x}px`,
         top: `${element.y}px`,
-        width: `${element.width}px`,
-        height: `${element.height}px`,
+        width: element.width || 400,
+        height: element.height || 300,
         transform: `rotate(${element.rotation}deg)`,
         cursor: drawingMode === "select" ? "pointer" : "default",
         pointerEvents: drawingMode === "select" ? "all" : "none",
         zIndex: selected ? 20 : 10,
         transformOrigin: "top left",
-        border: selected ? "2px solid #3b82f6" : "none",
-        backgroundColor: selected ? "rgba(59, 130, 246, 0.1)" : "transparent"
+        willChange: "transform",
+        position: "absolute"
       }}
       onClick={handleRoomClick}
-      onMouseMove={handleCornerMouseMove}
-      onMouseUp={handleCornerMouseUp}
-      onMouseLeave={handleCornerMouseUp}
     >
       {viewMode === "2d" ? (
         <svg
           width={element.width}
           height={element.height}
           className="absolute inset-0"
-          viewBox={`0 0 ${element.width} ${element.height}`}
+          viewBox={`0 0 ${element.width || 400} ${element.height || 300}`}
           style={{ overflow: 'visible', pointerEvents: drawingMode === "select" ? "all" : "none" }}
         >
           {/* Room outline */}
           <path
-            d={`M ${element.points?.map(p => `${p.x - element.x} ${p.y - element.y}`).join(" L ")} Z`}
+            d={`M ${element.points?.map(p => `${p.x} ${p.y}`).join(" L ")} Z`}
             fill={element.color || "#f3f4f6"}
-            stroke={selected ? "#3b82f6" : "#000"}
-            strokeWidth="2"
+            stroke={selected ? "#0066cc" : "#000"}
+            strokeWidth="4"
             style={{ pointerEvents: drawingMode === "select" ? "all" : "none" }}
           />
-          {/* Corners - only show if selected */}
-          {selected && element.points?.map((point, index) => (
-            <circle
+          {/* Wall segments */}
+          {element.wallSegments?.map((wall, index) => (
+            <line
               key={index}
-              cx={point.x - element.x}
-              cy={point.y - element.y}
-              r={selectedPart === `corner-${index}` ? 8 : 6}
-              fill={selectedPart === `corner-${index}` ? "#3b82f6" : "#fff"}
-              stroke="#3b82f6"
-              strokeWidth={2}
+              x1={wall.start.x}
+              y1={wall.start.y}
+              x2={wall.end.x}
+              y2={wall.end.y}
+              stroke={selectedPart === `wall-${index}` ? "#0066cc" : "#000"}
+              strokeWidth={wall.thickness + (selectedPart === `wall-${index}` ? 2 : 0)}
+              strokeLinecap="round"
               style={{ 
-                cursor: drawingMode === "select" ? "move" : "default",
+                cursor: drawingMode === "select" ? "pointer" : "default",
                 pointerEvents: drawingMode === "select" ? "all" : "none"
               }}
-              onMouseDown={(e) => handleCornerMouseDown(e, point, index)}
+              onClick={(e) => handleWallClick(e, wall, index)}
+            />
+          ))}
+          {/* Corners */}
+          {element.corners?.map((corner, index) => (
+            <circle
+              key={index}
+              cx={corner.x}
+              cy={corner.y}
+              r={selectedPart === `corner-${index}` ? 6 : 4}
+              fill={selectedPart === `corner-${index}` ? "#0066cc" : "#000"}
+              stroke="#fff"
+              strokeWidth={2}
+              style={{ 
+                cursor: drawingMode === "select" ? "pointer" : "default",
+                pointerEvents: drawingMode === "select" ? "all" : "none"
+              }}
+              onClick={(e) => handleCornerClick(e, corner, index)}
             />
           ))}
         </svg>
@@ -235,8 +221,7 @@ const Canvas = ({
   onLayerDelete,
   onLayerVisibilityToggle,
   onLayerSelect,
-  drawingMode = "select",
-  setDrawingMode,
+  drawingMode,
   onCanvasClick,
   onDoubleClick,
   scale = 1,
@@ -260,19 +245,16 @@ const Canvas = ({
   const [isSpacePressed, setIsSpacePressed] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+  const [dragState, setDragState] = useState({
+    startX: 0,
+    startY: 0,
+    originalWidth: 0,
+    originalHeight: 0,
+    aspectRatio: 1
+  });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragState, setDragState] = useState<DragState | null>(null);
-
-  useEffect(() => {
-    if (!drawingMode) {
-      console.log('[Canvas] Empty drawing mode detected, defaulting to select');
-      setDrawingMode("select");
-    }
-  }, [drawingMode, setDrawingMode]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const currentMode = drawingMode || 'select';
-    
     if (isPanning) {
       e.preventDefault();
       const dx = e.clientX - lastMousePos.x;
@@ -288,42 +270,6 @@ const Canvas = ({
       return;
     }
 
-    if (isDragging && dragState) {
-      console.log('[Room Dragging]', { isDragging, dragState });
-      const rect = e.currentTarget.getBoundingClientRect();
-      const currentX = (e.clientX - rect.left - viewport.offsetX) / viewport.scale;
-      const currentY = (e.clientY - rect.top - viewport.offsetY) / viewport.scale;
-      
-      let width = Math.abs(currentX - dragState.startX);
-      let height = width / dragState.aspectRatio;
-      
-      width = Math.max(width, 200);
-      height = Math.max(height, 200);
-      
-      const updatedElement: Partial<Element> = {
-        width,
-        height,
-        points: [
-          { x: dragState.startX, y: dragState.startY },
-          { x: dragState.startX + width, y: dragState.startY },
-          { x: dragState.startX + width, y: dragState.startY + height },
-          { x: dragState.startX, y: dragState.startY + height }
-        ]
-      };
-      
-      const targetLayer = layers.find(layer => layer.id === activeLayer) || layers[0];
-      const roomElement = targetLayer?.elements.find(el => el.type === "room" && el === selectedElement);
-      
-      if (roomElement) {
-        console.log('[Room Update]', updatedElement);
-        onElementUpdate?.({
-          ...roomElement,
-          ...updatedElement
-        });
-      }
-      return;
-    }
-
     const rect = e.currentTarget.getBoundingClientRect();
     const scrollLeft = e.currentTarget.parentElement?.scrollLeft || 0;
     const scrollTop = e.currentTarget.parentElement?.scrollTop || 0;
@@ -334,20 +280,18 @@ const Canvas = ({
     const point = { x, y };
     let snappedPoint = snapToGrid(point);
 
-    if (currentMode === "draw-wall" || currentMode === "draw-room") {
-      const cornerSnap = snapToNearestCorner(point, corners);
-      if (cornerSnap) {
-        snappedPoint = cornerSnap;
-      } else {
-        const wallSnap = snapToNearestWall(point, wallSegments);
-        if (wallSnap) {
-          snappedPoint = wallSnap;
-        }
+    const cornerSnap = snapToNearestCorner(point, corners);
+    if (cornerSnap) {
+      snappedPoint = cornerSnap;
+    } else {
+      const wallSnap = snapToNearestWall(point, wallSegments);
+      if (wallSnap) {
+        snappedPoint = wallSnap;
       }
     }
 
     setMousePos(snappedPoint);
-  }, [scale, corners, wallSegments, isPanning, lastMousePos, isDragging, dragState, layers, onElementUpdate, selectedElement, activeLayer, viewport, drawingMode]);
+  }, [scale, corners, wallSegments, isPanning, lastMousePos.x, lastMousePos.y]);
 
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
     if (!onCanvasClick) return;
@@ -447,15 +391,25 @@ const Canvas = ({
   }, [handleWheel]);
 
   useEffect(() => {
-    // Only log when drawing mode or points actually change
-    if (drawingMode || drawingPoints.length > 0 || debugRoomPoints.length > 0) {
-      console.log('[Canvas State]:', {
-        mode: drawingMode || 'select', // Default to select if empty
-        points: drawingPoints.length,
-        debugPoints: debugRoomPoints.length
-      });
+    console.log('Drawing Mode:', drawingMode);
+    console.log('Drawing Points:', drawingPoints);
+    console.log('Debug Room Points:', debugRoomPoints);
+    
+    if (drawingMode === "draw-room") {
+      console.log('Room Drawing Mode Active');
+      console.log('Room Points Length:', debugRoomPoints.length);
+      if (debugRoomPoints.length > 0) {
+        console.log('Room Points:', debugRoomPoints);
+      }
+      if (debugRoomPoints.length > 2 && viewMode === "3d") {
+        console.log('3D Room Preview Available');
+      }
     }
-  }, [drawingMode, drawingPoints.length, debugRoomPoints.length]);
+  }, [drawingMode, drawingPoints, debugRoomPoints, viewMode]);
+
+  console.log('Render - Drawing Mode:', drawingMode);
+  console.log('Render - Drawing Points:', drawingPoints);
+  console.log('Render - Debug Room Points:', debugRoomPoints);
 
   useEffect(() => {
     const centerCanvas = () => {
@@ -528,7 +482,6 @@ const Canvas = ({
       if (!roomElement) {
         // If clicked outside any room, deselect
         onElementSelect?.(null);
-        return;
       }
       return;
     }
@@ -583,25 +536,13 @@ const Canvas = ({
   }, [drawingMode, onElementSelect, onElementUpdate, layers, activeLayer, viewport, isSpacePressed]);
 
   const handleMouseUp = useCallback(() => {
-    // Always clear panning state
     if (isPanning) {
       setIsPanning(false);
-      setLastMousePos({ x: 0, y: 0 });
-    }
-
-    // Handle drag completion
-    if (isDragging) {
-      setIsDragging(false);
-      setDragState(null);
-      
-      const currentMode = drawingMode || 'select';
-      // Only switch to select mode if we were in draw-room mode
-      if (currentMode === "draw-room") {
-        console.log('[Room Complete] Switching to select mode');
-        setDrawingMode("select");
+      if (canvasRef.current) {
+        canvasRef.current.style.cursor = isSpacePressed ? 'grab' : (drawingMode === "select" ? "default" : "crosshair");
       }
     }
-  }, [isDragging, drawingMode, setDrawingMode, isPanning]);
+  }, [isPanning, isSpacePressed, drawingMode]);
 
   return (
     <div className="relative w-full h-full bg-background flex overflow-hidden">
@@ -844,51 +785,6 @@ const Canvas = ({
                     );
                   }
 
-                  if (element.type?.startsWith('appliance-')) {
-                    return (
-                      <div
-                        className={`absolute ${selectedElement?.id === element.id ? "ring-2 ring-primary" : ""}`}
-                        style={{
-                          position: 'absolute',
-                          left: `${element.x}px`,
-                          top: `${element.y}px`,
-                          width: `${element.width}px`,
-                          height: `${element.height}px`,
-                          transform: `rotate(${element.rotation}deg)`,
-                          transformOrigin: 'center',
-                          cursor: drawingMode === "select" ? "pointer" : "default",
-                          zIndex: 2
-                        }}
-                        onClick={(e) => {
-                          if (drawingMode === "select") {
-                            e.stopPropagation();
-                            onElementSelect?.(element);
-                          }
-                        }}
-                      >
-                        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-                          <ThreeMaterialRenderer
-                            elementId={element.id}
-                            materialPreset={element.materialPreset || getMaterialPreset(element.type)}
-                            width={element.width}
-                            height={element.height}
-                            type={element.type}
-                            position={{ 
-                              x: element.x,
-                              y: 0, // Keep at ground level
-                              z: element.y  // Use y coordinate for z position
-                            }}
-                            rotation={{ 
-                              x: 0,
-                              y: element.rotation * (Math.PI / 180), // Convert degrees to radians
-                              z: 0 
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  }
-
                   const handleClick = (e: React.MouseEvent) => {
                     e.stopPropagation();
                     if (drawingMode === "select") {
@@ -980,9 +876,10 @@ const Canvas = ({
             zIndex: 1000,
           }}
         >
-          <div>{`Drawing Mode: ${drawingMode || 'select'}`}</div>
-          <div>{`Points: ${drawingPoints.length}`}</div>
-          <div>{`Mouse: ${JSON.stringify(mousePos)}`}</div>
+          <div>{`Drawing Mode: ${drawingMode}`}</div>
+          <div>{`Points Count: ${drawingPoints.length}`}</div>
+          <div>{`Debug Points Count: ${debugRoomPoints.length}`}</div>
+          <div>{`Mouse Position: ${JSON.stringify(mousePos)}`}</div>
         </div>
       </div>
     </div>
