@@ -8,6 +8,7 @@ import { Point, WallSegment, Corner } from "@/types/shared";
 import { MaterialCategory, MaterialId } from "@/types/materials";
 import { MaterialDefinition } from "@/lib/materials";
 import { MaterialPreset } from "@/types/shared";
+import { createLogger } from '@/lib/logger';
 
 interface Element {
   id: string;
@@ -44,6 +45,12 @@ interface ViewportState {
   offsetY: number;
 }
 
+interface LoggedMousePosition {
+  x: number;
+  y: number;
+  timestamp: number;
+}
+
 interface Props {
   viewMode?: "2d" | "3d";
   selectedElement?: Element;
@@ -74,6 +81,8 @@ interface Props {
   setDrawingMode?: (mode: string) => void;
 }
 
+const logger = createLogger('Canvas');
+
 const getMaterialPreset = (type: string): MaterialPreset => {
   const preset = MATERIAL_PRESETS[type] || MATERIAL_PRESETS.default;
   return {
@@ -97,82 +106,61 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
   drawingMode: string;
 }) => {
   const [selectedPart, setSelectedPart] = useState<string | null>(null);
-  const [resizing, setResizing] = useState<{
-    corner: string;
+  const [draggingCorner, setDraggingCorner] = useState<{
+    corner: Corner;
+    index: number;
     startX: number;
     startY: number;
-    initialWidth: number;
-    initialHeight: number;
   } | null>(null);
 
-  const handleResizeStart = (e: React.MouseEvent, corner: string) => {
+  const handleCornerMouseDown = (corner: Corner, index: number, e: React.MouseEvent) => {
     if (drawingMode !== "select") return;
     e.stopPropagation();
-    setResizing({
+    setDraggingCorner({
       corner,
+      index,
       startX: e.clientX,
-      startY: e.clientY,
-      initialWidth: element.width,
-      initialHeight: element.height
+      startY: e.clientY
     });
+    setSelectedPart(`corner-${index}`);
+    onSelect(element);
   };
 
   useEffect(() => {
-    if (!resizing) return;
+    if (!draggingCorner) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const dx = e.clientX - resizing.startX;
-      const dy = e.clientY - resizing.startY;
-      let newWidth = resizing.initialWidth;
-      let newHeight = resizing.initialHeight;
-      let newX = element.x;
-      let newY = element.y;
+      const dx = e.clientX - draggingCorner.startX;
+      const dy = e.clientY - draggingCorner.startY;
 
-      switch (resizing.corner) {
-        case 'nw':
-          newWidth = resizing.initialWidth - dx;
-          newHeight = resizing.initialHeight - dy;
-          newX = element.x + dx;
-          newY = element.y + dy;
-          break;
-        case 'ne':
-          newWidth = resizing.initialWidth + dx;
-          newHeight = resizing.initialHeight - dy;
-          newY = element.y + dy;
-          break;
-        case 'sw':
-          newWidth = resizing.initialWidth - dx;
-          newHeight = resizing.initialHeight + dy;
-          newX = element.x + dx;
-          break;
-        case 'se':
-          newWidth = resizing.initialWidth + dx;
-          newHeight = resizing.initialHeight + dy;
-          break;
-      }
+      // Update corner position
+      const updatedCorners = [...element.corners];
+      updatedCorners[draggingCorner.index] = {
+        ...updatedCorners[draggingCorner.index],
+        x: draggingCorner.corner.x + dx,
+        y: draggingCorner.corner.y + dy
+      };
 
-      // Enforce minimum size
-      const minSize = 50;
-      newWidth = Math.max(newWidth, minSize);
-      newHeight = Math.max(newHeight, minSize);
-
-      // Snap to grid
-      newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
-      newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
-      newWidth = Math.round(newWidth / GRID_SIZE) * GRID_SIZE;
-      newHeight = Math.round(newHeight / GRID_SIZE) * GRID_SIZE;
+      // Update connected wall segments
+      const updatedWallSegments = element.wallSegments.map(wall => {
+        if (wall.start === draggingCorner.corner) {
+          return { ...wall, start: updatedCorners[draggingCorner.index] };
+        }
+        if (wall.end === draggingCorner.corner) {
+          return { ...wall, end: updatedCorners[draggingCorner.index] };
+        }
+        return wall;
+      });
 
       onSelect({
         ...element,
-        x: newX,
-        y: newY,
-        width: newWidth,
-        height: newHeight
+        corners: updatedCorners,
+        wallSegments: updatedWallSegments
       });
     };
 
     const handleMouseUp = () => {
-      setResizing(null);
+      setDraggingCorner(null);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -182,48 +170,19 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [resizing, element, onSelect]);
+  }, [draggingCorner, element, onSelect]);
 
-  console.log('RoomElement render:', {
-    element,
-    points: element.points,
-    width: element.width,
-    height: element.height,
-    x: element.x,
-    y: element.y
-  });
-
-  const handleCornerClick = (e: React.MouseEvent, corner: Corner, index: number) => {
+  const handleClick = (e: React.MouseEvent) => {
     if (drawingMode !== "select") return;
     e.stopPropagation();
-    setSelectedPart(`corner-${index}`);
-    onSelect({
-      ...element,
-      selectedCorner: corner,
-      selectedCornerIndex: index
-    });
-  };
-
-  const handleWallClick = (e: React.MouseEvent, wall: WallSegment, index: number) => {
-    if (drawingMode !== "select") return;
-    e.stopPropagation();
-    setSelectedPart(`wall-${index}`);
-    onSelect({
-      ...element,
-      selectedWall: wall,
-      selectedWallIndex: index
-    });
-  };
-
-  const handleRoomClick = (e: React.MouseEvent) => {
-    if (drawingMode !== "select") return;
-    e.stopPropagation();
-    setSelectedPart(null);
     onSelect(element);
   };
 
   return (
     <div
+      id={`room-${element.id}`}
+      data-element-id={element.id}
+      data-element-type={element.type}
       className={`absolute room-element ${selected ? "ring-2 ring-primary" : ""}`}
       style={{
         left: `${element.x}px`,
@@ -238,7 +197,7 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
         willChange: "transform",
         position: "absolute"
       }}
-      onClick={handleRoomClick}
+      onClick={handleClick}
     >
       {viewMode === "2d" ? (
         <svg
@@ -256,6 +215,7 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
             strokeWidth="4"
             style={{ pointerEvents: drawingMode === "select" ? "all" : "none" }}
           />
+          
           {/* Wall segments */}
           {element.wallSegments?.map((wall, index) => (
             <line
@@ -271,9 +231,9 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
                 cursor: drawingMode === "select" ? "pointer" : "default",
                 pointerEvents: drawingMode === "select" ? "all" : "none"
               }}
-              onClick={(e) => handleWallClick(e, wall, index)}
             />
           ))}
+
           {/* Corners */}
           {element.corners?.map((corner, index) => (
             <circle
@@ -285,65 +245,12 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
               stroke="#fff"
               strokeWidth={2}
               style={{ 
-                cursor: drawingMode === "select" ? "pointer" : "default",
+                cursor: drawingMode === "select" ? "move" : "default",
                 pointerEvents: drawingMode === "select" ? "all" : "none"
               }}
-              onClick={(e) => handleCornerClick(e, corner, index)}
+              onMouseDown={(e) => handleCornerMouseDown(corner, index, e)}
             />
           ))}
-          {/* Resize handles (only shown when selected) */}
-          {selected && drawingMode === "select" && (
-            <>
-              {/* Northwest handle */}
-              <rect
-                x={-6}
-                y={-6}
-                width={12}
-                height={12}
-                fill="#0066cc"
-                stroke="#fff"
-                strokeWidth={2}
-                style={{ cursor: 'nw-resize' }}
-                onMouseDown={(e) => handleResizeStart(e, 'nw')}
-              />
-              {/* Northeast handle */}
-              <rect
-                x={element.width - 6}
-                y={-6}
-                width={12}
-                height={12}
-                fill="#0066cc"
-                stroke="#fff"
-                strokeWidth={2}
-                style={{ cursor: 'ne-resize' }}
-                onMouseDown={(e) => handleResizeStart(e, 'ne')}
-              />
-              {/* Southwest handle */}
-              <rect
-                x={-6}
-                y={element.height - 6}
-                width={12}
-                height={12}
-                fill="#0066cc"
-                stroke="#fff"
-                strokeWidth={2}
-                style={{ cursor: 'sw-resize' }}
-                onMouseDown={(e) => handleResizeStart(e, 'sw')}
-              />
-              {/* Southeast handle */}
-              <rect
-                x={element.width - 6}
-                y={element.height - 6}
-                width={12}
-                height={12}
-                fill="#0066cc"
-                stroke="#fff"
-                strokeWidth={2}
-                style={{ cursor: 'se-resize' }}
-                onMouseDown={(e) => handleResizeStart(e, 'se')}
-              />
-            </>
-          )}
         </svg>
       ) : (
         <ThreeRoomRenderer
@@ -483,6 +390,24 @@ function getDistance(p1: Point, p2: Point): number {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+// Throttle helper
+function throttle<T extends (...args: any[]) => void>(func: T, limit: number): T {
+  let inThrottle: boolean;
+  let lastResult: any;
+  return ((...args: Parameters<T>): any => {
+    if (!inThrottle) {
+      lastResult = func(...args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+    return lastResult;
+  }) as T;
+}
+
+// Increase throttle time and add debounce for mouse movement logging
+const MOUSE_LOG_THROTTLE = 2000; // Only log every 2 seconds
+const MOUSE_MOVE_THRESHOLD = 50; // Only log if mouse has moved more than 50 pixels
+
 const Canvas = ({
   viewMode = "2d",
   selectedElement,
@@ -529,6 +454,47 @@ const Canvas = ({
   });
   const [isDragging, setIsDragging] = useState(false);
 
+  // State tracking refs for logging
+  const prevStateRef = useRef({
+    drawingMode: '',
+    pointsLength: 0,
+    debugPointsLength: 0
+  });
+
+  // Update ref type
+  const lastLoggedMousePos = useRef<LoggedMousePosition>({
+    x: 0,
+    y: 0,
+    timestamp: Date.now()
+  });
+
+  // Updated throttled logger for mouse movements
+  const logMouseMove = throttle((data: any) => {
+    const currentPos = data.position;
+    const lastPos = lastLoggedMousePos.current;
+    
+    // Calculate distance moved
+    const dx = currentPos.x - lastPos.x;
+    const dy = currentPos.y - lastPos.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Only log if moved significantly
+    if (distance > MOUSE_MOVE_THRESHOLD) {
+      logger.debug('Mouse Move', {
+        ...data,
+        distance,
+        timeSinceLastLog: Date.now() - lastLoggedMousePos.current.timestamp
+      });
+      
+      // Update last logged position
+      lastLoggedMousePos.current = {
+        x: currentPos.x,
+        y: currentPos.y,
+        timestamp: Date.now()
+      };
+    }
+  }, MOUSE_LOG_THROTTLE);
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const canvasRect = canvasRef.current?.getBoundingClientRect();
     if (!canvasRect) return;
@@ -555,21 +521,27 @@ const Canvas = ({
     const point = { x: worldX, y: worldY };
     const snappedPoint = snapToGrid(point);
 
-    // Only log every 100ms to avoid console spam
-    if (Date.now() % 100 === 0) {
-      console.log('%cMouse Move', 'color: gray', {
-        mouse: { x: e.clientX, y: e.clientY },
-        world: point,
-        snapped: snappedPoint,
+    // Log preview position when in draw-room mode
+    if (drawingMode === "draw-room" && selectedRoomTemplate) {
+      logger.debug('Room Preview Position', JSON.stringify({
+        mouseEvent: {
+          client: { x: e.clientX, y: e.clientY },
+          canvas: { x: worldX, y: worldY },
+          snapped: snappedPoint
+        },
         viewport: {
           scale: viewport.scale,
           offset: { x: viewport.offsetX, y: viewport.offsetY }
-        }
-      });
+        },
+        previewPoints: selectedRoomTemplate.points.map(p => ({
+          original: { x: p.x, y: p.y },
+          adjusted: { x: p.x + snappedPoint.x, y: p.y + snappedPoint.y }
+        }))
+      }, null, 2));
     }
 
     setMousePos(snappedPoint);
-  }, [viewport, isPanning, lastMousePos.x, lastMousePos.y]);
+  }, [viewport, isPanning, lastMousePos.x, lastMousePos.y, drawingMode, drawingPoints, selectedRoomTemplate]);
 
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
     if (!onCanvasClick) return;
@@ -584,16 +556,34 @@ const Canvas = ({
     const point = { x: worldX, y: worldY };
     const snappedPoint = snapToGrid(point);
 
-    console.log('%cClick Debug', 'color: blue; font-weight: bold', {
-      mouse: { x: e.clientX, y: e.clientY },
-      world: point,
-      snapped: snappedPoint,
-      viewport
-    });
+    logger.info('Room Placement Click', JSON.stringify({
+      mouseEvent: {
+        client: { x: e.clientX, y: e.clientY },
+        canvas: { x: worldX, y: worldY },
+        snapped: snappedPoint,
+        canvasRect: {
+          left: canvasRect.left,
+          top: canvasRect.top,
+          width: canvasRect.width,
+          height: canvasRect.height
+        }
+      },
+      viewport: {
+        scale: viewport.scale,
+        offset: { x: viewport.offsetX, y: viewport.offsetY }
+      },
+      mode: drawingMode,
+      selectedTemplate: selectedRoomTemplate ? {
+        points: selectedRoomTemplate.points,
+        dimensions: {
+          width: selectedRoomTemplate.width,
+          height: selectedRoomTemplate.height
+        }
+      } : null
+    }, null, 2));
 
-    // Pass the click coordinates to the parent component
     onCanvasClick(snappedPoint.x, snappedPoint.y);
-  }, [viewport, onCanvasClick]);
+  }, [viewport, onCanvasClick, drawingMode, selectedRoomTemplate]);
 
   const handleDoubleClick = () => {
     onDoubleClick?.();
@@ -635,27 +625,6 @@ const Canvas = ({
       return () => canvas.removeEventListener('wheel', handleWheel);
     }
   }, [handleWheel]);
-
-  useEffect(() => {
-    console.log('Drawing Mode:', drawingMode);
-    console.log('Drawing Points:', drawingPoints);
-    console.log('Debug Room Points:', debugRoomPoints);
-    
-    if (drawingMode === "draw-room") {
-      console.log('Room Drawing Mode Active');
-      console.log('Room Points Length:', debugRoomPoints.length);
-      if (debugRoomPoints.length > 0) {
-        console.log('Room Points:', debugRoomPoints);
-      }
-      if (debugRoomPoints.length > 2 && viewMode === "3d") {
-        console.log('3D Room Preview Available');
-      }
-    }
-  }, [drawingMode, drawingPoints, debugRoomPoints, viewMode]);
-
-  console.log('Render - Drawing Mode:', drawingMode);
-  console.log('Render - Drawing Points:', drawingPoints);
-  console.log('Render - Debug Room Points:', debugRoomPoints);
 
   useEffect(() => {
     const centerCanvas = () => {
@@ -721,13 +690,55 @@ const Canvas = ({
     // Handle selection mode
     if (drawingMode === "select") {
       const target = e.target as HTMLElement;
-      const roomElement = target.closest('.room-element');
+      const roomElement = target.closest('.room-element') as HTMLElement;
+      
+      logger.info('Selection Attempt', {
+        target: {
+          className: target.className,
+          id: target.id,
+          tagName: target.tagName,
+          rect: target.getBoundingClientRect(),
+          parentClassName: target.parentElement?.className,
+          parentTagName: target.parentElement?.tagName,
+        },
+        roomElement: roomElement ? {
+          id: roomElement.id,
+          className: roomElement.className,
+          rect: roomElement.getBoundingClientRect(),
+          elementId: roomElement.dataset.elementId,
+          elementType: roomElement.dataset.elementType
+        } : null,
+        currentlySelected: selectedElement?.id,
+        drawingMode,
+        mouseEvent: {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          button: e.button,
+          buttons: e.buttons,
+          target: e.target instanceof HTMLElement ? {
+            offsetX: e.nativeEvent.offsetX,
+            offsetY: e.nativeEvent.offsetY,
+          } : null
+        },
+        viewport: {
+          scale: viewport.scale,
+          offset: { x: viewport.offsetX, y: viewport.offsetY }
+        }
+      });
       
       if (!roomElement) {
+        logger.info('Clearing selection', {
+          previousSelection: selectedElement?.id,
+          clickLocation: {
+            client: { x: e.clientX, y: e.clientY },
+            page: { x: e.pageX, y: e.pageY },
+            screen: { x: e.screenX, y: e.screenY }
+          }
+        });
         onElementSelect?.(null);
       }
     }
-  }, [drawingMode, onElementSelect, isSpacePressed]);
+  }, [drawingMode, onElementSelect, isSpacePressed, selectedElement, viewport]);
 
   const handleMouseUp = useCallback(() => {
     if (isPanning) {
@@ -738,22 +749,83 @@ const Canvas = ({
     }
   }, [isPanning, isSpacePressed, drawingMode]);
 
-  // Add debug logging for render
-  console.log('Canvas Render Debug:', {
-    drawingMode,
-    selectedRoomTemplate,
-    mousePos,
-    viewportScale: viewport.scale
-  });
-
-  // Add debug effect for state changes
+  // Instead, use a single useEffect for significant state changes
   useEffect(() => {
-    console.log('State Change Debug:', {
+    const prevState = prevStateRef.current;
+    
+    // Only log if there are meaningful changes
+    if (prevState.drawingMode !== drawingMode || 
+        prevState.pointsLength !== drawingPoints.length ||
+        prevState.debugPointsLength !== debugRoomPoints.length) {
+      
+      // Log at debug level since this is development-only information
+      logger.debug('Canvas State Update', {
+        mode: {
+          previous: prevState.drawingMode,
+          current: drawingMode
+        },
+        points: {
+          previous: prevState.pointsLength,
+          current: drawingPoints.length
+        },
+        debugPoints: {
+          previous: prevState.debugPointsLength,
+          current: debugRoomPoints.length
+        },
+        viewMode,
+        scale: viewport.scale
+      });
+      
+      // Update the ref with current values
+      prevStateRef.current = {
+        drawingMode,
+        pointsLength: drawingPoints.length,
+        debugPointsLength: debugRoomPoints.length
+      };
+    }
+  }, [drawingMode, drawingPoints, debugRoomPoints, viewMode, viewport.scale]);
+
+  // Update click handler with simpler event typing
+  const handleRoomClick = useCallback((element: Element) => {
+    if (drawingMode !== "select") return;
+    
+    logger.info('Room Element Clicked', {
+      element: {
+        id: element.id,
+        type: element.type,
+        position: { x: element.x, y: element.y },
+        dimensions: { width: element.width, height: element.height },
+        rotation: element.rotation
+      },
+      previouslySelected: selectedElement?.id === element.id,
       drawingMode,
-      selectedRoomTemplate,
-      mousePos
+      viewport: {
+        scale: viewport.scale,
+        offset: { x: viewport.offsetX, y: viewport.offsetY }
+      }
     });
-  }, [drawingMode, selectedRoomTemplate, mousePos]);
+    
+    onElementSelect?.(element);
+  }, [drawingMode, onElementSelect, selectedElement, viewport]);
+
+  // Add selection state change logging with more context
+  useEffect(() => {
+    logger.info('Selection State Changed', {
+      selectedElement: selectedElement ? {
+        id: selectedElement.id,
+        type: selectedElement.type,
+        position: { x: selectedElement.x, y: selectedElement.y },
+        dimensions: { width: selectedElement.width, height: selectedElement.height },
+        rotation: selectedElement.rotation
+      } : null,
+      drawingMode,
+      viewport: {
+        scale: viewport.scale,
+        offset: { x: viewport.offsetX, y: viewport.offsetY }
+      },
+      timestamp: new Date().toISOString()
+    });
+  }, [selectedElement, drawingMode, viewport]);
 
   return (
     <div className="relative w-full h-full bg-background flex overflow-hidden">
@@ -967,43 +1039,93 @@ const Canvas = ({
         )}
 
         {/* Room preview when in draw-room mode */}
-        {drawingMode === "draw-room" && mousePos && selectedRoomTemplate && (
-          <svg
-            className="absolute inset-0"
-            style={{ 
-              position: "absolute",
-              left: 0,
-              top: 0,
-              width: "100%",
-              height: "100%",
-              pointerEvents: "none",
-              zIndex: 2000,
-              overflow: "visible"
-            }}
-          >
-            <g transform={`translate(${mousePos.x}, ${mousePos.y})`}>
-              {/* Room outline */}
-              <path
-                d={`M ${selectedRoomTemplate.points.map(p => `${p.x} ${p.y}`).join(" L ")} Z`}
-                fill="rgba(243, 244, 246, 0.7)"
-                stroke="#000"
-                strokeWidth={2 / viewport.scale}
-                strokeDasharray="5,5"
-              />
-              {/* Corner points */}
-              {selectedRoomTemplate.points.map((point, index) => (
-                <circle
-                  key={index}
-                  cx={point.x}
-                  cy={point.y}
-                  r={4 / viewport.scale}
-                  fill="#000"
-                  stroke="#fff"
-                  strokeWidth={2 / viewport.scale}
+        {drawingMode === "draw-room" && selectedRoomTemplate && mousePos && (
+          <>
+            {/* 2D Preview */}
+            {viewMode === "2d" && (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  transform: `scale(${viewport.scale})`,
+                  transformOrigin: "top left",
+                  left: `${viewport.offsetX}px`,
+                  top: `${viewport.offsetY}px`,
+                  zIndex: 999
+                }}
+              >
+                <svg 
+                  width="4000"
+                  height="4000"
+                  viewBox="0 0 4000 4000"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0
+                  }}
+                >
+                  {(() => {
+                    // Adjust coordinates for the viewBox
+                    const adjustedPoints = selectedRoomTemplate.points.map(p => ({
+                      x: p.x + mousePos.x,
+                      y: p.y + mousePos.y
+                    }));
+                    
+                    const previewPath = `M ${adjustedPoints.map(p => `${p.x} ${p.y}`).join(" L ")} Z`;
+                    
+                    return (
+                      <>
+                        <path
+                          d={previewPath}
+                          fill="#f3f4f6"
+                          stroke="#0066cc"
+                          strokeWidth="4"
+                          strokeDasharray="10,10"
+                          opacity="0.7"
+                        />
+                        {/* Add debug points to visualize the corners */}
+                        {adjustedPoints.map((point, index) => (
+                          <circle
+                            key={index}
+                            cx={point.x}
+                            cy={point.y}
+                            r="6"
+                            fill="#0066cc"
+                            stroke="white"
+                            strokeWidth="2"
+                            opacity="0.7"
+                          />
+                        ))}
+                      </>
+                    );
+                  })()}
+                </svg>
+              </div>
+            )}
+            {/* 3D Preview */}
+            {viewMode === "3d" && (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  transform: `scale(${viewport.scale})`,
+                  transformOrigin: "top left",
+                  left: `${viewport.offsetX}px`,
+                  top: `${viewport.offsetY}px`,
+                  zIndex: 1999
+                }}
+              >
+                <ThreeRoomRenderer
+                  points={selectedRoomTemplate.points.map(p => ({
+                    x: p.x + mousePos.x,
+                    y: p.y + mousePos.y
+                  }))}
+                  viewMode={viewMode}
+                  wallHeight={96}
+                  wallThickness={6}
+                  isPreview={true}
                 />
-              ))}
-            </g>
-          </svg>
+              </div>
+            )}
+          </>
         )}
 
         {/* Layers */}
@@ -1033,7 +1155,7 @@ const Canvas = ({
                         key={element.id}
                         element={element}
                         selected={selectedElement?.id === element.id}
-                        onSelect={onElementSelect!}
+                        onSelect={handleRoomClick}
                         viewMode={viewMode}
                         drawingMode={drawingMode}
                       />
