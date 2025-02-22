@@ -1,6 +1,8 @@
-import * as THREE from 'three';
+import { THREE } from './three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 
 // Enable caching
 THREE.Cache.enabled = true;
@@ -19,6 +21,10 @@ dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
 // Initialize GLTF loader
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
+
+// Initialize OBJ and MTL loaders
+const objLoader = new OBJLoader();
+const mtlLoader = new MTLLoader();
 
 // Model manifest interface
 interface ModelManifest {
@@ -59,66 +65,43 @@ async function loadModelManifest(): Promise<ModelManifest> {
 // Get model path from manifest
 export async function getModelPath(type: string, quality: keyof typeof LOD_LEVELS = 'HIGH'): Promise<string> {
   try {
-    // For refrigerator types, use the appropriate model based on brand
-    if (type.includes('refrigerator') || type.includes('ice-maker') || type.includes('beverage-center') || type.includes('panel-ready')) {
-      const brand = type.split('-')[0];
-      const model = type.split('-')[1];
-      
-      // Handle Panel Ready models
-      if (type.includes('panel-ready')) {
-        const modelPath = `/models/appliances/3ds/${model.toUpperCase()}_3ds/high.glb`;
-        try {
-          const response = await fetch(modelPath, { method: 'HEAD' });
-          if (response.ok) {
-            return modelPath;
-          }
-        } catch (e) {
-          console.warn(`Panel ready model not found for ${model}, using default`);
-        }
-      }
-      
-      // Handle Cove models
-      if (brand === 'cove') {
-        const modelPath = `/models/appliances/3ds/${model.toUpperCase()}_3ds/high.glb`;
-        try {
-          const response = await fetch(modelPath, { method: 'HEAD' });
-          if (response.ok) {
-            return modelPath;
-          }
-        } catch (e) {
-          console.warn(`Cove model not found for ${model}, using default`);
-        }
-      }
-      
-      // Try brand-specific model
-      const brandPath = `/models/appliances/refrigerators/${brand}/testglb.glb`;
-      try {
-        const response = await fetch(brandPath, { method: 'HEAD' });
-        if (response.ok) {
-          return brandPath;
-        }
-      } catch (e) {
-        console.warn(`Brand specific model not found for ${brand}, using default`);
-      }
-      
-      // Fallback to default model
-      return "/models/appliances/refrigerators/default/high.glb";
-    }
-    
-    // For other types, use the manifest
+    console.log('[Model Path] Getting path for type:', type);
     const manifest = await loadModelManifest();
-    const modelConfig = manifest[type];
+    console.log('[Model Path] Loaded manifest:', manifest);
+
+    // Get model config from manifest
+    const modelConfig = manifest.models[type];
     if (!modelConfig) {
-      throw new Error(`No model configuration found for type: ${type}`);
+      console.warn(`[Model Path] No model configuration found for type: ${type}`);
+      return "/models/appliances/default/high.glb";
     }
+
+    const qualityLevel = quality.toLowerCase() as Lowercase<keyof typeof LOD_LEVELS>;
+    const modelData = modelConfig[qualityLevel];
+    if (!modelData) {
+      console.warn(`[Model Path] No ${qualityLevel} quality model found for type: ${type}`);
+      return modelConfig.high.path; // Fallback to high quality
+    }
+
+    // Encode the path to handle spaces and special characters
+    const encodedPath = modelData.path.split('/').map(segment => 
+      encodeURIComponent(segment)
+    ).join('/');
     
-    return modelConfig[quality.toLowerCase()];
+    console.log(`[Model Path] Found path for ${type}:`, encodedPath);
+    return encodedPath;
   } catch (error) {
-    console.error('Error getting model path:', error);
-    // Return default model as fallback
-    return "/models/appliances/refrigerators/default/high.glb";
+    console.error('[Model Path] Error getting model path:', error);
+    return "/models/appliances/default/high.glb";
   }
 }
+
+// Path builder utility - DEPRECATED, use getModelPath instead
+export const getApplianceModelPath = async (variant: string) => {
+  console.log('[Model Path] Getting appliance path for variant:', variant);
+  const type = `appliance-${variant}`;
+  return getModelPath(type);
+};
 
 // Create a placeholder model
 function createPlaceholderModel(): THREE.Group {
@@ -135,41 +118,46 @@ function createPlaceholderModel(): THREE.Group {
 }
 
 // Load model with progress tracking and error handling
-export async function loadModelProgressively(
+export const loadModelProgressively = async (
   type: string,
   onProgress?: (progress: number) => void
-): Promise<THREE.Group> {
-  try {
-    const modelPath = await getModelPath(type, 'HIGH');
-    console.log('Loading model from path:', modelPath);
+): Promise<THREE.Group> => {
+  console.log('[Model Loading] Loading model:', type);
 
-    return new Promise((resolve, reject) => {
-      gltfLoader.load(
-        modelPath,
-        (gltf) => {
-          console.log('Model loaded successfully:', gltf);
-          if (onProgress) onProgress(100);
-          const group = new THREE.Group();
-          group.add(gltf.scene);
-          resolve(group);
-        },
-        (progressEvent) => {
-          if (progressEvent.lengthComputable && onProgress) {
-            const progress = (progressEvent.loaded / progressEvent.total) * 100;
-            onProgress(progress);
-          }
-        },
-        (error) => {
-          console.error('Error loading model:', error);
-          reject(error);
+  // Get model path
+  const modelPath = await getModelPath(type);
+  console.log('[Model Loading] Using path:', modelPath);
+
+  // Create a promise that resolves with the loaded model
+  return new Promise((resolve, reject) => {
+    if (!gltfLoader) {
+      reject(new Error('GLTFLoader not initialized'));
+      return;
+    }
+
+    // Ensure the path is properly encoded
+    const encodedPath = encodeURI(modelPath);
+    console.log('[Model Loading] Encoded path:', encodedPath);
+
+    gltfLoader.load(
+      encodedPath,
+      (gltf) => {
+        console.log('[Model Loading] GLTF loaded successfully:', gltf);
+        resolve(gltf.scene);
+      },
+      (progress) => {
+        if (progress.total > 0) {
+          const percent = (progress.loaded / progress.total) * 100;
+          onProgress?.(percent);
         }
-      );
-    });
-  } catch (error) {
-    console.error('Failed to load model:', error);
-    return createPlaceholderModel();
-  }
-}
+      },
+      (error) => {
+        console.error('[Model Loading] Error:', error);
+        reject(error);
+      }
+    );
+  });
+};
 
 // Preload common models
 export async function preloadCommonModels() {

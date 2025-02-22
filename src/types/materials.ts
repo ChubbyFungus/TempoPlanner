@@ -1,4 +1,4 @@
-import { Vector2 } from 'three';
+import { THREE } from '@/lib/three';
 
 // Material Categories
 export type MaterialCategory = 
@@ -30,6 +30,8 @@ export interface MaterialSettings {
   displacementScale: number;
   textureScale: Vector2;
 }
+
+export type Vector2 = THREE.Vector2;
 
 // PBR Material Interface
 export interface PBRMaterial {

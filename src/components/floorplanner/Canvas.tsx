@@ -3,7 +3,7 @@ import LayersPanel from "./LayersPanel";
 import { ThreeMaterialRenderer } from "./ThreeMaterialRenderer";
 import ThreeRoomRenderer from "./ThreeRoomRenderer";
 import { MATERIAL_PRESETS } from "@/lib/materials";
-import { snapToGrid, snapToNearestCorner, snapToNearestWall, validateWallSegment, validateCorner } from "@/lib/wallUtils";
+import { snapToGrid, snapToNearestCorner, snapToNearestWall, validateWallSegment, validateCorner, GRID_SIZE, SNAP_THRESHOLD } from "@/lib/wallUtils";
 import { Point, WallSegment, Corner } from "@/types/shared";
 import { MaterialCategory, MaterialId } from "@/types/materials";
 import { MaterialDefinition } from "@/lib/materials";
@@ -64,6 +64,14 @@ interface Props {
   wallSegments?: WallSegment[];
   corners?: Corner[];
   onWallValidationError?: (errors: string[]) => void;
+  selectedRoomTemplate?: {
+    points: Point[];
+    width: number;
+    height: number;
+    wallSegments?: WallSegment[];
+    corners?: Corner[];
+  } | null;
+  setDrawingMode?: (mode: string) => void;
 }
 
 const getMaterialPreset = (type: string): MaterialPreset => {
@@ -89,6 +97,92 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
   drawingMode: string;
 }) => {
   const [selectedPart, setSelectedPart] = useState<string | null>(null);
+  const [resizing, setResizing] = useState<{
+    corner: string;
+    startX: number;
+    startY: number;
+    initialWidth: number;
+    initialHeight: number;
+  } | null>(null);
+
+  const handleResizeStart = (e: React.MouseEvent, corner: string) => {
+    if (drawingMode !== "select") return;
+    e.stopPropagation();
+    setResizing({
+      corner,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialWidth: element.width,
+      initialHeight: element.height
+    });
+  };
+
+  useEffect(() => {
+    if (!resizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const dx = e.clientX - resizing.startX;
+      const dy = e.clientY - resizing.startY;
+      let newWidth = resizing.initialWidth;
+      let newHeight = resizing.initialHeight;
+      let newX = element.x;
+      let newY = element.y;
+
+      switch (resizing.corner) {
+        case 'nw':
+          newWidth = resizing.initialWidth - dx;
+          newHeight = resizing.initialHeight - dy;
+          newX = element.x + dx;
+          newY = element.y + dy;
+          break;
+        case 'ne':
+          newWidth = resizing.initialWidth + dx;
+          newHeight = resizing.initialHeight - dy;
+          newY = element.y + dy;
+          break;
+        case 'sw':
+          newWidth = resizing.initialWidth - dx;
+          newHeight = resizing.initialHeight + dy;
+          newX = element.x + dx;
+          break;
+        case 'se':
+          newWidth = resizing.initialWidth + dx;
+          newHeight = resizing.initialHeight + dy;
+          break;
+      }
+
+      // Enforce minimum size
+      const minSize = 50;
+      newWidth = Math.max(newWidth, minSize);
+      newHeight = Math.max(newHeight, minSize);
+
+      // Snap to grid
+      newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+      newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+      newWidth = Math.round(newWidth / GRID_SIZE) * GRID_SIZE;
+      newHeight = Math.round(newHeight / GRID_SIZE) * GRID_SIZE;
+
+      onSelect({
+        ...element,
+        x: newX,
+        y: newY,
+        width: newWidth,
+        height: newHeight
+      });
+    };
+
+    const handleMouseUp = () => {
+      setResizing(null);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [resizing, element, onSelect]);
 
   console.log('RoomElement render:', {
     element,
@@ -156,7 +250,7 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
         >
           {/* Room outline */}
           <path
-            d={`M ${element.points?.map(p => `${p.x} ${p.y}`).join(" L ")} Z`}
+            d={`M ${element.points?.map(p => `${p.x - element.x} ${p.y - element.y}`).join(" L ")} Z`}
             fill={element.color || "#f3f4f6"}
             stroke={selected ? "#0066cc" : "#000"}
             strokeWidth="4"
@@ -166,10 +260,10 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
           {element.wallSegments?.map((wall, index) => (
             <line
               key={index}
-              x1={wall.start.x}
-              y1={wall.start.y}
-              x2={wall.end.x}
-              y2={wall.end.y}
+              x1={wall.start.x - element.x}
+              y1={wall.start.y - element.y}
+              x2={wall.end.x - element.x}
+              y2={wall.end.y - element.y}
               stroke={selectedPart === `wall-${index}` ? "#0066cc" : "#000"}
               strokeWidth={wall.thickness + (selectedPart === `wall-${index}` ? 2 : 0)}
               strokeLinecap="round"
@@ -184,8 +278,8 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
           {element.corners?.map((corner, index) => (
             <circle
               key={index}
-              cx={corner.x}
-              cy={corner.y}
+              cx={corner.x - element.x}
+              cy={corner.y - element.y}
               r={selectedPart === `corner-${index}` ? 6 : 4}
               fill={selectedPart === `corner-${index}` ? "#0066cc" : "#000"}
               stroke="#fff"
@@ -197,6 +291,59 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
               onClick={(e) => handleCornerClick(e, corner, index)}
             />
           ))}
+          {/* Resize handles (only shown when selected) */}
+          {selected && drawingMode === "select" && (
+            <>
+              {/* Northwest handle */}
+              <rect
+                x={-6}
+                y={-6}
+                width={12}
+                height={12}
+                fill="#0066cc"
+                stroke="#fff"
+                strokeWidth={2}
+                style={{ cursor: 'nw-resize' }}
+                onMouseDown={(e) => handleResizeStart(e, 'nw')}
+              />
+              {/* Northeast handle */}
+              <rect
+                x={element.width - 6}
+                y={-6}
+                width={12}
+                height={12}
+                fill="#0066cc"
+                stroke="#fff"
+                strokeWidth={2}
+                style={{ cursor: 'ne-resize' }}
+                onMouseDown={(e) => handleResizeStart(e, 'ne')}
+              />
+              {/* Southwest handle */}
+              <rect
+                x={-6}
+                y={element.height - 6}
+                width={12}
+                height={12}
+                fill="#0066cc"
+                stroke="#fff"
+                strokeWidth={2}
+                style={{ cursor: 'sw-resize' }}
+                onMouseDown={(e) => handleResizeStart(e, 'sw')}
+              />
+              {/* Southeast handle */}
+              <rect
+                x={element.width - 6}
+                y={element.height - 6}
+                width={12}
+                height={12}
+                fill="#0066cc"
+                stroke="#fff"
+                strokeWidth={2}
+                style={{ cursor: 'se-resize' }}
+                onMouseDown={(e) => handleResizeStart(e, 'se')}
+              />
+            </>
+          )}
         </svg>
       ) : (
         <ThreeRoomRenderer
@@ -209,6 +356,132 @@ const RoomElement = memo(({ element, selected, onSelect, viewMode, drawingMode }
     </div>
   );
 });
+
+const WallElement = memo(({ element, selected, onSelect, drawingMode }: {
+  element: Element;
+  selected: boolean;
+  onSelect: (element: Element) => void;
+  drawingMode: string;
+}) => {
+  const [resizing, setResizing] = useState<{
+    endpoint: 'start' | 'end';
+    startX: number;
+    startY: number;
+    initialX: number;
+    initialY: number;
+  } | null>(null);
+
+  const wall = element.wallSegments?.[0];
+  if (!wall) return null;
+
+  const handleEndpointMouseDown = (e: React.MouseEvent, endpoint: 'start' | 'end') => {
+    if (drawingMode !== "select") return;
+    e.stopPropagation();
+    const point = endpoint === 'start' ? wall.start : wall.end;
+    setResizing({
+      endpoint,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialX: point.x,
+      initialY: point.y
+    });
+  };
+
+  useEffect(() => {
+    if (!resizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const dx = e.clientX - resizing.startX;
+      const dy = e.clientY - resizing.startY;
+      let newX = resizing.initialX + dx;
+      let newY = resizing.initialY + dy;
+
+      // Snap to grid
+      newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+      newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+
+      // Update the wall with the new endpoint position
+      const updatedWall = { ...wall };
+      if (resizing.endpoint === 'start') {
+        updatedWall.start = { x: newX, y: newY };
+      } else {
+        updatedWall.end = { x: newX, y: newY };
+      }
+
+      onSelect({
+        ...element,
+        wallSegments: [updatedWall]
+      });
+    };
+
+    const handleMouseUp = () => {
+      setResizing(null);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [resizing, wall, element, onSelect]);
+
+  return (
+    <g>
+      <line
+        x1={wall.start.x}
+        y1={wall.start.y}
+        x2={wall.end.x}
+        y2={wall.end.y}
+        stroke={selected ? "#0066cc" : "#000"}
+        strokeWidth={wall.thickness || 4}
+        style={{
+          cursor: drawingMode === "select" ? "pointer" : "default",
+          pointerEvents: drawingMode === "select" ? "all" : "none"
+        }}
+        onClick={(e) => {
+          if (drawingMode === "select") {
+            e.stopPropagation();
+            onSelect(element);
+          }
+        }}
+      />
+      {selected && drawingMode === "select" && (
+        <>
+          {/* Start endpoint handle */}
+          <circle
+            cx={wall.start.x}
+            cy={wall.start.y}
+            r={6}
+            fill="#0066cc"
+            stroke="#fff"
+            strokeWidth={2}
+            style={{ cursor: 'grab' }}
+            onMouseDown={(e) => handleEndpointMouseDown(e, 'start')}
+          />
+          {/* End endpoint handle */}
+          <circle
+            cx={wall.end.x}
+            cy={wall.end.y}
+            r={6}
+            fill="#0066cc"
+            stroke="#fff"
+            strokeWidth={2}
+            style={{ cursor: 'grab' }}
+            onMouseDown={(e) => handleEndpointMouseDown(e, 'end')}
+          />
+        </>
+      )}
+    </g>
+  );
+});
+
+function getDistance(p1: Point, p2: Point): number {
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}
 
 const Canvas = ({
   viewMode = "2d",
@@ -230,6 +503,8 @@ const Canvas = ({
   wallSegments = [],
   corners = [],
   onWallValidationError,
+  selectedRoomTemplate,
+  setDrawingMode,
 }: Props) => {
   const [mousePos, setMousePos] = useState<{
     x: number;
@@ -255,6 +530,9 @@ const Canvas = ({
   const [isDragging, setIsDragging] = useState(false);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
+
     if (isPanning) {
       e.preventDefault();
       const dx = e.clientX - lastMousePos.x;
@@ -270,84 +548,52 @@ const Canvas = ({
       return;
     }
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const scrollLeft = e.currentTarget.parentElement?.scrollLeft || 0;
-    const scrollTop = e.currentTarget.parentElement?.scrollTop || 0;
+    // Calculate mouse position in world coordinates
+    const worldX = (e.clientX - canvasRect.left - viewport.offsetX) / viewport.scale;
+    const worldY = (e.clientY - canvasRect.top - viewport.offsetY) / viewport.scale;
 
-    let x = (e.clientX + scrollLeft - rect.left) / scale;
-    let y = (e.clientY + scrollTop - rect.top) / scale;
+    const point = { x: worldX, y: worldY };
+    const snappedPoint = snapToGrid(point);
 
-    const point = { x, y };
-    let snappedPoint = snapToGrid(point);
-
-    const cornerSnap = snapToNearestCorner(point, corners);
-    if (cornerSnap) {
-      snappedPoint = cornerSnap;
-    } else {
-      const wallSnap = snapToNearestWall(point, wallSegments);
-      if (wallSnap) {
-        snappedPoint = wallSnap;
-      }
+    // Only log every 100ms to avoid console spam
+    if (Date.now() % 100 === 0) {
+      console.log('%cMouse Move', 'color: gray', {
+        mouse: { x: e.clientX, y: e.clientY },
+        world: point,
+        snapped: snappedPoint,
+        viewport: {
+          scale: viewport.scale,
+          offset: { x: viewport.offsetX, y: viewport.offsetY }
+        }
+      });
     }
 
     setMousePos(snappedPoint);
-  }, [scale, corners, wallSegments, isPanning, lastMousePos.x, lastMousePos.y]);
+  }, [viewport, isPanning, lastMousePos.x, lastMousePos.y]);
 
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
     if (!onCanvasClick) return;
 
-    if (drawingMode === "select") {
-      const target = e.target as HTMLElement;
-      const roomElement = target.closest('.room-element');
-      
-      if (roomElement) {
-        return;
-      }
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
 
-      if (onElementSelect) {
-        onElementSelect(null);
-      }
-      return;
-    }
+    // Calculate click position in world coordinates
+    const worldX = (e.clientX - canvasRect.left - viewport.offsetX) / viewport.scale;
+    const worldY = (e.clientY - canvasRect.top - viewport.offsetY) / viewport.scale;
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const scrollLeft = e.currentTarget.parentElement?.scrollLeft || 0;
-    const scrollTop = e.currentTarget.parentElement?.scrollTop || 0;
+    const point = { x: worldX, y: worldY };
+    const snappedPoint = snapToGrid(point);
 
-    let x = (e.clientX + scrollLeft - rect.left) / scale;
-    let y = (e.clientY + scrollTop - rect.top) / scale;
+    console.log('%cClick Debug', 'color: blue; font-weight: bold', {
+      mouse: { x: e.clientX, y: e.clientY },
+      world: point,
+      snapped: snappedPoint,
+      viewport
+    });
 
-    const point = { x, y };
-    let snappedPoint = snapToGrid(point);
-
-    const cornerSnap = snapToNearestCorner(point, corners);
-    if (cornerSnap) {
-      snappedPoint = cornerSnap;
-    } else {
-      const wallSnap = snapToNearestWall(point, wallSegments);
-      if (wallSnap) {
-        snappedPoint = wallSnap;
-      }
-    }
-
-    if (drawingMode === "draw-wall" && drawingPoints.length > 0) {
-      const newWall: WallSegment = {
-        start: drawingPoints[drawingPoints.length - 1],
-        end: snappedPoint,
-        thickness: 6
-      };
-
-      const errors = validateWallSegment(newWall, wallSegments);
-      setValidationErrors(errors);
-      
-      if (errors.length > 0) {
-        onWallValidationError?.(errors);
-        return;
-      }
-    }
-
+    // Pass the click coordinates to the parent component
     onCanvasClick(snappedPoint.x, snappedPoint.y);
-  }, [scale, corners, wallSegments, drawingMode, drawingPoints, onCanvasClick, onWallValidationError, onElementSelect]);
+  }, [viewport, onCanvasClick]);
 
   const handleDoubleClick = () => {
     onDoubleClick?.();
@@ -465,8 +711,6 @@ const Canvas = ({
   }, [isSpacePressed, drawingMode]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    const currentMode = drawingMode || 'select';
-    
     // Handle panning
     if (isSpacePressed) {
       setIsPanning(true);
@@ -475,65 +719,15 @@ const Canvas = ({
     }
 
     // Handle selection mode
-    if (currentMode === "select") {
+    if (drawingMode === "select") {
       const target = e.target as HTMLElement;
       const roomElement = target.closest('.room-element');
       
       if (!roomElement) {
-        // If clicked outside any room, deselect
         onElementSelect?.(null);
       }
-      return;
     }
-    
-    // Handle room creation
-    if (currentMode === "draw-room") {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = (e.clientX - rect.left - viewport.offsetX) / viewport.scale;
-      const y = (e.clientY - rect.top - viewport.offsetY) / viewport.scale;
-      
-      console.log('[Room Start]', { x, y, mode: currentMode });
-      
-      const initialWidth = 200;
-      const initialHeight = 200;
-      const aspectRatio = 1;
-      
-      setDragState({
-        startX: x,
-        startY: y,
-        originalWidth: initialWidth,
-        originalHeight: initialHeight,
-        aspectRatio
-      });
-      
-      setIsDragging(true);
-      
-      const newElement: Element = {
-        id: `room-${Date.now()}`,
-        type: "room",
-        x,
-        y,
-        width: initialWidth,
-        height: initialHeight,
-        rotation: 0,
-        locked: false,
-        points: [
-          { x, y },
-          { x: x + initialWidth, y },
-          { x: x + initialWidth, y: y + initialHeight },
-          { x, y: y + initialHeight }
-        ],
-        wallSegments: [],
-        corners: []
-      };
-
-      const targetLayer = layers.find(layer => layer.id === activeLayer) || layers[0];
-      if (targetLayer) {
-        onElementUpdate?.(newElement);
-        onElementSelect?.(newElement);
-      }
-    }
-  }, [drawingMode, onElementSelect, onElementUpdate, layers, activeLayer, viewport, isSpacePressed]);
+  }, [drawingMode, onElementSelect, isSpacePressed]);
 
   const handleMouseUp = useCallback(() => {
     if (isPanning) {
@@ -543,6 +737,23 @@ const Canvas = ({
       }
     }
   }, [isPanning, isSpacePressed, drawingMode]);
+
+  // Add debug logging for render
+  console.log('Canvas Render Debug:', {
+    drawingMode,
+    selectedRoomTemplate,
+    mousePos,
+    viewportScale: viewport.scale
+  });
+
+  // Add debug effect for state changes
+  useEffect(() => {
+    console.log('State Change Debug:', {
+      drawingMode,
+      selectedRoomTemplate,
+      mousePos
+    });
+  }, [drawingMode, selectedRoomTemplate, mousePos]);
 
   return (
     <div className="relative w-full h-full bg-background flex overflow-hidden">
@@ -695,73 +906,117 @@ const Canvas = ({
         )}
 
         {drawingMode === "draw-room" && (
-          <>
-            <svg
-              className="absolute inset-0 pointer-events-none"
-              style={{ zIndex: 2000 }}
-              viewBox="0 0 4000 4000"
-            >
-              {debugRoomPoints.length === 0 && (
-                <text x="10" y="20" fill="black" fontSize="16">No Points Yet</text>
-              )}
-              {debugRoomPoints.length > 0 && (
-                <>
-                  {debugRoomPoints.map((point, index) => {
-                    if (index === 0) return null;
-                    const prevPoint = debugRoomPoints[index - 1];
-                    return (
-                      <line
-                        key={index}
-                        x1={prevPoint.x}
-                        y1={prevPoint.y}
-                        x2={point.x}
-                        y2={point.y}
-                        stroke="#000"
-                        strokeWidth="2"
-                      />
-                    );
-                  })}
-                  {mousePos && debugRoomPoints.length > 0 && (
+          <svg
+            className="absolute inset-0 pointer-events-none"
+            style={{ zIndex: 2000 }}
+            viewBox="0 0 4000 4000"
+          >
+            {drawingPoints.length > 0 && (
+              <>
+                {drawingPoints.map((point, index) => {
+                  if (index === 0) return null;
+                  const prevPoint = drawingPoints[index - 1];
+                  return (
                     <line
-                      x1={debugRoomPoints[debugRoomPoints.length - 1].x}
-                      y1={debugRoomPoints[debugRoomPoints.length - 1].y}
-                      x2={mousePos.x}
-                      y2={mousePos.y}
+                      key={index}
+                      x1={prevPoint.x}
+                      y1={prevPoint.y}
+                      x2={point.x}
+                      y2={point.y}
                       stroke="#000"
                       strokeWidth="2"
-                      strokeDasharray="5,5"
                     />
-                  )}
-                  {debugRoomPoints.map((point, index) => (
-                    <circle
-                      key={index}
-                      cx={point.x}
-                      cy={point.y}
-                      r={4}
-                      fill={index === 0 ? "#00ff00" : "#000"}
-                      stroke="white"
-                      strokeWidth="2"
-                    />
-                  ))}
-                </>
-              )}
-            </svg>
-            {debugRoomPoints.length > 2 && viewMode === "3d" && (
-              <div
-                className="absolute inset-0"
-                style={{ zIndex: 1999, pointerEvents: "none" }}
-              >
-                <ThreeRoomRenderer
-                  points={debugRoomPoints.map((p) => ({ x: p.x, y: p.y }))}
-                  viewMode={viewMode}
-                />
-              </div>
+                  );
+                })}
+                {mousePos && (
+                  <line
+                    x1={drawingPoints[drawingPoints.length - 1].x}
+                    y1={drawingPoints[drawingPoints.length - 1].y}
+                    x2={mousePos.x}
+                    y2={mousePos.y}
+                    stroke="#000"
+                    strokeWidth="2"
+                    strokeDasharray="5,5"
+                  />
+                )}
+                {drawingPoints.map((point, index) => (
+                  <circle
+                    key={index}
+                    cx={point.x}
+                    cy={point.y}
+                    r={4}
+                    fill={index === 0 ? "#00ff00" : "#000"}
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                ))}
+                {mousePos && drawingPoints.length >= 3 && 
+                 getDistance(mousePos, drawingPoints[0]) <= SNAP_THRESHOLD && (
+                  <circle
+                    cx={drawingPoints[0].x}
+                    cy={drawingPoints[0].y}
+                    r={8}
+                    fill="none"
+                    stroke="#00ff00"
+                    strokeWidth="2"
+                  />
+                )}
+              </>
             )}
-          </>
+          </svg>
         )}
 
-        {layers.map(
-          (layer) =>
+        {/* Room preview when in draw-room mode */}
+        {drawingMode === "draw-room" && mousePos && selectedRoomTemplate && (
+          <svg
+            className="absolute inset-0"
+            style={{ 
+              position: "absolute",
+              left: 0,
+              top: 0,
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none",
+              zIndex: 2000,
+              overflow: "visible"
+            }}
+          >
+            <g transform={`translate(${mousePos.x}, ${mousePos.y})`}>
+              {/* Room outline */}
+              <path
+                d={`M ${selectedRoomTemplate.points.map(p => `${p.x} ${p.y}`).join(" L ")} Z`}
+                fill="rgba(243, 244, 246, 0.7)"
+                stroke="#000"
+                strokeWidth={2 / viewport.scale}
+                strokeDasharray="5,5"
+              />
+              {/* Corner points */}
+              {selectedRoomTemplate.points.map((point, index) => (
+                <circle
+                  key={index}
+                  cx={point.x}
+                  cy={point.y}
+                  r={4 / viewport.scale}
+                  fill="#000"
+                  stroke="#fff"
+                  strokeWidth={2 / viewport.scale}
+                />
+              ))}
+            </g>
+          </svg>
+        )}
+
+        {/* Layers */}
+        <div
+          className="absolute inset-0"
+          style={{
+            transform: `scale(${viewport.scale})`,
+            transformOrigin: "top left",
+            left: `${viewport.offsetX}px`,
+            top: `${viewport.offsetY}px`
+          }}
+        >
+          {layers.map((layer) =>
             layer.visible && (
               <div
                 key={layer.id}
@@ -784,106 +1039,41 @@ const Canvas = ({
                       />
                     );
                   }
-
-                  const handleClick = (e: React.MouseEvent) => {
-                    e.stopPropagation();
-                    if (drawingMode === "select") {
-                      onElementSelect?.(element);
-                    }
-                  };
-
-                  return (
-                    <div
-                      key={element.id}
-                      className={`absolute ${selectedElement?.id === element.id ? "ring-2 ring-primary" : ""}`}
-                      style={{
-                        left: element.x - 1000,
-                        top: element.y - 1000,
-                        width: element.width,
-                        height: element.height,
-                        cursor: drawingMode === "select" ? "pointer" : "default",
-                        zIndex: 2
-                      }}
-                      onClick={handleClick}
-                    >
-                      <ThreeMaterialRenderer
-                        elementId={element.id}
-                        materialPreset={{
-                          category: "appliances" as MaterialCategory,
-                          materialId: "stainlessSteel" as MaterialId,
-                          settings: {
-                            normalScale: 0.45,
-                            roughness: 0.2,
-                            metalness: 0.95,
-                            displacementScale: 0.01,
-                            textureScale: { x: 2, y: 2 }
-                          }
-                        }}
-                        width={element.width}
-                        height={element.height}
-                        type={element.type}
-                      />
-                    </div>
-                  );
+                  return null;
                 })}
               </div>
-            ),
-        )}
+            )
+          )}
+        </div>
 
         <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 1000 }}>
-          {wallSegments.map((wall, index) => (
-            <g key={index}>
-              <line
-                x1={wall.start.x}
-                y1={wall.start.y}
-                x2={wall.end.x}
-                y2={wall.end.y}
-                stroke="#000"
-                strokeWidth={wall.thickness}
-                strokeLinecap="round"
+          {wallSegments.map((wall, index) => {
+            const wallElement: Element = {
+              id: `wall-${index}`,
+              x: wall.start.x,
+              y: wall.start.y,
+              width: wall.end.x - wall.start.x,
+              height: wall.end.y - wall.start.y,
+              type: "wall",
+              rotation: 0,
+              locked: false,
+              wallSegments: [wall],
+              color: "#000"
+            };
+            return (
+              <WallElement
+                key={wallElement.id}
+                element={wallElement}
+                selected={selectedElement?.id === wallElement.id}
+                onSelect={onElementSelect!}
+                drawingMode={drawingMode}
               />
-            </g>
-          ))}
-          {corners.map((corner, index) => (
-            <circle
-              key={index}
-              cx={corner.x}
-              cy={corner.y}
-              r={4}
-              fill="#000"
-              stroke="#fff"
-              strokeWidth={2}
-            />
-          ))}
+            );
+          })}
         </svg>
-
-        {validationErrors.length > 0 && (
-          <div className="absolute bottom-4 right-4 bg-red-100 p-2 rounded shadow-lg">
-            {validationErrors.map((error, index) => (
-              <p key={index} className="text-red-600 text-sm">{error}</p>
-            ))}
-          </div>
-        )}
-
-        <div
-          style={{
-            position: "absolute",
-            top: "10px",
-            right: "10px",
-            backgroundColor: "rgba(255, 255, 255, 0.8)",
-            padding: "5px",
-            border: "1px solid black",
-            zIndex: 1000,
-          }}
-        >
-          <div>{`Drawing Mode: ${drawingMode}`}</div>
-          <div>{`Points Count: ${drawingPoints.length}`}</div>
-          <div>{`Debug Points Count: ${debugRoomPoints.length}`}</div>
-          <div>{`Mouse Position: ${JSON.stringify(mousePos)}`}</div>
-        </div>
       </div>
     </div>
   );
 };
 
-export default memo(Canvas);
+export default Canvas;

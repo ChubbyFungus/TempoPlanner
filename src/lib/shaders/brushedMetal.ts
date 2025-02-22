@@ -1,4 +1,5 @@
-import { ShaderMaterial, UniformsLib, UniformsUtils, Vector2 } from 'three';
+import { THREE } from '@/lib/three';
+const { ShaderMaterial, UniformsLib, UniformsUtils, Vector2 } = THREE;
 
 // Vertex shader
 const vertexShader = `

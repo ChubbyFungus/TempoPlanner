@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { THREE } from '@/lib/three';
 import { MaterialCategory, MaterialId } from '@/types/materials';
 
 interface MaterialSettings {

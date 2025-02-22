@@ -49,6 +49,13 @@ const Home = () => {
   const [roomCatalogOpen, setRoomCatalogOpen] = useState(false);
   const [scale, setScale] = useState(1);
   const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
+  const [selectedRoomTemplate, setSelectedRoomTemplate] = useState<{
+    points: Point[];
+    width: number;
+    height: number;
+    wallSegments: WallSegment[];
+    corners: Corner[];
+  } | null>(null);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -103,7 +110,49 @@ const Home = () => {
   const handleCanvasClick = (x: number, y: number) => {
     const point = { x, y };
 
-    // Only handle clicks for draw-surface and draw-wall modes
+    if (drawingMode === "draw-room" && selectedRoomTemplate) {
+      console.log('Creating room at:', point);
+      
+      // Create room element at clicked position
+      const roomElement: CanvasElement = {
+        id: `room-${Date.now()}`,
+        type: "room",
+        x: point.x,
+        y: point.y,
+        width: selectedRoomTemplate.width,
+        height: selectedRoomTemplate.height,
+        points: selectedRoomTemplate.points.map(p => ({
+          x: point.x + p.x,
+          y: point.y + p.y
+        })),
+        wallSegments: selectedRoomTemplate.wallSegments?.map(w => ({
+          start: { x: point.x + w.start.x, y: point.y + w.start.y },
+          end: { x: point.x + w.end.x, y: point.y + w.end.y },
+          thickness: w.thickness
+        })) || [],
+        corners: selectedRoomTemplate.corners?.map(c => ({
+          x: point.x + c.x,
+          y: point.y + c.y,
+          wallSegments: []
+        })) || [],
+        color: "#f3f4f6",
+        rotation: 0,
+        locked: false,
+        depth: 0,
+        materialPreset: null,
+        overlayPreset: null
+      };
+
+      // Add the room element
+      handleElementAdd(roomElement);
+
+      // Reset the drawing state
+      setSelectedRoomTemplate(null);
+      setDrawingMode("select");
+      return;
+    }
+
+    // Handle other drawing modes
     if (drawingMode === "draw-surface" || drawingMode === "draw-wall") {
       setDrawingPoints((prev) => [...prev, point]);
     }
@@ -160,31 +209,47 @@ const Home = () => {
   };
 
   const handleElementAdd = (element: CanvasElement) => {
-    console.log("Adding element to layer:", activeLayer);
-    console.log("Element:", element);
+    console.log('%cElement Add Start', 'color: orange; font-weight: bold', {
+      element,
+      activeLayer,
+      currentLayers: layers
+    });
     
     // Add to the appropriate layer
     setLayers((prevLayers) => {
       const newLayers = prevLayers.map((layer) => {
         if (layer.id === activeLayer) {
-          console.log("Found target layer:", layer.name);
+          console.log('%cUpdating Layer', 'color: orange', {
+            layerId: layer.id,
+            currentElements: layer.elements.length,
+            newElement: element
+          });
           return {
             ...layer,
-            elements: [...layer.elements, element],
+            elements: [...layer.elements, element]
           };
         }
         return layer;
       });
-      console.log("Updated layers:", newLayers);
       return newLayers;
     });
 
     // Also add to the global elements array
     setElements((prev) => {
       const newElements = [...prev, element];
-      console.log("Updated global elements:", newElements);
+      console.log('%cGlobal Elements Updated', 'color: orange', {
+        previousCount: prev.length,
+        newCount: newElements.length,
+        addedElement: element
+      });
       return newElements;
     });
+
+    // Select the newly added element
+    setSelectedElement(element);
+
+    // Switch to select mode
+    setDrawingMode("select");
   };
 
   const handleElementSelect = (element: CanvasElement | null) => {
@@ -243,55 +308,20 @@ const Home = () => {
   const handleRoomCatalogSelect = (item: RoomLayout) => {
     console.log('Room Catalog Item Selected:', item);
     
-    // Center position for the room
-    const baseX = 1000;
-    const baseY = 1000;
-
-    // Transform the points relative to the base position
-    const transformedPoints = item.points.map((point: Point) => ({
-      x: point.x + baseX,
-      y: point.y + baseY
-    }));
-
-    console.log('Transformed Points:', transformedPoints);
-
-    const roomElement: CanvasElement = {
-      id: `room-${Date.now()}`,
-      type: "room",
-      x: baseX,
-      y: baseY,
+    // Set the selected room template
+    setSelectedRoomTemplate({
+      points: item.points,
       width: item.width,
       height: item.height,
-      points: transformedPoints,
-      wallSegments: item.wallSegments.map(w => ({
-        ...w,
-        start: { x: w.start.x + baseX, y: w.start.y + baseY },
-        end: { x: w.end.x + baseX, y: w.end.y + baseY }
-      })),
-      corners: item.corners.map(c => ({
-        ...c,
-        x: c.x + baseX,
-        y: c.y + baseY,
-        wallSegments: c.wallSegments.map(w => ({
-          ...w,
-          start: { x: w.start.x + baseX, y: w.start.y + baseY },
-          end: { x: w.end.x + baseX, y: w.end.y + baseY }
-        }))
-      })),
-      color: "#f3f4f6",
-      rotation: 0,
-      locked: false,
-      depth: 0,
-      materialPreset: null,
-      overlayPreset: null
-    };
+      wallSegments: item.wallSegments,
+      corners: item.corners
+    });
 
-    // Add the room element using handleElementAdd
-    handleElementAdd(roomElement);
-
-    // Close the dialog and reset drawing mode
+    // Keep drawing mode as draw-room
+    setDrawingMode("draw-room");
+    
+    // Close the catalog dialog
     setRoomCatalogOpen(false);
-    setDrawingMode("");
   };
 
   const handleApplianceCatalogSelect = (item: CatalogItem) => {
@@ -355,7 +385,6 @@ const Home = () => {
             onElementSelect={handleElementSelect}
             onElementUpdate={handlePropertyChange}
             drawingMode={drawingMode}
-            setDrawingMode={setDrawingMode}
             onCanvasClick={handleCanvasClick}
             onDoubleClick={handleDoubleClick}
             scale={scale}
@@ -364,6 +393,8 @@ const Home = () => {
             drawingPoints={drawingPoints}
             wallSegments={selectedElement?.wallSegments || []}
             corners={selectedElement?.corners || []}
+            selectedRoomTemplate={selectedRoomTemplate}
+            setDrawingMode={handleDrawingModeChange}
           />
         </div>
       </div>

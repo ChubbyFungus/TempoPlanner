@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { THREE } from '@/lib/three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 interface Props {
   points: { x: number; y: number }[];

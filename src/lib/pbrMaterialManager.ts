@@ -1,15 +1,16 @@
-import * as THREE from "three";
-import { TextureLoader } from "three";
-import {
+import { THREE } from './three';
+import type {
   MaterialCategory,
   MaterialId,
   PBRMaterial,
   MaterialTextures,
+} from "../types/materials";
+import {
   MATERIAL_IDS,
-} from "@/types/materials";
+} from "../types/materials";
 
 // Singleton texture loader
-const textureLoader = new TextureLoader();
+const textureLoader = new THREE.TextureLoader();
 
 // Material cache
 const materialCache = new Map<string, THREE.MeshStandardMaterial>();

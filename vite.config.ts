@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import { tempo } from "tempo-devtools/dist/vite";
 import { resolve } from "path";
 
-const conditionalPlugins = [];
+const conditionalPlugins: [string, Record<string, any>][] = [];
 if (process.env.TEMPO === "true") {
   conditionalPlugins.push(["tempo-devtools/swc", {}]);
 }

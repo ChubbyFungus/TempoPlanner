@@ -106,11 +106,22 @@ async function convertObjFiles() {
     // Process each file
     for (const file of files) {
       const relativePath = path.relative(baseDir, file);
-      const outputDir = path.join(path.dirname(file), 'high');
-      const outputFile = path.join(outputDir, 'high.glb');
+      const modelDir = path.dirname(file);
+      const modelName = path.basename(modelDir);
+      const outputDir = path.join(modelDir, 'high');
+      const outputFile = path.join(outputDir, `${modelName}.glb`);
 
       console.log(`\nProcessing: ${relativePath}`);
       console.log(`Output: ${outputFile}`);
+      
+      // Skip if GLB already exists and is valid
+      if (fs.existsSync(outputFile)) {
+        const stats = fs.statSync(outputFile);
+        if (stats.size > 0) {
+          console.log(`✓ GLB file already exists for ${relativePath}, skipping...`);
+          continue;
+        }
+      }
       
       // Create output directory if it doesn't exist
       fs.mkdirSync(outputDir, { recursive: true });
@@ -133,8 +144,14 @@ async function convertObjFiles() {
         await new Promise((resolve, reject) => {
           blenderProcess.on('close', (code) => {
             if (code === 0) {
-              console.log(`✓ Successfully converted ${relativePath}`);
-              resolve();
+              // Verify GLB was created
+              if (fs.existsSync(outputFile) && fs.statSync(outputFile).size > 0) {
+                console.log(`✓ Successfully converted ${relativePath}`);
+                resolve();
+              } else {
+                console.error(`✗ GLB file not created or empty for ${relativePath}`);
+                reject(new Error('GLB file not created or empty'));
+              }
             } else {
               console.error(`✗ Failed to convert ${relativePath} with exit code ${code}`);
               reject(new Error(`Process exited with code ${code}`));
@@ -159,6 +176,9 @@ async function convertObjFiles() {
         }
       }
     }
+
+    console.log('\nConversion process completed!');
+    console.log('Please check the output directories for the converted GLB files.');
 
   } catch (error) {
     console.error('Error processing files:', error);

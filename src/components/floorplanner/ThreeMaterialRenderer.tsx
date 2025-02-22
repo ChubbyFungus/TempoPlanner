@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 // Model viewer is loaded via script tag in index.html
 import { MaterialPreset } from "@/types/shared";
 import { createPBRMaterial } from "@/lib/pbrMaterialManager";
+import { MaterialCategory, MaterialId } from "@/types/materials";
+import * as THREE from "three";
 
 declare global {
   namespace JSX {
@@ -44,6 +46,8 @@ interface ThreeMaterialRendererProps {
   width: number;
   height: number;
   type: string;
+  position?: { x: number; y: number; z: number };
+  rotation?: { x: number; y: number; z: number };
 }
 
 export const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
@@ -52,90 +56,65 @@ export const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
   width,
   height,
   type,
+  position = { x: 0, y: 0, z: 0 },
+  rotation = { x: 0, y: 0, z: 0 }
 }) => {
   const modelViewerRef = useRef<HTMLElement>(null);
-  const [modelPath, setModelPath] = useState<string>(
-    "/models/appliances/refrigerators/sub-zero/testglb.glb",
-  );
+  const [modelPath, setModelPath] = useState<string>("");
   const [modelLoaded, setModelLoaded] = useState(false);
-
-  useEffect(() => {
-    console.log("ThreeMaterialRenderer mounted with props:", {
-      elementId,
-      width,
-      height,
-      type,
-      materialPreset
-    });
-  }, []);
 
   useEffect(() => {
     const loadModel = async () => {
       try {
-        console.log("Loading model for type:", type);
-        // Use testglb.glb for all refrigerator models
+        // Match the room scale (see ThreeRoomRenderer.tsx line 124)
         const path = "/models/appliances/refrigerators/sub-zero/testglb.glb";
-        console.log("Setting model path to:", path);
         setModelPath(path);
       } catch (error) {
         console.error("Error loading model:", error);
       }
     };
-
     loadModel();
   }, [type]);
 
-  const handleError: React.ReactEventHandler<HTMLElement> = (event) => {
-    console.error("Error loading model:", event);
-    // If model loading fails, try to load the default model
-    const defaultPath = "/models/appliances/refrigerators/default/high.glb";
-    console.log("Falling back to default model:", defaultPath);
-    setModelPath(defaultPath);
-    setModelLoaded(false);
-  };
-
-  const handleLoad: React.ReactEventHandler<HTMLElement> = (event) => {
-    console.log("Model loaded successfully for element:", elementId);
+  useEffect(() => {
     const modelViewer = modelViewerRef.current as any;
-    if (modelViewer && modelViewer.model) {
-      console.log("Model viewer loaded with model:", {
-        width: modelViewer.model.width,
-        height: modelViewer.model.height
-      });
-      setModelLoaded(true);
+    if (modelViewer && modelLoaded) {
+      // Match the room scale (0.1 from ThreeRoomRenderer.tsx)
+      const scale = 0.1;
+      modelViewer.scale = `${scale} ${scale} ${scale}`;
       
-      // Apply material immediately if we have a preset
-      if (materialPreset) {
-        applyMaterial(modelViewer, materialPreset).catch(console.error);
-      }
+      // Update position to match room coordinate system
+      modelViewer.model.position.set(
+        (position.x - 1000) * scale, // Adjust for the room offset
+        0, // Keep at ground level
+        (position.y - 1000) * scale  // Adjust for the room offset
+      );
+      
+      // Update rotation
+      modelViewer.model.rotation.set(0, rotation.y * (Math.PI / 180), 0);
     }
-  };
+  }, [position, rotation, modelLoaded]);
 
-  // Define applyMaterial function outside of useEffect
   const applyMaterial = async (modelViewer: any, preset: MaterialPreset) => {
     try {
-      console.log("Applying material with preset:", preset);
       const material = await createPBRMaterial(
-        preset.category || "appliances",
-        preset.materialId || "stainlessSteel",
+        preset.category as MaterialCategory,
+        preset.materialId as MaterialId,
         {
           normalScale: preset.settings?.normalScale || 0.45,
           roughness: preset.settings?.roughness || 0.2,
           metalness: preset.settings?.metalness || 0.95,
           displacementScale: preset.settings?.displacementScale || 0.01,
-          textureScale: preset.settings?.textureScale || {
-            x: 2,
-            y: 2,
-          },
-        },
+          textureScale: preset.settings?.textureScale || { x: 2, y: 2 },
+        }
       );
 
       if (modelViewer.model) {
-        console.log("Applying material to model");
-        const mesh = modelViewer.model;
-        mesh.traverse((child: any) => {
+        modelViewer.model.traverse((child: any) => {
           if (child.isMesh) {
             child.material = material.clone();
+            child.castShadow = true;
+            child.receiveShadow = true;
           }
         });
       }
@@ -144,34 +123,38 @@ export const ThreeMaterialRenderer: React.FC<ThreeMaterialRendererProps> = ({
     }
   };
 
-  console.log("Rendering model-viewer with dimensions:", { width, height });
-
   return (
     <div style={{ width, height, position: "relative" }}>
       <model-viewer
         ref={modelViewerRef}
         src={modelPath}
-        camera-controls={false}
+        camera-controls={true}
         auto-rotate={false}
-        rotation-per-second="0deg"
-        interaction-policy="none"
-        shadow-intensity="0"
+        shadow-intensity="1"
         exposure="1"
         environment-image="neutral"
-        camera-orbit="0deg 90deg 2.5m"
+        camera-orbit="45deg 55deg 2m"
         field-of-view="30deg"
+        min-camera-orbit="auto auto 1.5m"
+        max-camera-orbit="auto auto 10m"
         style={{
           width: "100%",
           height: "100%",
-          backgroundColor: "#f0f0f0",
+          backgroundColor: "transparent",
         }}
-        onError={handleError}
-        onLoad={handleLoad}
+        onError={(e) => {
+          console.error("Error loading model:", e);
+          setModelPath("/models/appliances/refrigerators/default/high.glb");
+        }}
+        onLoad={(e) => {
+          setModelLoaded(true);
+          if (materialPreset) {
+            applyMaterial(modelViewerRef.current, materialPreset);
+          }
+        }}
         loading-strategy="auto"
         interaction-prompt="none"
-        disable-zoom
-        min-camera-orbit="0deg 90deg 2.5m"
-        max-camera-orbit="0deg 90deg 2.5m"
+        disable-zoom={false}
       />
     </div>
   );

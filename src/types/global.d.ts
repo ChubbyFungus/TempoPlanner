@@ -6,9 +6,11 @@ declare module "three" {
   export * from 'three/src/Three';
 }
 
+import { THREE } from '../lib/three';
+type Object3D = THREE.Object3D;
+type Scene = THREE.Scene;
+
 declare module "three/examples/jsm/loaders/GLTFLoader" {
-  import { Object3D, Scene } from 'three';
-  
   export interface GLTF {
     scene: Scene;
     scenes: Scene[];

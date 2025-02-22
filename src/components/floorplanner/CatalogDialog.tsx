@@ -1374,6 +1374,220 @@ const CatalogDialog = ({
           }
         }
       ]
+    },
+    {
+      id: "designer-series",
+      name: "Designer Series",
+      icon: <Refrigerator className="h-4 w-4" />,
+      items: [
+        {
+          id: "subzero-ds2418-2",
+          name: "Sub-Zero DS2418/2",
+          type: "designer-series",
+          category: "appliances",
+          brand: "subzero",
+          model: "DS2418/2",
+          width: 24,
+          height: 84,
+          depth: 24,
+          price: "$9,920",
+          image: "/images/appliances/subzero-ds2418-2.jpg",
+          description: "24-inch Designer Series Refrigerator",
+          materialPreset: {
+            category: "appliances",
+            materialId: "stainlessSteel",
+            settings: {
+              normalScale: 0.45,
+              roughness: 0.2,
+              metalness: 0.95,
+              displacementScale: 0.01,
+              textureScale: { x: 2, y: 2 }
+            }
+          }
+        },
+        {
+          id: "subzero-ds2427-2",
+          name: "Sub-Zero DS2427/2",
+          type: "designer-series",
+          category: "appliances",
+          brand: "subzero",
+          model: "DS2427/2",
+          width: 24,
+          height: 84,
+          depth: 27,
+          price: "$10,420",
+          image: "/images/appliances/subzero-ds2427-2.jpg",
+          description: "24-inch Designer Series Refrigerator (27\" depth)",
+          materialPreset: {
+            category: "appliances",
+            materialId: "stainlessSteel",
+            settings: {
+              normalScale: 0.45,
+              roughness: 0.2,
+              metalness: 0.95,
+              displacementScale: 0.01,
+              textureScale: { x: 2, y: 2 }
+            }
+          }
+        },
+        {
+          id: "subzero-ds3018-2",
+          name: "Sub-Zero DS3018/2",
+          type: "designer-series",
+          category: "appliances",
+          brand: "subzero",
+          model: "DS3018/2",
+          width: 30,
+          height: 84,
+          depth: 24,
+          price: "$10,920",
+          image: "/images/appliances/subzero-ds3018-2.jpg",
+          description: "30-inch Designer Series Refrigerator",
+          materialPreset: {
+            category: "appliances",
+            materialId: "stainlessSteel",
+            settings: {
+              normalScale: 0.45,
+              roughness: 0.2,
+              metalness: 0.95,
+              displacementScale: 0.01,
+              textureScale: { x: 2, y: 2 }
+            }
+          }
+        },
+        {
+          id: "subzero-ds3627-2",
+          name: "Sub-Zero DS3627/2",
+          type: "designer-series",
+          category: "appliances",
+          brand: "subzero",
+          model: "DS3627/2",
+          width: 36,
+          height: 84,
+          depth: 27,
+          price: "$12,920",
+          image: "/images/appliances/subzero-ds3627-2.jpg",
+          description: "36-inch Designer Series Refrigerator (27\" depth)",
+          materialPreset: {
+            category: "appliances",
+            materialId: "stainlessSteel",
+            settings: {
+              normalScale: 0.45,
+              roughness: 0.2,
+              metalness: 0.95,
+              displacementScale: 0.01,
+              textureScale: { x: 2, y: 2 }
+            }
+          }
+        }
+      ]
+    },
+    {
+      id: "pro-series",
+      name: "Pro Series",
+      icon: <Refrigerator className="h-4 w-4" />,
+      items: [
+        {
+          id: "subzero-pro2418",
+          name: "Sub-Zero PRO2418",
+          type: "pro-series",
+          category: "appliances",
+          brand: "subzero",
+          model: "PRO2418",
+          width: 24,
+          height: 84,
+          depth: 24,
+          price: "$10,920",
+          image: "/images/appliances/subzero-pro2418.jpg",
+          description: "24-inch Pro Series Refrigerator",
+          materialPreset: {
+            category: "appliances",
+            materialId: "stainlessSteel",
+            settings: {
+              normalScale: 0.45,
+              roughness: 0.2,
+              metalness: 0.95,
+              displacementScale: 0.01,
+              textureScale: { x: 2, y: 2 }
+            }
+          }
+        },
+        {
+          id: "subzero-pro3018",
+          name: "Sub-Zero PRO3018",
+          type: "pro-series",
+          category: "appliances",
+          brand: "subzero",
+          model: "PRO3018",
+          width: 30,
+          height: 84,
+          depth: 24,
+          price: "$11,920",
+          image: "/images/appliances/subzero-pro3018.jpg",
+          description: "30-inch Pro Series Refrigerator",
+          materialPreset: {
+            category: "appliances",
+            materialId: "stainlessSteel",
+            settings: {
+              normalScale: 0.45,
+              roughness: 0.2,
+              metalness: 0.95,
+              displacementScale: 0.01,
+              textureScale: { x: 2, y: 2 }
+            }
+          }
+        },
+        {
+          id: "subzero-pro3618",
+          name: "Sub-Zero PRO3618",
+          type: "pro-series",
+          category: "appliances",
+          brand: "subzero",
+          model: "PRO3618",
+          width: 36,
+          height: 84,
+          depth: 24,
+          price: "$12,920",
+          image: "/images/appliances/subzero-pro3618.jpg",
+          description: "36-inch Pro Series Refrigerator",
+          materialPreset: {
+            category: "appliances",
+            materialId: "stainlessSteel",
+            settings: {
+              normalScale: 0.45,
+              roughness: 0.2,
+              metalness: 0.95,
+              displacementScale: 0.01,
+              textureScale: { x: 2, y: 2 }
+            }
+          }
+        },
+        {
+          id: "subzero-pro3627",
+          name: "Sub-Zero PRO3627",
+          type: "pro-series",
+          category: "appliances",
+          brand: "subzero",
+          model: "PRO3627",
+          width: 36,
+          height: 84,
+          depth: 27,
+          price: "$13,420",
+          image: "/images/appliances/subzero-pro3627.jpg",
+          description: "36-inch Pro Series Refrigerator (27\" depth)",
+          materialPreset: {
+            category: "appliances",
+            materialId: "stainlessSteel",
+            settings: {
+              normalScale: 0.45,
+              roughness: 0.2,
+              metalness: 0.95,
+              displacementScale: 0.01,
+              textureScale: { x: 2, y: 2 }
+            }
+          }
+        }
+      ]
     }
   ];
 

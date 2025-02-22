@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { THREE } from '@/lib/three';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import fs from 'fs';
 import path from 'path';

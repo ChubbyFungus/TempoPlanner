@@ -1,4 +1,5 @@
-import { Color } from 'three';
+import { THREE } from '@/lib/three';
+const { Color } = THREE;
 
 export interface MaterialDefinition {
   name: string;
