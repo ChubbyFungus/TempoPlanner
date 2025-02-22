@@ -1,8 +1,7 @@
-import { THREE } from './three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import { THREE, GLTFLoader, DRACOLoader, OBJLoader, MTLLoader } from './three';
+import { createLogger } from './logger';
+
+const logger = createLogger('ModelManager');
 
 // Enable caching
 THREE.Cache.enabled = true;
@@ -57,48 +56,48 @@ async function loadModelManifest(): Promise<ModelManifest> {
     modelManifest = await response.json();
     return modelManifest;
   } catch (error) {
-    console.error('Error loading model manifest:', error);
+    logger.error('Error loading model manifest:', error);
     throw error;
   }
 }
 
 // Get model path from manifest
 export async function getModelPath(type: string, quality: keyof typeof LOD_LEVELS = 'HIGH'): Promise<string> {
+  logger.debug('Getting path for type:', type);
+  
   try {
-    console.log('[Model Path] Getting path for type:', type);
     const manifest = await loadModelManifest();
-    console.log('[Model Path] Loaded manifest:', manifest);
-
-    // Get model config from manifest
+    logger.debug('Loaded manifest:', manifest);
+    
     const modelConfig = manifest.models[type];
     if (!modelConfig) {
-      console.warn(`[Model Path] No model configuration found for type: ${type}`);
+      logger.warn(`No model configuration found for type: ${type}`);
       return "/models/appliances/default/high.glb";
     }
 
     const qualityLevel = quality.toLowerCase() as Lowercase<keyof typeof LOD_LEVELS>;
     const modelData = modelConfig[qualityLevel];
     if (!modelData) {
-      console.warn(`[Model Path] No ${qualityLevel} quality model found for type: ${type}`);
+      logger.warn(`No ${qualityLevel} quality model found for type: ${type}`);
       return modelConfig.high.path; // Fallback to high quality
     }
 
-    // Encode the path to handle spaces and special characters
-    const encodedPath = modelData.path.split('/').map(segment => 
-      encodeURIComponent(segment)
-    ).join('/');
+    const encodedPath = encodeURIComponent(modelData.path);
+    logger.debug(`Found path for ${type}:`, encodedPath);
     
-    console.log(`[Model Path] Found path for ${type}:`, encodedPath);
     return encodedPath;
   } catch (error) {
-    console.error('[Model Path] Error getting model path:', error);
+    logger.error('Failed to get model path:', {
+      type,
+      error: error instanceof Error ? error.message : String(error)
+    });
     return "/models/appliances/default/high.glb";
   }
 }
 
 // Path builder utility - DEPRECATED, use getModelPath instead
 export const getApplianceModelPath = async (variant: string) => {
-  console.log('[Model Path] Getting appliance path for variant:', variant);
+  logger.debug('Getting appliance path for variant:', variant);
   const type = `appliance-${variant}`;
   return getModelPath(type);
 };
@@ -122,11 +121,11 @@ export const loadModelProgressively = async (
   type: string,
   onProgress?: (progress: number) => void
 ): Promise<THREE.Group> => {
-  console.log('[Model Loading] Loading model:', type);
+  logger.debug('Loading model:', type);
 
   // Get model path
   const modelPath = await getModelPath(type);
-  console.log('[Model Loading] Using path:', modelPath);
+  logger.debug('Using path:', modelPath);
 
   // Create a promise that resolves with the loaded model
   return new Promise((resolve, reject) => {
@@ -137,12 +136,16 @@ export const loadModelProgressively = async (
 
     // Ensure the path is properly encoded
     const encodedPath = encodeURI(modelPath);
-    console.log('[Model Loading] Encoded path:', encodedPath);
+    logger.debug('Encoded path:', encodedPath);
 
     gltfLoader.load(
       encodedPath,
       (gltf) => {
-        console.log('[Model Loading] GLTF loaded successfully:', gltf);
+        logger.info('GLTF loaded successfully:', {
+          type,
+          path: modelPath,
+          scenes: gltf.scenes.length
+        });
         resolve(gltf.scene);
       },
       (progress) => {
@@ -152,7 +155,7 @@ export const loadModelProgressively = async (
         }
       },
       (error) => {
-        console.error('[Model Loading] Error:', error);
+        logger.error('Error:', error);
         reject(error);
       }
     );
@@ -169,10 +172,56 @@ export async function preloadCommonModels() {
       if (manifest.models[model]) {
         const modelPath = manifest.models[model].low.path;
         THREE.Cache.add(modelPath, await loadModelProgressively(model));
-        console.log(`Preloaded model: ${model}`);
+        logger.debug(`Preloaded model: ${model}`);
       }
     }
   } catch (error) {
-    console.error('Error preloading models:', error);
+    logger.error('Error preloading models:', error);
+  }
+}
+
+export async function loadModel(type: string): Promise<THREE.Group> {
+  logger.debug('Loading model:', type);
+  
+  try {
+    const modelPath = await getModelPath(type);
+    logger.debug('Using path:', modelPath);
+    
+    const loader = new GLTFLoader();
+    const encodedPath = encodeURIComponent(modelPath);
+    logger.debug('Encoded path:', encodedPath);
+    
+    const gltf = await loader.loadAsync(encodedPath);
+    logger.info('GLTF loaded successfully:', {
+      type,
+      path: modelPath,
+      scenes: gltf.scenes.length
+    });
+    
+    return gltf.scene;
+  } catch (error) {
+    logger.error('Failed to load model:', {
+      type,
+      error: error instanceof Error ? error.message : String(error)
+    });
+    throw error;
+  }
+}
+
+export async function preloadModels(models: string[]): Promise<void> {
+  try {
+    await Promise.all(
+      models.map(async (model) => {
+        await loadModel(model);
+        logger.debug(`Preloaded model: ${model}`);
+      })
+    );
+    logger.info('All models preloaded successfully', { count: models.length });
+  } catch (error) {
+    logger.error('Failed to preload models:', {
+      models,
+      error: error instanceof Error ? error.message : String(error)
+    });
+    throw error;
   }
 } 

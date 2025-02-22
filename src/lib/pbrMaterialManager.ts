@@ -8,6 +8,9 @@ import type {
 import {
   MATERIAL_IDS,
 } from "../types/materials";
+import { createLogger } from './logger';
+
+const logger = createLogger('PBRMaterialManager');
 
 // Singleton texture loader
 const textureLoader = new THREE.TextureLoader();
@@ -35,43 +38,34 @@ function getTexturePath(
 }
 
 // Load and cache a texture
-async function loadTexture(path: string): Promise<THREE.Texture> {
+export async function loadTexture(path: string): Promise<THREE.Texture> {
+  logger.debug("Attempting to load texture from:", path);
+  
   if (textureCache.has(path)) {
     return textureCache.get(path)!;
   }
 
-  console.log("Attempting to load texture from:", path);
-
-  return new Promise((resolve, reject) => {
-    textureLoader.load(
-      path,
-      (texture) => {
-        console.log("Successfully loaded texture from:", path);
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        textureCache.set(path, texture);
-        resolve(texture);
-      },
-      (progress) => {
-        console.log(
-          "Loading texture progress:",
-          path,
-          Math.round((progress.loaded / progress.total) * 100) + "%",
-        );
-      },
-      (error) => {
-        console.error("Failed to load texture:", path, error);
-        reject(error);
-      },
+  try {
+    const texture = await textureLoader.loadAsync(path);
+    logger.debug("Successfully loaded texture from:", path);
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    textureCache.set(path, texture);
+    return texture;
+  } catch (error) {
+    logger.error(
+      "Failed to load texture:",
+      { path, error: error instanceof Error ? error.message : String(error) }
     );
-  });
+    throw error;
+  }
 }
 
 // Load all textures for a material
-async function loadMaterialTextures(
+export async function loadMaterialTextures(
   category: MaterialCategory,
   materialId: MaterialId,
 ): Promise<Record<keyof MaterialTextures, THREE.Texture>> {
-  console.log("Loading textures for material:", { category, materialId });
+  logger.debug("Loading textures for material:", { category, materialId });
 
   const textureTypes: (keyof MaterialTextures)[] = [
     "baseColorMap",
@@ -89,19 +83,20 @@ async function loadMaterialTextures(
       }),
     );
 
-    console.log("Successfully loaded all textures for:", {
+    logger.info("Successfully loaded all textures for:", {
       category,
       materialId,
+      count: textures.length
     });
 
     return Object.fromEntries(
       textureTypes.map((type, index) => [type, textures[index]]),
     ) as Record<keyof MaterialTextures, THREE.Texture>;
   } catch (error) {
-    console.error("Failed to load textures for material:", {
+    logger.error("Failed to load material textures:", {
       category,
       materialId,
-      error,
+      error: error instanceof Error ? error.message : String(error)
     });
     throw error;
   }
@@ -113,11 +108,11 @@ export async function createPBRMaterial(
   materialId: MaterialId,
   options: Partial<typeof DEFAULT_SETTINGS> = {},
 ): Promise<THREE.MeshStandardMaterial> {
-  console.log("Creating PBR material with:", { category, materialId, options });
+  logger.debug("Creating PBR material with:", { category, materialId, options });
 
   // Validate inputs
   if (!category || !materialId) {
-    console.warn("Missing category or materialId, using defaults:", {
+    logger.warn("Missing category or materialId, using defaults:", {
       category,
       materialId,
     });
@@ -128,12 +123,12 @@ export async function createPBRMaterial(
   const cacheKey = `${category}-${materialId}-${JSON.stringify(options)}`;
 
   if (materialCache.has(cacheKey)) {
-    console.log("Returning cached material for:", cacheKey);
+    logger.debug("Returning cached material for:", cacheKey);
     return materialCache.get(cacheKey)!;
   }
 
   const settings = { ...DEFAULT_SETTINGS, ...options };
-  console.log("Using settings:", settings);
+  logger.debug("Using settings:", settings);
 
   // Create a basic material with appropriate settings for the material type
   const material = new THREE.MeshStandardMaterial({
@@ -150,7 +145,7 @@ export async function createPBRMaterial(
     );
   }
 
-  console.log(
+  logger.info(
     "Created material with color:",
     material.color,
     "and texture scale:",
@@ -189,13 +184,13 @@ function getMaterialColor(
 
   const categoryColors = materialColors[category];
   if (!categoryColors) {
-    console.warn(`Unknown category: ${category}, using default color`);
+    logger.warn(`Unknown category: ${category}, using default color`);
     return new THREE.Color(0xcccccc);
   }
 
   const color = categoryColors[materialId];
   if (!color) {
-    console.warn(
+    logger.warn(
       `Unknown materialId: ${materialId} for category: ${category}, using default color`,
     );
     return new THREE.Color(0xcccccc);

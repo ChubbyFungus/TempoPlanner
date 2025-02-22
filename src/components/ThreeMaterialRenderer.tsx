@@ -1,14 +1,16 @@
 import React, { useEffect, useRef, useState, memo, useMemo, useCallback } from 'react';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader, DRACOLoader, OrbitControls } from '@/lib/three';
 import { THREE } from '../lib/three';
 import { getApplianceModelPath, loadModelProgressively } from '../lib/modelManager';
 import { useModel } from '../hooks/useModel';
 import { useMaterialPreset } from '../hooks/useMaterialPreset';
-import { MaterialPreset } from '../types/shared';
-import { MaterialCategory, MaterialId } from '../types/materials';
-import { createPBRMaterial } from '../lib/pbrMaterialManager';
+import { MaterialPreset } from '@/types/shared';
+import { MaterialCategory, MaterialId } from '@/types/materials';
+import { createPBRMaterial } from '@/lib/pbrMaterialManager';
+import { createLogger } from '@/lib/logger';
+
+// Create component logger
+const logger = createLogger('ThreeMaterialRenderer');
 
 // Export commonly used Three.js types
 export type Scene = THREE.Scene;
@@ -30,7 +32,7 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
   // Generate unique instance ID
   const instanceId = useRef(Math.random().toString(36).substring(2, 10)).current;
   
-  console.log(`[Props] Received dimensions: ${width}x${height}, type: ${type}`);
+  logger.debug(`[Instance ${instanceId}] Received dimensions: ${width}x${height}, type: ${type}`);
   
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -62,14 +64,14 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
 
   // Initialize renderer
   useEffect(() => {
-    console.log(`[Instance ${instanceId}] Initializing renderer`);
+    logger.debug(`[Instance ${instanceId}] Initializing renderer`);
 
     if (!containerRef.current) {
-      console.error(`[Instance ${instanceId}] No container ref`);
+      logger.error(`[Instance ${instanceId}] No container ref`);
       return;
     }
 
-    console.log(`[Instance ${instanceId}] Setting up Three.js scene`);
+    logger.debug(`[Instance ${instanceId}] Setting up Three.js scene`);
 
     const container = containerRef.current;
 
@@ -96,8 +98,20 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
       canvas,
       antialias: true,
       alpha: true,
-      preserveDrawingBuffer: true
+      preserveDrawingBuffer: true,
+      powerPreference: 'high-performance', // Prefer dedicated GPU
+      precision: 'highp', // Use high precision when available
+      stencil: false, // Disable stencil buffer if not needed
+      depth: true, // Enable depth buffer
+      logarithmicDepthBuffer: false, // Disable logarithmic depth buffer if not needed
+      failIfMajorPerformanceCaveat: true // Fail if performance would be poor
     });
+
+    // Check if context creation was successful
+    if (!renderer.getContext()) {
+      throw new Error('Failed to create WebGL context');
+    }
+
     renderer.setSize(width, height, false); // false to avoid setting canvas style
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -105,6 +119,11 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
     renderer.toneMappingExposure = 1;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // Enable context preservation hint
+    const gl = renderer.getContext();
+    gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST);
+    
     rendererRef.current = renderer;
 
     // Create and setup controls
@@ -140,7 +159,7 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
     backLight.position.set(0, -5, -5);
     scene.add(backLight);
 
-    console.log(`[Instance ${instanceId}] Three.js setup complete`, {
+    logger.info(`[Instance ${instanceId}] Three.js setup complete`, {
       scene,
       camera: camera.position,
       renderer: {
@@ -149,40 +168,100 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
       }
     });
 
+    // Handle resize
+    const handleResize = () => {
+      if (!containerRef.current || !rendererRef.current || !cameraRef.current) return;
+
+      const width = containerRef.current.clientWidth;
+      const height = containerRef.current.clientHeight;
+
+      // Update camera
+      if (cameraRef.current instanceof THREE.PerspectiveCamera) {
+        cameraRef.current.aspect = width / height;
+        cameraRef.current.updateProjectionMatrix();
+      }
+
+      // Update renderer
+      rendererRef.current.setSize(width, height, false);
+      rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Initial resize
+    handleResize();
+
     // Animation loop
     const animate = () => {
       frameRef.current = requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
+      if (controlsRef.current) controlsRef.current.update();
+      if (rendererRef.current && sceneRef.current && cameraRef.current) {
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+      }
     };
     animate();
 
-    console.log(`[Instance ${instanceId}] Initial render complete`);
+    logger.info(`[Instance ${instanceId}] Initial render complete`);
 
     // Cleanup
     return () => {
-      console.log(`[Instance ${instanceId}] Starting cleanup`);
+      logger.debug(`[Instance ${instanceId}] Starting cleanup`);
       
+      // First cancel any pending animation frame
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
+        frameRef.current = 0;
       }
 
-      if (controls) {
-        controls.dispose();
+      // Dispose of controls
+      if (controlsRef.current) {
+        controlsRef.current.dispose();
+        controlsRef.current = null;
       }
 
-      if (renderer) {
-        renderer.dispose();
-        const gl = renderer.getContext();
+      // Clear scene and dispose of all objects
+      if (sceneRef.current) {
+        sceneRef.current.traverse((object) => {
+          if (object instanceof THREE.Mesh) {
+            if (object.geometry) {
+              object.geometry.dispose();
+            }
+            if (object.material) {
+              if (Array.isArray(object.material)) {
+                object.material.forEach(material => material.dispose());
+              } else {
+                object.material.dispose();
+              }
+            }
+          }
+        });
+        sceneRef.current.clear();
+        sceneRef.current = null;
+      }
+
+      // Dispose of renderer and force context loss
+      if (rendererRef.current) {
+        const gl = rendererRef.current.getContext();
+        rendererRef.current.dispose();
+        rendererRef.current.forceContextLoss();
+        rendererRef.current = null;
+        
+        // Force garbage collection of WebGL context
         const loseContext = gl.getExtension('WEBGL_lose_context');
-        if (loseContext) loseContext.loseContext();
+        if (loseContext) {
+          loseContext.loseContext();
+        }
       }
 
-      if (canvas.parentNode) {
-        canvas.parentNode.removeChild(canvas);
+      // Remove canvas from DOM
+      if (canvasRef.current && canvasRef.current.parentNode) {
+        canvasRef.current.parentNode.removeChild(canvasRef.current);
+        canvasRef.current = null;
       }
 
-      console.log(`[Instance ${instanceId}] Cleanup complete`);
+      window.removeEventListener('resize', handleResize);
+
+      logger.debug(`[Instance ${instanceId}] Cleanup complete`);
     };
   }, [width, height, instanceId]);
 
@@ -190,46 +269,46 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
   useEffect(() => {
     let isMounted = true;
     const loadModel = async () => {
-      console.log(`[Instance ${instanceId}] Loading model for type:`, type);
+      logger.debug(`[Instance ${instanceId}] Loading model for type:`, type);
 
       if (!sceneRef.current) {
-        console.error(`[Instance ${instanceId}] Scene not initialized`);
+        logger.error(`[Instance ${instanceId}] Scene not initialized`);
         return;
       }
 
       if (!type.includes("appliance")) {
-        console.log(`[Instance ${instanceId}] Not an appliance type, skipping`);
+        logger.debug(`[Instance ${instanceId}] Not an appliance type, skipping`);
         setIsLoading(false);
         return;
       }
 
       if (!type.includes("315W-O")) {
-        console.log(`[Instance ${instanceId}] Unsupported model type:`, type);
+        logger.warn(`[Instance ${instanceId}] Unsupported model type:`, type);
         setError('Unsupported model type');
         setIsLoading(false);
         return;
       }
 
       if (!loaderRef.current) {
-        console.error(`[Instance ${instanceId}] GLTFLoader not initialized`);
+        logger.error(`[Instance ${instanceId}] GLTFLoader not initialized`);
         setError('Model loader not initialized');
         setIsLoading(false);
         return;
       }
 
       const modelType = type.includes("-LH") ? "315W-O-LH" : "315W-O-RH";
-      console.log(`[Instance ${instanceId}] Determined model type:`, modelType);
+      logger.debug(`[Instance ${instanceId}] Determined model type:`, modelType);
       
       try {
         const modelPath = await getApplianceModelPath(modelType);
         if (!isMounted) return;
-        console.log(`[Instance ${instanceId}] Loading model from path:`, modelPath);
+        logger.debug(`[Instance ${instanceId}] Loading model from path:`, modelPath);
 
         const result = await loadModelProgressively(
           `appliance-${modelType}`,
           (progress) => {
             if (!isMounted) return;
-            console.log(`[Instance ${instanceId}] Loading progress: ${progress.toFixed(1)}%`);
+            logger.debug(`[Instance ${instanceId}] Loading progress: ${progress.toFixed(1)}%`);
             setLoadingProgress(progress);
           }
         );
@@ -240,7 +319,7 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
           throw new Error('Model loading failed - no result returned');
         }
 
-        console.log(`[Instance ${instanceId}] Model loaded:`, {
+        logger.info(`[Instance ${instanceId}] Model loaded:`, {
           uuid: result.uuid,
           type: result.type,
           children: result.children.length
@@ -275,7 +354,7 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
         // Add model to scene and set initial rotation
         result.rotation.set(0, Math.PI, 0); // Rotate 180 degrees around Y axis
         sceneRef.current.add(result);
-        console.log(`[Instance ${instanceId}] Added model to scene`);
+        logger.debug(`[Instance ${instanceId}] Added model to scene`);
 
         // Adjust camera
         if (cameraRef.current && controlsRef.current) {
@@ -283,7 +362,7 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
           const center = box.getCenter(new THREE.Vector3());
           const size = box.getSize(new THREE.Vector3());
 
-          console.log(`[Instance ${instanceId}] Model bounds:`, {
+          logger.debug(`[Instance ${instanceId}] Model bounds:`, {
             center: center.toArray(),
             size: size.toArray()
           });
@@ -311,7 +390,7 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
           controlsRef.current.maxPolarAngle = Math.PI * 3/4;  // Limit how low user can orbit
           controlsRef.current.update();
 
-          console.log(`[Instance ${instanceId}] Camera adjusted:`, {
+          logger.debug(`[Instance ${instanceId}] Camera adjusted:`, {
             position: cameraRef.current.position.toArray(),
             target: controlsRef.current.target.toArray(),
             distance: cameraDistance
@@ -321,7 +400,7 @@ export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMateria
         setIsLoading(false);
       } catch (error) {
         if (!isMounted) return;
-        console.error(`[Instance ${instanceId}] Error loading model:`, error);
+        logger.error(`[Instance ${instanceId}] Error loading model:`, error);
         setError(error instanceof Error ? error.message : String(error));
         setIsLoading(false);
       }
