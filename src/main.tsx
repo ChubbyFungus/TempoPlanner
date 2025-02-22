@@ -4,6 +4,9 @@ import App from "./App";
 import "./index.css";
 import { TempoDevtools } from "tempo-devtools";
 
+// Add console log for debugging
+console.log("Starting application...");
+
 // Initialize Tempo Devtools
 TempoDevtools.init();
 

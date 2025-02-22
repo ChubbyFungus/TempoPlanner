@@ -1,8 +1,7 @@
-// Central export point for Three.js to prevent multiple instances
 import * as THREE from 'three';
 
-// Export the namespace and commonly used types
 export { THREE };
+
 export type {
   Material,
   Mesh,

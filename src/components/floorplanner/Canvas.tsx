@@ -690,55 +690,14 @@ const Canvas = ({
     // Handle selection mode
     if (drawingMode === "select") {
       const target = e.target as HTMLElement;
-      const roomElement = target.closest('.room-element') as HTMLElement;
+      const roomElement = target.closest('.room-element');
       
-      logger.info('Selection Attempt', {
-        target: {
-          className: target.className,
-          id: target.id,
-          tagName: target.tagName,
-          rect: target.getBoundingClientRect(),
-          parentClassName: target.parentElement?.className,
-          parentTagName: target.parentElement?.tagName,
-        },
-        roomElement: roomElement ? {
-          id: roomElement.id,
-          className: roomElement.className,
-          rect: roomElement.getBoundingClientRect(),
-          elementId: roomElement.dataset.elementId,
-          elementType: roomElement.dataset.elementType
-        } : null,
-        currentlySelected: selectedElement?.id,
-        drawingMode,
-        mouseEvent: {
-          clientX: e.clientX,
-          clientY: e.clientY,
-          button: e.button,
-          buttons: e.buttons,
-          target: e.target instanceof HTMLElement ? {
-            offsetX: e.nativeEvent.offsetX,
-            offsetY: e.nativeEvent.offsetY,
-          } : null
-        },
-        viewport: {
-          scale: viewport.scale,
-          offset: { x: viewport.offsetX, y: viewport.offsetY }
-        }
-      });
-      
-      if (!roomElement) {
-        logger.info('Clearing selection', {
-          previousSelection: selectedElement?.id,
-          clickLocation: {
-            client: { x: e.clientX, y: e.clientY },
-            page: { x: e.pageX, y: e.pageY },
-            screen: { x: e.screenX, y: e.screenY }
-          }
-        });
+      // Only clear selection if we clicked directly on the canvas (not on a room)
+      if (!roomElement && !target.closest('svg')) {
         onElementSelect?.(null);
       }
     }
-  }, [drawingMode, onElementSelect, isSpacePressed, selectedElement, viewport]);
+  }, [drawingMode, onElementSelect, isSpacePressed]);
 
   const handleMouseUp = useCallback(() => {
     if (isPanning) {

@@ -7,6 +7,7 @@ interface Props {
   wallHeight?: number;
   wallThickness?: number;
   viewMode?: "2d" | "3d";
+  isPreview?: boolean;
 }
 
 const ThreeRoomRenderer: React.FC<Props> = ({
@@ -14,6 +15,7 @@ const ThreeRoomRenderer: React.FC<Props> = ({
   wallHeight = 300,
   wallThickness = 20,
   viewMode = "2d",
+  isPreview = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -69,7 +71,7 @@ const ThreeRoomRenderer: React.FC<Props> = ({
       containerRef.current.clientWidth,
       containerRef.current.clientHeight,
     );
-    renderer.setClearColor(0xffffff, 1);
+    renderer.setClearColor(0xffffff, isPreview ? 0.7 : 1);
     renderer.shadowMap.enabled = true;
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
@@ -90,9 +92,9 @@ const ThreeRoomRenderer: React.FC<Props> = ({
       controls.maxPolarAngle = 0;
       controls.minPolarAngle = 0;
     } else {
-      controls.enableRotate = true;
-      controls.enablePan = true;
-      controls.enableZoom = true;
+      controls.enableRotate = !isPreview;
+      controls.enablePan = !isPreview;
+      controls.enableZoom = !isPreview;
       controls.mouseButtons = {
         LEFT: THREE.MOUSE.ROTATE,
         MIDDLE: THREE.MOUSE.DOLLY,
@@ -143,6 +145,8 @@ const ThreeRoomRenderer: React.FC<Props> = ({
       side: THREE.DoubleSide,
       roughness: 0.8,
       metalness: 0.2,
+      opacity: isPreview ? 0.7 : 1,
+      transparent: isPreview
     });
     const floor = new THREE.Mesh(geometry, material);
     floor.rotation.x = -Math.PI / 2;
@@ -155,6 +159,8 @@ const ThreeRoomRenderer: React.FC<Props> = ({
       side: THREE.DoubleSide,
       roughness: 0.9,
       metalness: 0.1,
+      opacity: isPreview ? 0.7 : 1,
+      transparent: isPreview
     });
 
     for (let i = 0; i < points.length; i++) {
@@ -207,7 +213,7 @@ const ThreeRoomRenderer: React.FC<Props> = ({
         scene.clear();
       }
     };
-  }, [points, wallHeight, wallThickness, viewMode]);
+  }, [points, wallHeight, wallThickness, viewMode, isPreview]);
 
   return <div ref={containerRef} style={{ width: "100%", height: "100%" }} />;
 };

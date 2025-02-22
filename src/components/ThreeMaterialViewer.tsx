@@ -1,17 +1,16 @@
-import React, { useEffect, useRef, useState, memo, useMemo, useCallback } from 'react';
-import { GLTFLoader } from '@/lib/three';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { getApplianceModelPath, loadModelProgressively } from '../lib/modelManager';
-import { useModel } from '../hooks/useModel';
-import { useMaterialPreset } from '../hooks/useMaterialPreset';
-import { MaterialPreset } from '@/types/shared';
-import { MaterialCategory, MaterialId } from '@/types/materials';
+import { getApplianceModelPath, loadModelProgressively } from '@/lib/modelManager';
+import { useModel } from '@/hooks/useModel';
+import { useMaterialPreset } from '@/hooks/useMaterialPreset';
+import type { MaterialPreset } from '@/types/shared';
+import type { MaterialCategory, MaterialId } from '@/types/materials';
 import { createPBRMaterial } from '@/lib/pbrMaterialManager';
 import { createLogger } from '@/lib/logger';
 
-// Create component logger
 const logger = createLogger('ThreeMaterialRenderer');
 
 // Export commonly used Three.js types

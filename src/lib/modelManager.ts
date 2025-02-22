@@ -1,4 +1,9 @@
-import { THREE, GLTFLoader, DRACOLoader, OBJLoader, MTLLoader } from './three';
+import { THREE } from './three';
+// Import loaders directly from three examples
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { createLogger } from './logger';
 
 const logger = createLogger('ModelManager');
