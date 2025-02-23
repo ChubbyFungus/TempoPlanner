@@ -11,7 +11,10 @@
     "preview": "vite preview",
     "types:supabase": "npx supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > src/types/supabase.ts",
     "install:assimp": "pip install pyassimp",
-    "generate-diagrams": "node scripts/generate-diagrams.js"
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "generate-diagrams": "node scripts/generate-diagrams.js",
+    "generate-diagrams:debug": "node scripts/generate-diagrams.js --debug"
   },
   "dependencies": {
     "@gltf-transform/cli": "^4.1.1",
@@ -55,7 +58,7 @@
     "embla-carousel-react": "^8.1.5",
     "framer-motion": "^11.18.0",
     "gltf-pipeline": "^4.1.0",
-    "mermaid": "^10.6.1",
+    "mermaid": "10.6.1",
     "lucide-react": "^0.394.0",
     "react": "^18.2.0",
     "react-day-picker": "^8.10.1",
@@ -78,6 +81,7 @@
     "@types/react-dom": "^18.2.22",
     "@types/three": "^0.157.0",
     "@vitejs/plugin-react-swc": "3.5.0",
+    "@mermaid-js/mermaid-cli": "10.6.1",
     "autoprefixer": "^10.4.19",
     "glob": "^10.3.10",
     "postcss": "^8.4.38",

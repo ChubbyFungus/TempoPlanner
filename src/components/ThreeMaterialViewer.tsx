@@ -23,13 +23,13 @@ export type Vector2 = THREE.Vector2;
 export type Vector3 = THREE.Vector3;
 export type Color = THREE.Color;
 
-interface ThreeMaterialRendererProps {
+interface ThreeMaterialViewerProps {
   width: number;
   height: number;
   type: string;
 }
 
-export const ThreeMaterialRenderer = memo(({ width, height, type }: ThreeMaterialRendererProps) => {
+export const ThreeMaterialViewer = memo(({ width, height, type }: ThreeMaterialViewerProps) => {
   // Generate unique instance ID
   const instanceId = useRef(Math.random().toString(36).substring(2, 10)).current;
   

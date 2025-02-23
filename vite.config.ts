@@ -31,9 +31,6 @@ export default defineConfig({
       include: [/node_modules/],
       transformMixedEsModules: true,
     },
-    rollupOptions: {
-      external: ["@google/model-viewer"],
-    },
   },
   resolve: {
     alias: {
