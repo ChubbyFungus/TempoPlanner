@@ -1,0 +1,23 @@
+%% src/lib/roomLayouts.ts
+flowchart TD
+    subgraph Input Parameters
+        S[Room Size]
+        T[Room Type]
+        F[Features]
+    end
+
+    subgraph Generation Steps
+        W[Generate Walls]
+        C[Create Corners]
+        O[Place Openings]
+        Z[Define Zones]
+    end
+
+    subgraph Validation
+        V1[Check Dimensions]
+        V2[Verify Clearances]
+        V3[Access Paths]
+    end
+
+    Input Parameters --> Generation Steps
+    Generation Steps --> Validation

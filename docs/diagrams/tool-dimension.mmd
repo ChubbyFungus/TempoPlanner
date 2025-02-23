@@ -1,0 +1,72 @@
+%% src/components/floorplanner/tools/DimensionTool.tsx
+sequenceDiagram
+    participant U as User
+    participant T as Toolbar
+    participant H as Home
+    participant C as Canvas
+    participant D as DimensionManager
+    participant S as SnapSystem
+    participant F as Formatter
+
+    Note over U,T: Dimension Tool Setup
+    U->>T: Select Dimension Tool
+    T->>H: setActiveTool("dimension")
+    H->>C: enableDimensionPreview()
+    H->>S: setSnapTargets([
+        "points",
+        "edges",
+        "centers"
+    ])
+
+    Note over U,D: Dimension Creation
+    U->>C: Click first point
+    C->>S: snapToPoint(pos, {
+        threshold: 10,
+        priority: ["corners", "edges"]
+    })
+    C->>D: setFirstPoint(snappedPos)
+    D->>C: showFirstAnchor()
+
+    U->>C: Move mouse
+    C->>D: updatePreview({
+        start: firstPoint,
+        current: mousePos,
+        orientation: "auto"
+    })
+    D->>F: formatMeasurement({
+        value: distance,
+        unit: "ft-in",
+        precision: 0.125
+    })
+    D->>C: showPreviewLine()
+
+    U->>C: Click second point
+    C->>S: snapToPoint(pos)
+    C->>D: setSecondPoint(snappedPos)
+    D->>D: calculateOffset()
+    D->>D: determineOrientation()
+
+    Note over D,H: Dimension Finalization
+    D->>D: createDimension({
+        points: [p1, p2],
+        offset: 20,
+        orientation: "auto",
+        style: {
+            color: "#000",
+            fontSize: 12,
+            arrowStyle: "architectural"
+        }
+    })
+    D->>H: updateCanvas()
+    H->>H: addToHistory()
+
+    Note over U,D: Dimension Editing
+    U->>C: Select dimension
+    C->>H: showProperties({
+        measurement,
+        style,
+        position
+    })
+    U->>H: Modify properties
+    H->>D: updateDimension(changes)
+    D->>C: refreshDisplay()

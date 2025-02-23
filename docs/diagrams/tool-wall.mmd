@@ -1,0 +1,66 @@
+%% src/components/floorplanner/tools/WallTool.tsx
+sequenceDiagram
+    participant U as User
+    participant T as Toolbar
+    participant H as Home
+    participant C as Canvas
+    participant W as WallManager
+    participant S as SnapSystem
+    participant V as Validator
+
+    Note over U,T: Tool Setup
+    U->>T: Select Wall Tool
+    T->>H: setActiveTool("wall")
+    H->>C: enableWallPreview()
+    H->>S: setSnapTargets([
+        "grid",
+        "walls",
+        "corners"
+    ])
+
+    Note over U,W: Wall Creation Start
+    U->>C: Click start point
+    C->>S: getSnappedPosition(point)
+    C->>W: startWall({
+        x: snappedX,
+        y: snappedY,
+        thickness: 6,
+        height: 96
+    })
+
+    Note over U,C: Wall Drawing
+    U->>C: Move mouse
+    C->>S: snapPreview(mousePos)
+    C->>W: updatePreview({
+        angle: calcAngle(),
+        length: calcLength(),
+        snapAngles: [0, 45, 90]
+    })
+    W->>C: showGuidelines()
+    W->>C: showDimensions()
+
+    Note over U,V: Wall Validation
+    U->>C: Click end point
+    C->>S: snapEndPoint(point)
+    C->>V: validateWall({
+        minLength: 6,
+        maxLength: 600,
+        intersection: false
+    })
+    V-->>C: validationResult
+
+    Note over W,H: Wall Finalization
+    alt is valid wall
+        C->>W: finalizeWall({
+            start: startPoint,
+            end: endPoint,
+            properties: wallProps
+        })
+        W->>W: createCorners()
+        W->>W: checkIntersections()
+        W->>H: updateCanvas()
+        H->>H: addToHistory()
+    else invalid wall
+        C->>H: showError("Invalid wall placement")
+        C->>W: cancelWall()
+    end

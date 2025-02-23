@@ -1,0 +1,70 @@
+%% src/components/floorplanner/tools/CabinetTool.tsx
+sequenceDiagram
+    participant U as User
+    participant T as Toolbar
+    participant H as Home
+    participant C as Canvas
+    participant CB as CabinetManager
+    participant S as SnapSystem
+    participant V as Validator
+
+    Note over U,T: Cabinet Tool Setup
+    U->>T: Select Cabinet Tool
+    T->>H: setActiveTool("cabinet")
+    H->>CB: loadCabinetPresets()
+    H->>S: setSnapTargets([
+        "walls",
+        "cabinets",
+        "grid"
+    ])
+
+    Note over U,CB: Cabinet Placement
+    U->>C: Click position
+    C->>S: getSnappedPosition({
+        grid: 1,
+        wall: 0.5,
+        cabinet: 0.25
+    })
+    C->>CB: previewCabinet({
+        type: "base",
+        width: 24,
+        height: 34.5,
+        depth: 24
+    })
+
+    Note over CB,V: Placement Validation
+    CB->>V: validatePlacement({
+        clearance: 24,
+        wallRequired: true,
+        noOverlap: true
+    })
+    V-->>CB: validationResult
+
+    Note over CB,H: Cabinet Creation
+    alt valid placement
+        CB->>CB: createCabinet({
+            position: snappedPos,
+            rotation: wallAngle,
+            properties: cabinetProps
+        })
+        CB->>CB: attachToWall()
+        CB->>CB: createConnectors()
+        CB->>H: updateCanvas()
+        H->>H: addToHistory()
+    else invalid placement
+        CB->>H: showError("Invalid cabinet placement")
+        CB->>CB: resetPreview()
+    end
+
+    Note over U,H: Cabinet Modification
+    U->>C: Select cabinet
+    C->>H: showProperties({
+        dimensions,
+        style,
+        hardware,
+        features
+    })
+    U->>H: Modify properties
+    H->>CB: updateCabinet(changes)
+    CB->>V: validateChanges()
+    CB->>H: refreshCanvas()
