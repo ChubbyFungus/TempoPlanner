@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "./dist/tools",
+    "allowJs": true,
+    "declaration": false
+  },
+  "include": ["tools/**/*"],
+  "exclude": ["node_modules"]
+}

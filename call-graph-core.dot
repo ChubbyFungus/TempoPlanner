@@ -1,0 +1,614 @@
+digraph coreCalls {
+  rankdir=LR;
+  node [shape=box, style=filled, fillcolor=lightblue];
+  edge [color=darkblue];
+
+  subgraph "cluster_astConverter_cts" {
+    label="astConverter.cts";
+    style=filled;
+    color=lightgrey;
+
+    n828 [label="printAST"];
+    n829 [label="' '.repeat"];
+    n828 -> n829;
+    n830 [label="console.log"];
+    n828 -> n830;
+    n831 [label="node.forEachChild"];
+    n828 -> n831;
+    n832 [label="anonymous"];
+    n828 [label="printAST"];
+    n832 -> n828;
+    n833 [label="fs.readdirSync"];
+    n832 -> n833;
+    n834 [label="path.join"];
+    n832 -> n834;
+    n835 [label="Dirent.isDirectory"];
+    n832 -> n835;
+    n836 [label="files.concat"];
+    n832 -> n836;
+    n837 [label="getFiles"];
+    n832 -> n837;
+    n838 [label="/\.(js|jsx|ts|tsx)$/.test"];
+    n832 -> n838;
+    n839 [label="files.push"];
+    n832 -> n839;
+  }
+
+  subgraph "cluster_dependencyGraph_cts" {
+    label="dependencyGraph.cts";
+    style=filled;
+    color=lightgrey;
+
+    n840 [label="sanitizeId"];
+    n841 [label="id.replace"];
+    n840 -> n841;
+    n842 [label="sanitizeLabel"];
+    n843 [label="label.replace(/\s+/g, ' ').trim"];
+    n842 -> n843;
+    n844 [label="label.replace"];
+    n842 -> n844;
+    n845 [label="label.slice"];
+    n842 -> n845;
+    n846 [label="DependencyGraph.getUniqueId"];
+    n847 [label="this.nodeIds.has"];
+    n846 -> n847;
+    n848 [label="this.nodeIds.set"];
+    n846 -> n848;
+    n849 [label="this.nodeIds.get"];
+    n846 -> n849;
+    n850 [label="anonymous"];
+    n851 [label="this.features.set"];
+    n850 -> n851;
+    n852 [label="filePath.split('src/').pop"];
+    n850 -> n852;
+    n853 [label="filePath.split"];
+    n850 -> n853;
+    n854 [label="path.dirname"];
+    n850 -> n854;
+    n855 [label="dirGroups.has"];
+    n850 -> n855;
+    n856 [label="dirGroups.set"];
+    n850 -> n856;
+    n857 [label="dirGroups.get(dir)!.add"];
+    n850 -> n857;
+    n858 [label="dirGroups.get"];
+    n850 -> n858;
+    n840 [label="sanitizeId"];
+    n850 -> n840;
+    n859 [label="dirFiles.forEach"];
+    n850 -> n859;
+    n860 [label="path.basename"];
+    n850 -> n860;
+    n846 [label="DependencyGraph.getUniqueId"];
+    n850 -> n846;
+    n861 [label="path.extname"];
+    n850 -> n861;
+    n862 [label="this.nodes.get"];
+    n850 -> n862;
+    n863 [label="deps.forEach"];
+    n850 -> n863;
+    n864 [label="files.has"];
+    n850 -> n864;
+    n865 [label="target.split"];
+    n850 -> n865;
+    n866 [label="dot.includes"];
+    n850 -> n866;
+    n867 [label="fileNodes.forEach"];
+    n850 -> n867;
+    n842 [label="sanitizeLabel"];
+    n850 -> n842;
+    n868 [label="targets.forEach"];
+    n850 -> n868;
+    n869 [label="console.log"];
+    n850 -> n869;
+    n870 [label="analyzeSourceFile"];
+    n850 -> n870;
+    n871 [label="DependencyGraph.getFeature"];
+    n872 [label="Object.entries"];
+    n871 -> n872;
+    n873 [label="pattern.test"];
+    n871 -> n873;
+    n874 [label="DependencyGraph.addNode"];
+    n875 [label="this.nodes.has"];
+    n874 -> n875;
+    n876 [label="this.nodes.set"];
+    n874 -> n876;
+    n871 [label="DependencyGraph.getFeature"];
+    n874 -> n871;
+    n877 [label="this.features.get(feature).add"];
+    n874 -> n877;
+    n878 [label="this.features.get"];
+    n874 -> n878;
+    n862 [label="this.nodes.get"];
+    n874 -> n862;
+    n879 [label="DependencyGraph.addImport"];
+    n874 [label="DependencyGraph.addNode"];
+    n879 -> n874;
+    n880 [label="node.imports.add"];
+    n879 -> n880;
+    n881 [label="DependencyGraph.addFunctionCall"];
+    n874 [label="DependencyGraph.addNode"];
+    n881 -> n874;
+    n882 [label="node.functionCalls.has"];
+    n881 -> n882;
+    n883 [label="node.functionCalls.set"];
+    n881 -> n883;
+    n884 [label="node.functionCalls.get(fromFunction)!..."];
+    n881 -> n884;
+    n885 [label="node.functionCalls.get"];
+    n881 -> n885;
+    n886 [label="DependencyGraph.toDOTByFeature"];
+    n840 [label="sanitizeId"];
+    n886 -> n840;
+    n887 [label="files.forEach"];
+    n886 -> n887;
+    n888 [label="dirGroups.forEach"];
+    n886 -> n888;
+    n889 [label="graphs.set"];
+    n886 -> n889;
+    n890 [label="DependencyGraph.toCallGraphByFeature"];
+    n840 [label="sanitizeId"];
+    n890 -> n840;
+    n887 [label="files.forEach"];
+    n890 -> n887;
+    n889 [label="graphs.set"];
+    n890 -> n889;
+    n891 [label="getFullFunctionName"];
+    n892 [label="ts.isIdentifier"];
+    n891 -> n892;
+    n893 [label="node.getText"];
+    n891 -> n893;
+    n894 [label="ts.isPropertyAccessExpression"];
+    n891 -> n894;
+    n895 [label="node.name.getText"];
+    n891 -> n895;
+    n896 [label="typeChecker.getTypeAtLocation"];
+    n891 -> n896;
+    n897 [label="objType.getSymbol"];
+    n891 -> n897;
+    n898 [label="ts.isClassDeclaration"];
+    n891 -> n898;
+    n899 [label="decl.name.getText"];
+    n891 -> n899;
+    n900 [label="ts.isVariableDeclaration"];
+    n891 -> n900;
+    n901 [label="obj.getText"];
+    n891 -> n901;
+    n902 [label="visit"];
+    n903 [label="ts.isImportDeclaration"];
+    n902 -> n903;
+    n904 [label="importPath.startsWith"];
+    n902 -> n904;
+    n905 [label="path.resolve"];
+    n902 -> n905;
+    n854 [label="path.dirname"];
+    n902 -> n854;
+    n861 [label="path.extname"];
+    n902 -> n861;
+    n906 [label="fs.existsSync"];
+    n902 -> n906;
+    n879 [label="DependencyGraph.addImport"];
+    n902 -> n879;
+    n898 [label="ts.isClassDeclaration"];
+    n902 -> n898;
+    n895 [label="node.name.getText"];
+    n902 -> n895;
+    n907 [label="ts.forEachChild"];
+    n902 -> n907;
+    n908 [label="ts.isFunctionDeclaration"];
+    n902 -> n908;
+    n909 [label="ts.isMethodDeclaration"];
+    n902 -> n909;
+    n910 [label="ts.isFunctionExpression"];
+    n902 -> n910;
+    n911 [label="ts.isArrowFunction"];
+    n902 -> n911;
+    n912 [label="ts.isCallExpression"];
+    n902 -> n912;
+    n891 [label="getFullFunctionName"];
+    n902 -> n891;
+    n881 [label="DependencyGraph.addFunctionCall"];
+    n902 -> n881;
+    n900 [label="ts.isVariableDeclaration"];
+    n902 -> n900;
+    n892 [label="ts.isIdentifier"];
+    n902 -> n892;
+    n913 [label="node.initializer.expression.getText"];
+    n902 -> n913;
+    n914 [label="hookName.startsWith"];
+    n902 -> n914;
+    n870 [label="analyzeSourceFile"];
+    n902 [label="visit"];
+    n870 -> n902;
+    n915 [label="createGraph"];
+    n916 [label="ts.findConfigFile"];
+    n915 -> n916;
+    n917 [label="ts.readConfigFile"];
+    n915 -> n917;
+    n918 [label="ts.parseJsonConfigFileContent"];
+    n915 -> n918;
+    n854 [label="path.dirname"];
+    n915 -> n854;
+    n919 [label="ts.createProgram"];
+    n915 -> n919;
+    n920 [label="program.getTypeChecker"];
+    n915 -> n920;
+    n921 [label="program.getSourceFiles().forEach"];
+    n915 -> n921;
+    n922 [label="program.getSourceFiles"];
+    n915 -> n922;
+  }
+
+  subgraph "cluster_utils_ts" {
+    label="utils.ts";
+    style=filled;
+    color=lightgrey;
+
+    n923 [label="cn"];
+    n924 [label="twMerge"];
+    n923 -> n924;
+    n925 [label="clsx"];
+    n923 -> n925;
+  }
+
+  subgraph "cluster_shared_ts" {
+    label="shared.ts";
+    style=filled;
+    color=lightgrey;
+
+  }
+
+  subgraph "cluster_logger_ts" {
+    label="logger.ts";
+    style=filled;
+    color=lightgrey;
+
+    n926 [label="Logger.error"];
+    n927 [label="Logger.shouldLog"];
+    n926 -> n927;
+    n928 [label="console.error"];
+    n926 -> n928;
+    n929 [label="Logger.formatMessage"];
+    n926 -> n929;
+    n930 [label="Logger.warn"];
+    n927 [label="Logger.shouldLog"];
+    n930 -> n927;
+    n931 [label="console.warn"];
+    n930 -> n931;
+    n929 [label="Logger.formatMessage"];
+    n930 -> n929;
+    n932 [label="Logger.info"];
+    n927 [label="Logger.shouldLog"];
+    n932 -> n927;
+    n933 [label="console.info"];
+    n932 -> n933;
+    n929 [label="Logger.formatMessage"];
+    n932 -> n929;
+    n934 [label="Logger.debug"];
+    n927 [label="Logger.shouldLog"];
+    n934 -> n927;
+    n935 [label="console.debug"];
+    n934 -> n935;
+    n929 [label="Logger.formatMessage"];
+    n934 -> n929;
+  }
+
+  subgraph "cluster_defaultLayers_ts" {
+    label="defaultLayers.ts";
+    style=filled;
+    color=lightgrey;
+
+  }
+
+  subgraph "cluster_home_tsx" {
+    label="home.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n936 [label="[layers, setLayers]"];
+    n937 [label="useState"];
+    n936 -> n937;
+    n938 [label="anonymous"];
+    n937 [label="useState"];
+    n938 -> n937;
+    n939 [label="useEffect"];
+    n938 -> n939;
+    n940 [label="setDrawingMode"];
+    n938 -> n940;
+    n941 [label="setWallStartPoint"];
+    n938 -> n941;
+    n942 [label="setDrawingPoints"];
+    n938 -> n942;
+    n943 [label="window.addEventListener"];
+    n938 -> n943;
+    n944 [label="window.removeEventListener"];
+    n938 -> n944;
+    n945 [label="setRoomCatalogOpen"];
+    n938 -> n945;
+    n946 [label="layers.find"];
+    n938 -> n946;
+    n947 [label="setActiveLayer"];
+    n938 -> n947;
+    n948 [label="setCatalogOpen"];
+    n938 -> n948;
+    n949 [label="layer.allowedTools.includes"];
+    n938 -> n949;
+    n950 [label="console.log"];
+    n938 -> n950;
+    n951 [label="Date.now"];
+    n938 -> n951;
+    n952 [label="selectedRoomTemplate.points.map"];
+    n938 -> n952;
+    n953 [label="selectedRoomTemplate.wallSegments.map"];
+    n938 -> n953;
+    n954 [label="selectedRoomTemplate.corners.map"];
+    n938 -> n954;
+    n955 [label="handleElementAdd"];
+    n938 -> n955;
+    n956 [label="setSelectedRoomTemplate"];
+    n938 -> n956;
+    n957 [label="Math.sqrt"];
+    n938 -> n957;
+    n958 [label="Math.min"];
+    n938 -> n958;
+    n959 [label="drawingPoints.map"];
+    n938 -> n959;
+    n960 [label="Math.max"];
+    n938 -> n960;
+    n961 [label="setLayers"];
+    n938 -> n961;
+    n962 [label="prevLayers.map"];
+    n938 -> n962;
+    n963 [label="setElements"];
+    n938 -> n963;
+    n964 [label="setSelectedElement"];
+    n938 -> n964;
+    n965 [label="layer.elements.map"];
+    n938 -> n965;
+    n966 [label="prev.map"];
+    n938 -> n966;
+    n967 [label="layers.filter"];
+    n938 -> n967;
+    n968 [label="layers.map"];
+    n938 -> n968;
+    n969 [label="[activeLayer, setActiveLayer]"];
+    n937 [label="useState"];
+    n969 -> n937;
+    n970 [label="[elements, setElements]"];
+    n937 [label="useState"];
+    n970 -> n937;
+    n971 [label="[selectedElement, setSelectedElement]"];
+    n937 [label="useState"];
+    n971 -> n937;
+    n972 [label="[drawingMode, setDrawingMode]"];
+    n937 [label="useState"];
+    n972 -> n937;
+    n973 [label="[wallStartPoint, setWallStartPoint]"];
+    n937 [label="useState"];
+    n973 -> n937;
+    n974 [label="[drawingPoints, setDrawingPoints]"];
+    n937 [label="useState"];
+    n974 -> n937;
+    n975 [label="[catalogOpen, setCatalogOpen]"];
+    n937 [label="useState"];
+    n975 -> n937;
+    n976 [label="[roomCatalogOpen, setRoomCatalogOpen]"];
+    n937 [label="useState"];
+    n976 -> n937;
+    n977 [label="[scale, setScale]"];
+    n937 [label="useState"];
+    n977 -> n937;
+    n978 [label="[viewMode, setViewMode]"];
+    n937 [label="useState"];
+    n978 -> n937;
+    n979 [label="[selectedRoomTemplate, setSelectedRoo..."];
+    n937 [label="useState"];
+    n979 -> n937;
+  }
+
+  subgraph "cluster_modelManager_ts" {
+    label="modelManager.ts";
+    style=filled;
+    color=lightgrey;
+
+    n980 [label="loadModelManifest"];
+    n981 [label="fetch"];
+    n980 -> n981;
+    n982 [label="response.json"];
+    n980 -> n982;
+    n983 [label="Logger.error"];
+    n980 -> n983;
+    n984 [label="getModelPath"];
+    n985 [label="Logger.debug"];
+    n984 -> n985;
+    n980 [label="loadModelManifest"];
+    n984 -> n980;
+    n986 [label="Logger.warn"];
+    n984 -> n986;
+    n987 [label="quality.toLowerCase"];
+    n984 -> n987;
+    n988 [label="encodeURIComponent"];
+    n984 -> n988;
+    n983 [label="Logger.error"];
+    n984 -> n983;
+    n989 [label="String"];
+    n984 -> n989;
+    n990 [label="anonymous"];
+    n985 [label="Logger.debug"];
+    n990 -> n985;
+    n984 [label="getModelPath"];
+    n990 -> n984;
+    n991 [label="reject"];
+    n990 -> n991;
+    n992 [label="encodeURI"];
+    n990 -> n992;
+    n993 [label="GLTFLoader.load"];
+    n990 -> n993;
+    n994 [label="Logger.info"];
+    n990 -> n994;
+    n995 [label="resolve"];
+    n990 -> n995;
+    n996 [label="onProgress"];
+    n990 -> n996;
+    n983 [label="Logger.error"];
+    n990 -> n983;
+    n997 [label="loadModel"];
+    n990 -> n997;
+    n998 [label="createPlaceholderModel"];
+    n999 [label="group.add"];
+    n998 -> n999;
+    n1000 [label="preloadCommonModels"];
+    n980 [label="loadModelManifest"];
+    n1000 -> n980;
+    n1001 [label="THREE.Cache.add"];
+    n1000 -> n1001;
+    n1002 [label="loadModelProgressively"];
+    n1000 -> n1002;
+    n985 [label="Logger.debug"];
+    n1000 -> n985;
+    n983 [label="Logger.error"];
+    n1000 -> n983;
+    n997 [label="loadModel"];
+    n985 [label="Logger.debug"];
+    n997 -> n985;
+    n984 [label="getModelPath"];
+    n997 -> n984;
+    n988 [label="encodeURIComponent"];
+    n997 -> n988;
+    n1003 [label="GLTFLoader.loadAsync"];
+    n997 -> n1003;
+    n994 [label="Logger.info"];
+    n997 -> n994;
+    n983 [label="Logger.error"];
+    n997 -> n983;
+    n989 [label="String"];
+    n997 -> n989;
+    n1004 [label="preloadModels"];
+    n1005 [label="Promise.all"];
+    n1004 -> n1005;
+    n1006 [label="models.map"];
+    n1004 -> n1006;
+    n994 [label="Logger.info"];
+    n1004 -> n994;
+    n983 [label="Logger.error"];
+    n1004 -> n983;
+    n989 [label="String"];
+    n1004 -> n989;
+  }
+
+  subgraph "cluster_useModel_ts" {
+    label="useModel.ts";
+    style=filled;
+    color=lightgrey;
+
+    n1007 [label="model"];
+    n1008 [label="useMemo"];
+    n1007 -> n1008;
+    n1009 [label="useModel"];
+    n1008 [label="useMemo"];
+    n1009 -> n1008;
+  }
+
+  subgraph "cluster_App_tsx" {
+    label="App.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n1010 [label="ErrorBoundary.componentDidCatch"];
+    n1011 [label="console.error"];
+    n1010 -> n1011;
+    n1012 [label="ErrorBoundary.render"];
+    n1013 [label="this.state.error.toString"];
+    n1012 -> n1013;
+    n1014 [label="App"];
+    n1015 [label="console.log"];
+    n1014 -> n1015;
+  }
+
+  subgraph "cluster_main_tsx" {
+    label="main.tsx";
+    style=filled;
+    color=lightgrey;
+
+  }
+
+  subgraph "cluster_Toolbar_tsx" {
+    label="Toolbar.tsx";
+    style=filled;
+    color=lightgrey;
+
+  }
+
+  subgraph "cluster_floorplanManager_ts" {
+    label="floorplanManager.ts";
+    style=filled;
+    color=lightgrey;
+
+    n1016 [label="anonymous"];
+    n1017 [label="new Date().toISOString"];
+    n1016 -> n1017;
+    n1018 [label="calculateTotalArea"];
+    n1016 -> n1018;
+    n1019 [label="countElementsByType"];
+    n1016 -> n1019;
+    n1020 [label="countApplianceElements"];
+    n1016 -> n1020;
+    n1021 [label="localStorage.setItem"];
+    n1016 -> n1021;
+    n1022 [label="JSON.stringify"];
+    n1016 -> n1022;
+    n1023 [label="console.error"];
+    n1016 -> n1023;
+    n1024 [label="localStorage.getItem"];
+    n1016 -> n1024;
+    n1025 [label="JSON.parse"];
+    n1016 -> n1025;
+    n1026 [label="localStorage.key"];
+    n1016 -> n1026;
+    n1027 [label="key.startsWith"];
+    n1016 -> n1027;
+    n1028 [label="floorplans.push"];
+    n1016 -> n1028;
+    n1029 [label="key.replace"];
+    n1016 -> n1029;
+    n1030 [label="elements .filter(el => el.type === 'r..."];
+    n1016 -> n1030;
+    n1031 [label="elements.filter"];
+    n1016 -> n1031;
+    n1032 [label="calculatePolygonArea"];
+    n1016 -> n1032;
+    n1033 [label="convertToSquareFeet"];
+    n1016 -> n1033;
+    n1034 [label="el.type.includes"];
+    n1016 -> n1034;
+  }
+
+  subgraph "cluster_applianceCatalog_ts" {
+    label="applianceCatalog.ts";
+    style=filled;
+    color=lightgrey;
+
+  }
+
+  subgraph "cluster_generateModel_ts" {
+    label="generateModel.ts";
+    style=filled;
+    color=lightgrey;
+
+    n1035 [label="anonymous"];
+    n1036 [label="JSON.stringify"];
+    n1035 -> n1036;
+    n1037 [label="fs.writeFileSync"];
+    n1035 -> n1037;
+    n1038 [label="path.join"];
+    n1035 -> n1038;
+  }
+
+  subgraph "cluster_supabase_ts" {
+    label="supabase.ts";
+    style=filled;
+    color=lightgrey;
+
+  }
+
+}

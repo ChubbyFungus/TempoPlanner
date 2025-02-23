@@ -1,0 +1,1403 @@
+digraph CallGraph {
+  rankdir=LR;
+  node [shape=box, style=filled, fillcolor=lightblue];
+  edge [color=darkblue];
+
+  subgraph "cluster_astConverter.cts" {
+    label="astConverter.cts";
+    style=filled;
+    color=lightgrey;
+    "astConverter.cts::printAST" [label="printAST"];
+    "astConverter.cts::anonymous" [label="anonymous"];
+  }
+  "astConverter.cts::printAST" -> "astConverter.cts::' '.repeat";
+  "astConverter.cts::printAST" -> "astConverter.cts::console.log";
+  "astConverter.cts::printAST" -> "astConverter.cts::node.forEachChild";
+  "astConverter.cts::anonymous" -> "astConverter.cts::printAST";
+  "astConverter.cts::anonymous" -> "astConverter.cts::fs.readdirSync";
+  "astConverter.cts::anonymous" -> "astConverter.cts::path.join";
+  "astConverter.cts::anonymous" -> "astConverter.cts::Dirent.isDirectory";
+  "astConverter.cts::anonymous" -> "astConverter.cts::files.concat";
+  "astConverter.cts::anonymous" -> "astConverter.cts::getFiles";
+  "astConverter.cts::anonymous" -> "astConverter.cts::/\.(js|jsx|ts|tsx)$/.test";
+  "astConverter.cts::anonymous" -> "astConverter.cts::files.push";
+  subgraph "cluster_dependencyGraph.cts" {
+    label="dependencyGraph.cts";
+    style=filled;
+    color=lightgrey;
+    "dependencyGraph.cts::DependencyGraph.addNode" [label="DependencyGraph.addNode"];
+    "dependencyGraph.cts::DependencyGraph.addImport" [label="DependencyGraph.addImport"];
+    "dependencyGraph.cts::DependencyGraph.addFunctionCall" [label="DependencyGraph.addFunctionCall"];
+    "dependencyGraph.cts::DependencyGraph.toDOT" [label="DependencyGraph.toDOT"];
+    "dependencyGraph.cts::anonymous" [label="anonymous"];
+    "dependencyGraph.cts::DependencyGraph.toCallGraphDOT" [label="DependencyGraph.toCallGraphDOT"];
+    "dependencyGraph.cts::getFullFunctionName" [label="getFullFunctionName"];
+    "dependencyGraph.cts::visit" [label="visit"];
+    "dependencyGraph.cts::analyzeSourceFile" [label="analyzeSourceFile"];
+    "dependencyGraph.cts::createGraph" [label="createGraph"];
+  }
+  "dependencyGraph.cts::DependencyGraph.addNode" -> "dependencyGraph.cts::this.nodes.has";
+  "dependencyGraph.cts::DependencyGraph.addNode" -> "dependencyGraph.cts::this.nodes.set";
+  "dependencyGraph.cts::DependencyGraph.addNode" -> "dependencyGraph.cts::this.nodes.get";
+  "dependencyGraph.cts::DependencyGraph.addImport" -> "dependencyGraph.cts::DependencyGraph.addNode";
+  "dependencyGraph.cts::DependencyGraph.addImport" -> "dependencyGraph.cts::node.imports.add";
+  "dependencyGraph.cts::DependencyGraph.addFunctionCall" -> "dependencyGraph.cts::DependencyGraph.addNode";
+  "dependencyGraph.cts::DependencyGraph.addFunctionCall" -> "dependencyGraph.cts::node.functionCalls.has";
+  "dependencyGraph.cts::DependencyGraph.addFunctionCall" -> "dependencyGraph.cts::node.functionCalls.set";
+  "dependencyGraph.cts::DependencyGraph.addFunctionCall" -> "dependencyGraph.cts::node.functionCalls.get(fromFunction)!.add";
+  "dependencyGraph.cts::DependencyGraph.addFunctionCall" -> "dependencyGraph.cts::node.functionCalls.get";
+  "dependencyGraph.cts::DependencyGraph.toDOT" -> "dependencyGraph.cts::this.nodes.forEach";
+  "dependencyGraph.cts::DependencyGraph.toDOT" -> "dependencyGraph.cts::dirGroups.forEach";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::filePath.split('src/').pop";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::filePath.split";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::path.dirname";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::dirGroups.has";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::dirGroups.set";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::dirGroups.get(dir)!.add";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::dirGroups.get";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::files.forEach";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::path.basename";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::path.extname";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::node.imports.forEach";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::imp.startsWith";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::imp.split";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::dot.includes";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::node.functionCalls.forEach";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::callees.forEach";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::console.log";
+  "dependencyGraph.cts::anonymous" -> "dependencyGraph.cts::analyzeSourceFile";
+  "dependencyGraph.cts::DependencyGraph.toCallGraphDOT" -> "dependencyGraph.cts::this.nodes.forEach";
+  "dependencyGraph.cts::getFullFunctionName" -> "dependencyGraph.cts::ts.isIdentifier";
+  "dependencyGraph.cts::getFullFunctionName" -> "dependencyGraph.cts::node.getText";
+  "dependencyGraph.cts::getFullFunctionName" -> "dependencyGraph.cts::ts.isPropertyAccessExpression";
+  "dependencyGraph.cts::getFullFunctionName" -> "dependencyGraph.cts::node.name.getText";
+  "dependencyGraph.cts::getFullFunctionName" -> "dependencyGraph.cts::typeChecker.getTypeAtLocation";
+  "dependencyGraph.cts::getFullFunctionName" -> "dependencyGraph.cts::objType.getSymbol";
+  "dependencyGraph.cts::getFullFunctionName" -> "dependencyGraph.cts::ts.isClassDeclaration";
+  "dependencyGraph.cts::getFullFunctionName" -> "dependencyGraph.cts::decl.name.getText";
+  "dependencyGraph.cts::getFullFunctionName" -> "dependencyGraph.cts::ts.isVariableDeclaration";
+  "dependencyGraph.cts::getFullFunctionName" -> "dependencyGraph.cts::obj.getText";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::ts.isImportDeclaration";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::importPath.startsWith";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::path.resolve";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::path.dirname";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::path.extname";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::fs.existsSync";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::DependencyGraph.addImport";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::ts.isClassDeclaration";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::node.name.getText";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::ts.forEachChild";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::ts.isFunctionDeclaration";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::ts.isMethodDeclaration";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::ts.isFunctionExpression";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::ts.isArrowFunction";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::ts.isCallExpression";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::getFullFunctionName";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::DependencyGraph.addFunctionCall";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::ts.isVariableDeclaration";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::ts.isIdentifier";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::node.initializer.expression.getText";
+  "dependencyGraph.cts::visit" -> "dependencyGraph.cts::hookName.startsWith";
+  "dependencyGraph.cts::analyzeSourceFile" -> "dependencyGraph.cts::visit";
+  "dependencyGraph.cts::createGraph" -> "dependencyGraph.cts::ts.findConfigFile";
+  "dependencyGraph.cts::createGraph" -> "dependencyGraph.cts::ts.readConfigFile";
+  "dependencyGraph.cts::createGraph" -> "dependencyGraph.cts::ts.parseJsonConfigFileContent";
+  "dependencyGraph.cts::createGraph" -> "dependencyGraph.cts::path.dirname";
+  "dependencyGraph.cts::createGraph" -> "dependencyGraph.cts::ts.createProgram";
+  "dependencyGraph.cts::createGraph" -> "dependencyGraph.cts::program.getTypeChecker";
+  "dependencyGraph.cts::createGraph" -> "dependencyGraph.cts::program.getSourceFiles().forEach";
+  "dependencyGraph.cts::createGraph" -> "dependencyGraph.cts::program.getSourceFiles";
+  subgraph "cluster_utils.ts" {
+    label="utils.ts";
+    style=filled;
+    color=lightgrey;
+    "utils.ts::cn" [label="cn"];
+  }
+  "utils.ts::cn" -> "utils.ts::twMerge";
+  "utils.ts::cn" -> "utils.ts::clsx";
+  subgraph "cluster_card.tsx" {
+    label="card.tsx";
+    style=filled;
+    color=lightgrey;
+    "card.tsx::anonymous" [label="anonymous"];
+  }
+  "card.tsx::anonymous" -> "card.tsx::cn";
+  subgraph "cluster_button.tsx" {
+    label="button.tsx";
+    style=filled;
+    color=lightgrey;
+    "button.tsx::anonymous" [label="anonymous"];
+  }
+  "button.tsx::anonymous" -> "button.tsx::cn";
+  "button.tsx::anonymous" -> "button.tsx::buttonVariants";
+  subgraph "cluster_scroll-area.tsx" {
+    label="scroll-area.tsx";
+    style=filled;
+    color=lightgrey;
+    "scroll-area.tsx::anonymous" [label="anonymous"];
+  }
+  "scroll-area.tsx::anonymous" -> "scroll-area.tsx::cn";
+  subgraph "cluster_LayersPanel.tsx" {
+    label="LayersPanel.tsx";
+    style=filled;
+    color=lightgrey;
+    "LayersPanel.tsx::anonymous" [label="anonymous"];
+  }
+  "LayersPanel.tsx::anonymous" -> "LayersPanel.tsx::layers.map";
+  "LayersPanel.tsx::anonymous" -> "LayersPanel.tsx::onLayerSelect";
+  "LayersPanel.tsx::anonymous" -> "LayersPanel.tsx::e.stopPropagation";
+  "LayersPanel.tsx::anonymous" -> "LayersPanel.tsx::onLayerVisibilityToggle";
+  subgraph "cluster_Toolbar.tsx" {
+    label="Toolbar.tsx";
+    style=filled;
+    color=lightgrey;
+    "Toolbar.tsx::anonymous" [label="anonymous"];
+  }
+  "Toolbar.tsx::anonymous" -> "Toolbar.tsx::toolbarItems.map";
+  "Toolbar.tsx::anonymous" -> "Toolbar.tsx::onDrawingModeChange";
+  subgraph "cluster_logger.ts" {
+    label="logger.ts";
+    style=filled;
+    color=lightgrey;
+    "logger.ts::Logger.error" [label="Logger.error"];
+    "logger.ts::Logger.warn" [label="Logger.warn"];
+    "logger.ts::Logger.info" [label="Logger.info"];
+    "logger.ts::Logger.debug" [label="Logger.debug"];
+  }
+  "logger.ts::Logger.error" -> "logger.ts::Logger.shouldLog";
+  "logger.ts::Logger.error" -> "logger.ts::console.error";
+  "logger.ts::Logger.error" -> "logger.ts::Logger.formatMessage";
+  "logger.ts::Logger.warn" -> "logger.ts::Logger.shouldLog";
+  "logger.ts::Logger.warn" -> "logger.ts::console.warn";
+  "logger.ts::Logger.warn" -> "logger.ts::Logger.formatMessage";
+  "logger.ts::Logger.info" -> "logger.ts::Logger.shouldLog";
+  "logger.ts::Logger.info" -> "logger.ts::console.info";
+  "logger.ts::Logger.info" -> "logger.ts::Logger.formatMessage";
+  "logger.ts::Logger.debug" -> "logger.ts::Logger.shouldLog";
+  "logger.ts::Logger.debug" -> "logger.ts::console.debug";
+  "logger.ts::Logger.debug" -> "logger.ts::Logger.formatMessage";
+  subgraph "cluster_pbrMaterialManager.ts" {
+    label="pbrMaterialManager.ts";
+    style=filled;
+    color=lightgrey;
+    "pbrMaterialManager.ts::getTexturePath" [label="getTexturePath"];
+    "pbrMaterialManager.ts::loadTexture" [label="loadTexture"];
+    "pbrMaterialManager.ts::loadMaterialTextures" [label="loadMaterialTextures"];
+    "pbrMaterialManager.ts::anonymous" [label="anonymous"];
+    "pbrMaterialManager.ts::createPBRMaterial" [label="createPBRMaterial"];
+    "pbrMaterialManager.ts::getMaterialColor" [label="getMaterialColor"];
+    "pbrMaterialManager.ts::clearMaterialCache" [label="clearMaterialCache"];
+    "pbrMaterialManager.ts::getAvailableMaterials" [label="getAvailableMaterials"];
+    "pbrMaterialManager.ts::preloadCommonMaterials" [label="preloadCommonMaterials"];
+  }
+  "pbrMaterialManager.ts::getTexturePath" -> "pbrMaterialManager.ts::String";
+  "pbrMaterialManager.ts::loadTexture" -> "pbrMaterialManager.ts::Logger.debug";
+  "pbrMaterialManager.ts::loadTexture" -> "pbrMaterialManager.ts::textureCache.has";
+  "pbrMaterialManager.ts::loadTexture" -> "pbrMaterialManager.ts::textureCache.get";
+  "pbrMaterialManager.ts::loadTexture" -> "pbrMaterialManager.ts::textureLoader.loadAsync";
+  "pbrMaterialManager.ts::loadTexture" -> "pbrMaterialManager.ts::textureCache.set";
+  "pbrMaterialManager.ts::loadTexture" -> "pbrMaterialManager.ts::Logger.error";
+  "pbrMaterialManager.ts::loadTexture" -> "pbrMaterialManager.ts::String";
+  "pbrMaterialManager.ts::loadMaterialTextures" -> "pbrMaterialManager.ts::Logger.debug";
+  "pbrMaterialManager.ts::loadMaterialTextures" -> "pbrMaterialManager.ts::Promise.all";
+  "pbrMaterialManager.ts::loadMaterialTextures" -> "pbrMaterialManager.ts::textureTypes.map";
+  "pbrMaterialManager.ts::loadMaterialTextures" -> "pbrMaterialManager.ts::Logger.info";
+  "pbrMaterialManager.ts::loadMaterialTextures" -> "pbrMaterialManager.ts::Object.fromEntries";
+  "pbrMaterialManager.ts::loadMaterialTextures" -> "pbrMaterialManager.ts::Logger.error";
+  "pbrMaterialManager.ts::loadMaterialTextures" -> "pbrMaterialManager.ts::String";
+  "pbrMaterialManager.ts::anonymous" -> "pbrMaterialManager.ts::getTexturePath";
+  "pbrMaterialManager.ts::anonymous" -> "pbrMaterialManager.ts::loadTexture";
+  "pbrMaterialManager.ts::anonymous" -> "pbrMaterialManager.ts::material.dispose";
+  "pbrMaterialManager.ts::anonymous" -> "pbrMaterialManager.ts::texture.dispose";
+  "pbrMaterialManager.ts::anonymous" -> "pbrMaterialManager.ts::createPBRMaterial";
+  "pbrMaterialManager.ts::createPBRMaterial" -> "pbrMaterialManager.ts::Logger.debug";
+  "pbrMaterialManager.ts::createPBRMaterial" -> "pbrMaterialManager.ts::Logger.warn";
+  "pbrMaterialManager.ts::createPBRMaterial" -> "pbrMaterialManager.ts::JSON.stringify";
+  "pbrMaterialManager.ts::createPBRMaterial" -> "pbrMaterialManager.ts::materialCache.has";
+  "pbrMaterialManager.ts::createPBRMaterial" -> "pbrMaterialManager.ts::materialCache.get";
+  "pbrMaterialManager.ts::createPBRMaterial" -> "pbrMaterialManager.ts::getMaterialColor";
+  "pbrMaterialManager.ts::createPBRMaterial" -> "pbrMaterialManager.ts::Logger.info";
+  "pbrMaterialManager.ts::createPBRMaterial" -> "pbrMaterialManager.ts::materialCache.set";
+  "pbrMaterialManager.ts::getMaterialColor" -> "pbrMaterialManager.ts::Logger.warn";
+  "pbrMaterialManager.ts::clearMaterialCache" -> "pbrMaterialManager.ts::materialCache.forEach";
+  "pbrMaterialManager.ts::clearMaterialCache" -> "pbrMaterialManager.ts::materialCache.clear";
+  "pbrMaterialManager.ts::clearMaterialCache" -> "pbrMaterialManager.ts::textureCache.forEach";
+  "pbrMaterialManager.ts::clearMaterialCache" -> "pbrMaterialManager.ts::textureCache.clear";
+  "pbrMaterialManager.ts::getAvailableMaterials" -> "pbrMaterialManager.ts::MATERIAL_IDS.filter";
+  "pbrMaterialManager.ts::preloadCommonMaterials" -> "pbrMaterialManager.ts::Promise.all";
+  "pbrMaterialManager.ts::preloadCommonMaterials" -> "pbrMaterialManager.ts::commonMaterials.map";
+  subgraph "cluster_ThreeMaterialRenderer.tsx" {
+    label="ThreeMaterialRenderer.tsx";
+    style=filled;
+    color=lightgrey;
+    "ThreeMaterialRenderer.tsx::modelViewerRef" [label="modelViewerRef"];
+    "ThreeMaterialRenderer.tsx::anonymous" [label="anonymous"];
+    "ThreeMaterialRenderer.tsx::[modelPath, setModelPath]" [label="[modelPath, setModelPath]"];
+    "ThreeMaterialRenderer.tsx::[modelLoaded, setModelLoaded]" [label="[modelLoaded, setModelLoaded]"];
+  }
+  "ThreeMaterialRenderer.tsx::modelViewerRef" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::useState";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::useEffect";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::setModelPath";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::console.error";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::loadModel";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::modelViewer.model.position.set";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::modelViewer.model.rotation.set";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::createPBRMaterial";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::modelViewer.model.traverse";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::material.clone";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::setModelLoaded";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::applyMaterial";
+  "ThreeMaterialRenderer.tsx::[modelPath, setModelPath]" -> "ThreeMaterialRenderer.tsx::useState";
+  "ThreeMaterialRenderer.tsx::[modelLoaded, setModelLoaded]" -> "ThreeMaterialRenderer.tsx::useState";
+  subgraph "cluster_ThreeRoomRenderer.tsx" {
+    label="ThreeRoomRenderer.tsx";
+    style=filled;
+    color=lightgrey;
+    "ThreeRoomRenderer.tsx::containerRef" [label="containerRef"];
+    "ThreeRoomRenderer.tsx::anonymous" [label="anonymous"];
+    "ThreeRoomRenderer.tsx::sceneRef" [label="sceneRef"];
+    "ThreeRoomRenderer.tsx::cameraRef" [label="cameraRef"];
+    "ThreeRoomRenderer.tsx::rendererRef" [label="rendererRef"];
+    "ThreeRoomRenderer.tsx::controlsRef" [label="controlsRef"];
+  }
+  "ThreeRoomRenderer.tsx::containerRef" -> "ThreeRoomRenderer.tsx::useRef";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::useRef";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::useEffect";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::camera.position.set";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::camera.lookAt";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::camera.updateProjectionMatrix";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::renderer.setSize";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::renderer.setClearColor";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::containerRef.current.appendChild";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::scene.add";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::directionalLight.position.set";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::points.reduce";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::shape.moveTo";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::points.slice(1).forEach";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::points.slice";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::shape.lineTo";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::Math.sqrt";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::Math.pow";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::Math.atan2";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::requestAnimationFrame";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::OrbitControls.update";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::renderer.render";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::animate";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::containerRef.current.contains";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::containerRef.current.removeChild";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::renderer.dispose";
+  "ThreeRoomRenderer.tsx::anonymous" -> "ThreeRoomRenderer.tsx::scene.clear";
+  "ThreeRoomRenderer.tsx::sceneRef" -> "ThreeRoomRenderer.tsx::useRef";
+  "ThreeRoomRenderer.tsx::cameraRef" -> "ThreeRoomRenderer.tsx::useRef";
+  "ThreeRoomRenderer.tsx::rendererRef" -> "ThreeRoomRenderer.tsx::useRef";
+  "ThreeRoomRenderer.tsx::controlsRef" -> "ThreeRoomRenderer.tsx::useRef";
+  subgraph "cluster_wallUtils.ts" {
+    label="wallUtils.ts";
+    style=filled;
+    color=lightgrey;
+    "wallUtils.ts::snapToGrid" [label="snapToGrid"];
+    "wallUtils.ts::snapToNearestCorner" [label="snapToNearestCorner"];
+    "wallUtils.ts::snapToNearestWall" [label="snapToNearestWall"];
+    "wallUtils.ts::anonymous" [label="anonymous"];
+    "wallUtils.ts::validateWallSegment" [label="validateWallSegment"];
+    "wallUtils.ts::validateCorner" [label="validateCorner"];
+    "wallUtils.ts::getDistance" [label="getDistance"];
+    "wallUtils.ts::projectPointOnLine" [label="projectPointOnLine"];
+    "wallUtils.ts::getAngleBetweenWalls" [label="getAngleBetweenWalls"];
+  }
+  "wallUtils.ts::snapToGrid" -> "wallUtils.ts::Math.round";
+  "wallUtils.ts::snapToNearestCorner" -> "wallUtils.ts::getDistance";
+  "wallUtils.ts::snapToNearestWall" -> "wallUtils.ts::wallSegments.forEach";
+  "wallUtils.ts::anonymous" -> "wallUtils.ts::projectPointOnLine";
+  "wallUtils.ts::anonymous" -> "wallUtils.ts::getDistance";
+  "wallUtils.ts::anonymous" -> "wallUtils.ts::doWallsIntersect";
+  "wallUtils.ts::anonymous" -> "wallUtils.ts::errors.push";
+  "wallUtils.ts::validateWallSegment" -> "wallUtils.ts::getDistance";
+  "wallUtils.ts::validateWallSegment" -> "wallUtils.ts::errors.push";
+  "wallUtils.ts::validateWallSegment" -> "wallUtils.ts::length.toFixed";
+  "wallUtils.ts::validateWallSegment" -> "wallUtils.ts::existingWalls.forEach";
+  "wallUtils.ts::validateCorner" -> "wallUtils.ts::getAngleBetweenWalls";
+  "wallUtils.ts::validateCorner" -> "wallUtils.ts::errors.push";
+  "wallUtils.ts::validateCorner" -> "wallUtils.ts::angle.toFixed";
+  "wallUtils.ts::getDistance" -> "wallUtils.ts::Math.sqrt";
+  "wallUtils.ts::projectPointOnLine" -> "wallUtils.ts::Math.sqrt";
+  "wallUtils.ts::getAngleBetweenWalls" -> "wallUtils.ts::Math.atan2";
+  "wallUtils.ts::getAngleBetweenWalls" -> "wallUtils.ts::Math.abs";
+  subgraph "cluster_Canvas.tsx" {
+    label="Canvas.tsx";
+    style=filled;
+    color=lightgrey;
+    "Canvas.tsx::[selectedPart, setSelectedPart]" [label="[selectedPart, setSelectedPart]"];
+    "Canvas.tsx::anonymous" [label="anonymous"];
+    "Canvas.tsx::[draggingCorner, setDraggingCorner]" [label="[draggingCorner, setDraggingCorner]"];
+    "Canvas.tsx::[resizing, setResizing]" [label="[resizing, setResizing]"];
+    "Canvas.tsx::getDistance" [label="getDistance"];
+    "Canvas.tsx::[mousePos, setMousePos]" [label="[mousePos, setMousePos]"];
+    "Canvas.tsx::[viewport, setViewport]" [label="[viewport, setViewport]"];
+    "Canvas.tsx::canvasRef" [label="canvasRef"];
+    "Canvas.tsx::[validationErrors, setValidationErrors]" [label="[validationErrors, setValidationErrors]"];
+    "Canvas.tsx::[isSpacePressed, setIsSpacePressed]" [label="[isSpacePressed, setIsSpacePressed]"];
+    "Canvas.tsx::[isPanning, setIsPanning]" [label="[isPanning, setIsPanning]"];
+    "Canvas.tsx::[lastMousePos, setLastMousePos]" [label="[lastMousePos, setLastMousePos]"];
+    "Canvas.tsx::[dragState, setDragState]" [label="[dragState, setDragState]"];
+    "Canvas.tsx::[isDragging, setIsDragging]" [label="[isDragging, setIsDragging]"];
+    "Canvas.tsx::prevStateRef" [label="prevStateRef"];
+    "Canvas.tsx::lastLoggedMousePos" [label="lastLoggedMousePos"];
+    "Canvas.tsx::handleMouseMove" [label="handleMouseMove"];
+    "Canvas.tsx::handleCanvasClick" [label="handleCanvasClick"];
+    "Canvas.tsx::handleWheel" [label="handleWheel"];
+    "Canvas.tsx::handleMouseDown" [label="handleMouseDown"];
+    "Canvas.tsx::handleMouseUp" [label="handleMouseUp"];
+    "Canvas.tsx::handleRoomClick" [label="handleRoomClick"];
+  }
+  "Canvas.tsx::[selectedPart, setSelectedPart]" -> "Canvas.tsx::useState";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::useState";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::e.stopPropagation";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::setDraggingCorner";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::setSelectedPart";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::onSelect";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::useEffect";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::element.wallSegments.map";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::window.addEventListener";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::window.removeEventListener";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::element.points?.map(p => `${p.x - element.x} ${p.y - element.y}`).join";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::element.points.map";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::element.corners.map";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::handleCornerMouseDown";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::setResizing";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::Math.round";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::handleEndpointMouseDown";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::func";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::setTimeout";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::useRef";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::Date.now";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::throttle";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::Math.sqrt";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::Logger.debug";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::useCallback";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::canvasRef.current.getBoundingClientRect";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::e.preventDefault";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::setViewport";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::setLastMousePos";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::snapToGrid";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::JSON.stringify";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::selectedRoomTemplate.points.map";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::setMousePos";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::Logger.info";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::onCanvasClick";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::onDoubleClick";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::Math.min";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::Math.max";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::canvas.addEventListener";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::canvas.removeEventListener";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::centerCanvas";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::setIsSpacePressed";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::setIsPanning";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::target.closest";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::onElementSelect";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::new Date().toISOString";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::handleMouseDown";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::drawingPoints.map";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::getDistance";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::adjustedPoints.map(p => `${p.x} ${p.y}`).join";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::adjustedPoints.map";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::layers.map";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::layer.elements.map";
+  "Canvas.tsx::anonymous" -> "Canvas.tsx::wallSegments.map";
+  "Canvas.tsx::[draggingCorner, setDraggingCorner]" -> "Canvas.tsx::useState";
+  "Canvas.tsx::[resizing, setResizing]" -> "Canvas.tsx::useState";
+  "Canvas.tsx::getDistance" -> "Canvas.tsx::Math.sqrt";
+  "Canvas.tsx::[mousePos, setMousePos]" -> "Canvas.tsx::useState";
+  "Canvas.tsx::[viewport, setViewport]" -> "Canvas.tsx::useState";
+  "Canvas.tsx::canvasRef" -> "Canvas.tsx::useRef";
+  "Canvas.tsx::[validationErrors, setValidationErrors]" -> "Canvas.tsx::useState";
+  "Canvas.tsx::[isSpacePressed, setIsSpacePressed]" -> "Canvas.tsx::useState";
+  "Canvas.tsx::[isPanning, setIsPanning]" -> "Canvas.tsx::useState";
+  "Canvas.tsx::[lastMousePos, setLastMousePos]" -> "Canvas.tsx::useState";
+  "Canvas.tsx::[dragState, setDragState]" -> "Canvas.tsx::useState";
+  "Canvas.tsx::[isDragging, setIsDragging]" -> "Canvas.tsx::useState";
+  "Canvas.tsx::prevStateRef" -> "Canvas.tsx::useRef";
+  "Canvas.tsx::lastLoggedMousePos" -> "Canvas.tsx::useRef";
+  "Canvas.tsx::handleMouseMove" -> "Canvas.tsx::useCallback";
+  "Canvas.tsx::handleCanvasClick" -> "Canvas.tsx::useCallback";
+  "Canvas.tsx::handleWheel" -> "Canvas.tsx::useCallback";
+  "Canvas.tsx::handleMouseDown" -> "Canvas.tsx::useCallback";
+  "Canvas.tsx::handleMouseUp" -> "Canvas.tsx::useCallback";
+  "Canvas.tsx::handleRoomClick" -> "Canvas.tsx::useCallback";
+  subgraph "cluster_label.tsx" {
+    label="label.tsx";
+    style=filled;
+    color=lightgrey;
+    "label.tsx::anonymous" [label="anonymous"];
+  }
+  "label.tsx::anonymous" -> "label.tsx::cn";
+  "label.tsx::anonymous" -> "label.tsx::labelVariants";
+  subgraph "cluster_input.tsx" {
+    label="input.tsx";
+    style=filled;
+    color=lightgrey;
+    "input.tsx::anonymous" [label="anonymous"];
+  }
+  "input.tsx::anonymous" -> "input.tsx::cn";
+  subgraph "cluster_PropertiesPanel.tsx" {
+    label="PropertiesPanel.tsx";
+    style=filled;
+    color=lightgrey;
+    "PropertiesPanel.tsx::anonymous" [label="anonymous"];
+  }
+  "PropertiesPanel.tsx::anonymous" -> "PropertiesPanel.tsx::onUpdateElement";
+  "PropertiesPanel.tsx::anonymous" -> "PropertiesPanel.tsx::parseFloat";
+  "PropertiesPanel.tsx::anonymous" -> "PropertiesPanel.tsx::handleInputChange";
+  subgraph "cluster_ActionBar.tsx" {
+    label="ActionBar.tsx";
+    style=filled;
+    color=lightgrey;
+    "ActionBar.tsx::anonymous" [label="anonymous"];
+  }
+  "ActionBar.tsx::anonymous" -> "ActionBar.tsx::onViewModeChange";
+  subgraph "cluster_dialog.tsx" {
+    label="dialog.tsx";
+    style=filled;
+    color=lightgrey;
+    "dialog.tsx::anonymous" [label="anonymous"];
+  }
+  "dialog.tsx::anonymous" -> "dialog.tsx::cn";
+  "dialog.tsx::anonymous" -> "dialog.tsx::React.useId";
+  subgraph "cluster_tabs.tsx" {
+    label="tabs.tsx";
+    style=filled;
+    color=lightgrey;
+    "tabs.tsx::anonymous" [label="anonymous"];
+  }
+  "tabs.tsx::anonymous" -> "tabs.tsx::cn";
+  subgraph "cluster_roomLayouts.ts" {
+    label="roomLayouts.ts";
+    style=filled;
+    color=lightgrey;
+    "roomLayouts.ts::createWallsAndCorners" [label="createWallsAndCorners"];
+    "roomLayouts.ts::anonymous" [label="anonymous"];
+  }
+  "roomLayouts.ts::createWallsAndCorners" -> "roomLayouts.ts::points.forEach";
+  "roomLayouts.ts::createWallsAndCorners" -> "roomLayouts.ts::wallSegments.push";
+  "roomLayouts.ts::createWallsAndCorners" -> "roomLayouts.ts::corners[corners.length - 1].wallSegments.push";
+  "roomLayouts.ts::createWallsAndCorners" -> "roomLayouts.ts::corners[0].wallSegments.push";
+  "roomLayouts.ts::anonymous" -> "roomLayouts.ts::corners.push";
+  "roomLayouts.ts::anonymous" -> "roomLayouts.ts::wallSegments.push";
+  "roomLayouts.ts::anonymous" -> "roomLayouts.ts::corner.wallSegments.push";
+  subgraph "cluster_CatalogDialog.tsx" {
+    label="CatalogDialog.tsx";
+    style=filled;
+    color=lightgrey;
+    "CatalogDialog.tsx::anonymous" [label="anonymous"];
+    "CatalogDialog.tsx::[activeCategory, setActiveCategory]" [label="[activeCategory, setActiveCategory]"];
+    "CatalogDialog.tsx::[scale, setScale]" [label="[scale, setScale]"];
+  }
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::Math.min";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::points.map";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::Math.max";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::points.map(p => `${p.x},${p.y}`).join";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::useState";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::categories.find";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::console.log";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::roomItem.points.map";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::roomItem.wallSegments.map";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::roomItem.corners.map";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::c.wallSegments.map";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::onItemSelect";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::onOpenChange";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::scale.toFixed";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::setScale";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::parseFloat";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::categories.map";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::selectedCategory?.items.map";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::handleItemSelect";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::roomItem!.points.map(p => `${p.x} ${p.y}`).join";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::roomItem!.points.map";
+  "CatalogDialog.tsx::anonymous" -> "CatalogDialog.tsx::Math.round";
+  "CatalogDialog.tsx::[activeCategory, setActiveCategory]" -> "CatalogDialog.tsx::useState";
+  "CatalogDialog.tsx::[scale, setScale]" -> "CatalogDialog.tsx::useState";
+  subgraph "cluster_home.tsx" {
+    label="home.tsx";
+    style=filled;
+    color=lightgrey;
+    "home.tsx::[layers, setLayers]" [label="[layers, setLayers]"];
+    "home.tsx::anonymous" [label="anonymous"];
+    "home.tsx::[activeLayer, setActiveLayer]" [label="[activeLayer, setActiveLayer]"];
+    "home.tsx::[elements, setElements]" [label="[elements, setElements]"];
+    "home.tsx::[selectedElement, setSelectedElement]" [label="[selectedElement, setSelectedElement]"];
+    "home.tsx::[drawingMode, setDrawingMode]" [label="[drawingMode, setDrawingMode]"];
+    "home.tsx::[wallStartPoint, setWallStartPoint]" [label="[wallStartPoint, setWallStartPoint]"];
+    "home.tsx::[drawingPoints, setDrawingPoints]" [label="[drawingPoints, setDrawingPoints]"];
+    "home.tsx::[catalogOpen, setCatalogOpen]" [label="[catalogOpen, setCatalogOpen]"];
+    "home.tsx::[roomCatalogOpen, setRoomCatalogOpen]" [label="[roomCatalogOpen, setRoomCatalogOpen]"];
+    "home.tsx::[scale, setScale]" [label="[scale, setScale]"];
+    "home.tsx::[viewMode, setViewMode]" [label="[viewMode, setViewMode]"];
+    "home.tsx::[selectedRoomTemplate, setSelectedRoomTemplate]" [label="[selectedRoomTemplate, setSelectedRoomTemplate]"];
+  }
+  "home.tsx::[layers, setLayers]" -> "home.tsx::useState";
+  "home.tsx::anonymous" -> "home.tsx::useState";
+  "home.tsx::anonymous" -> "home.tsx::useEffect";
+  "home.tsx::anonymous" -> "home.tsx::setDrawingMode";
+  "home.tsx::anonymous" -> "home.tsx::setWallStartPoint";
+  "home.tsx::anonymous" -> "home.tsx::setDrawingPoints";
+  "home.tsx::anonymous" -> "home.tsx::window.addEventListener";
+  "home.tsx::anonymous" -> "home.tsx::window.removeEventListener";
+  "home.tsx::anonymous" -> "home.tsx::setRoomCatalogOpen";
+  "home.tsx::anonymous" -> "home.tsx::layers.find";
+  "home.tsx::anonymous" -> "home.tsx::setActiveLayer";
+  "home.tsx::anonymous" -> "home.tsx::setCatalogOpen";
+  "home.tsx::anonymous" -> "home.tsx::layer.allowedTools.includes";
+  "home.tsx::anonymous" -> "home.tsx::console.log";
+  "home.tsx::anonymous" -> "home.tsx::Date.now";
+  "home.tsx::anonymous" -> "home.tsx::selectedRoomTemplate.points.map";
+  "home.tsx::anonymous" -> "home.tsx::selectedRoomTemplate.wallSegments.map";
+  "home.tsx::anonymous" -> "home.tsx::selectedRoomTemplate.corners.map";
+  "home.tsx::anonymous" -> "home.tsx::handleElementAdd";
+  "home.tsx::anonymous" -> "home.tsx::setSelectedRoomTemplate";
+  "home.tsx::anonymous" -> "home.tsx::Math.sqrt";
+  "home.tsx::anonymous" -> "home.tsx::Math.min";
+  "home.tsx::anonymous" -> "home.tsx::drawingPoints.map";
+  "home.tsx::anonymous" -> "home.tsx::Math.max";
+  "home.tsx::anonymous" -> "home.tsx::setLayers";
+  "home.tsx::anonymous" -> "home.tsx::prevLayers.map";
+  "home.tsx::anonymous" -> "home.tsx::setElements";
+  "home.tsx::anonymous" -> "home.tsx::setSelectedElement";
+  "home.tsx::anonymous" -> "home.tsx::layer.elements.map";
+  "home.tsx::anonymous" -> "home.tsx::prev.map";
+  "home.tsx::anonymous" -> "home.tsx::layers.filter";
+  "home.tsx::anonymous" -> "home.tsx::layers.map";
+  "home.tsx::[activeLayer, setActiveLayer]" -> "home.tsx::useState";
+  "home.tsx::[elements, setElements]" -> "home.tsx::useState";
+  "home.tsx::[selectedElement, setSelectedElement]" -> "home.tsx::useState";
+  "home.tsx::[drawingMode, setDrawingMode]" -> "home.tsx::useState";
+  "home.tsx::[wallStartPoint, setWallStartPoint]" -> "home.tsx::useState";
+  "home.tsx::[drawingPoints, setDrawingPoints]" -> "home.tsx::useState";
+  "home.tsx::[catalogOpen, setCatalogOpen]" -> "home.tsx::useState";
+  "home.tsx::[roomCatalogOpen, setRoomCatalogOpen]" -> "home.tsx::useState";
+  "home.tsx::[scale, setScale]" -> "home.tsx::useState";
+  "home.tsx::[viewMode, setViewMode]" -> "home.tsx::useState";
+  "home.tsx::[selectedRoomTemplate, setSelectedRoomTemplate]" -> "home.tsx::useState";
+  subgraph "cluster_modelManager.ts" {
+    label="modelManager.ts";
+    style=filled;
+    color=lightgrey;
+    "modelManager.ts::loadModelManifest" [label="loadModelManifest"];
+    "modelManager.ts::getModelPath" [label="getModelPath"];
+    "modelManager.ts::anonymous" [label="anonymous"];
+    "modelManager.ts::createPlaceholderModel" [label="createPlaceholderModel"];
+    "modelManager.ts::preloadCommonModels" [label="preloadCommonModels"];
+    "modelManager.ts::loadModel" [label="loadModel"];
+    "modelManager.ts::preloadModels" [label="preloadModels"];
+  }
+  "modelManager.ts::loadModelManifest" -> "modelManager.ts::fetch";
+  "modelManager.ts::loadModelManifest" -> "modelManager.ts::response.json";
+  "modelManager.ts::loadModelManifest" -> "modelManager.ts::Logger.error";
+  "modelManager.ts::getModelPath" -> "modelManager.ts::Logger.debug";
+  "modelManager.ts::getModelPath" -> "modelManager.ts::loadModelManifest";
+  "modelManager.ts::getModelPath" -> "modelManager.ts::Logger.warn";
+  "modelManager.ts::getModelPath" -> "modelManager.ts::quality.toLowerCase";
+  "modelManager.ts::getModelPath" -> "modelManager.ts::encodeURIComponent";
+  "modelManager.ts::getModelPath" -> "modelManager.ts::Logger.error";
+  "modelManager.ts::getModelPath" -> "modelManager.ts::String";
+  "modelManager.ts::anonymous" -> "modelManager.ts::Logger.debug";
+  "modelManager.ts::anonymous" -> "modelManager.ts::getModelPath";
+  "modelManager.ts::anonymous" -> "modelManager.ts::reject";
+  "modelManager.ts::anonymous" -> "modelManager.ts::encodeURI";
+  "modelManager.ts::anonymous" -> "modelManager.ts::GLTFLoader.load";
+  "modelManager.ts::anonymous" -> "modelManager.ts::Logger.info";
+  "modelManager.ts::anonymous" -> "modelManager.ts::resolve";
+  "modelManager.ts::anonymous" -> "modelManager.ts::onProgress";
+  "modelManager.ts::anonymous" -> "modelManager.ts::Logger.error";
+  "modelManager.ts::anonymous" -> "modelManager.ts::loadModel";
+  "modelManager.ts::createPlaceholderModel" -> "modelManager.ts::group.add";
+  "modelManager.ts::preloadCommonModels" -> "modelManager.ts::loadModelManifest";
+  "modelManager.ts::preloadCommonModels" -> "modelManager.ts::THREE.Cache.add";
+  "modelManager.ts::preloadCommonModels" -> "modelManager.ts::loadModelProgressively";
+  "modelManager.ts::preloadCommonModels" -> "modelManager.ts::Logger.debug";
+  "modelManager.ts::preloadCommonModels" -> "modelManager.ts::Logger.error";
+  "modelManager.ts::loadModel" -> "modelManager.ts::Logger.debug";
+  "modelManager.ts::loadModel" -> "modelManager.ts::getModelPath";
+  "modelManager.ts::loadModel" -> "modelManager.ts::encodeURIComponent";
+  "modelManager.ts::loadModel" -> "modelManager.ts::GLTFLoader.loadAsync";
+  "modelManager.ts::loadModel" -> "modelManager.ts::Logger.info";
+  "modelManager.ts::loadModel" -> "modelManager.ts::Logger.error";
+  "modelManager.ts::loadModel" -> "modelManager.ts::String";
+  "modelManager.ts::preloadModels" -> "modelManager.ts::Promise.all";
+  "modelManager.ts::preloadModels" -> "modelManager.ts::models.map";
+  "modelManager.ts::preloadModels" -> "modelManager.ts::Logger.info";
+  "modelManager.ts::preloadModels" -> "modelManager.ts::Logger.error";
+  "modelManager.ts::preloadModels" -> "modelManager.ts::String";
+  subgraph "cluster_useModel.ts" {
+    label="useModel.ts";
+    style=filled;
+    color=lightgrey;
+    "useModel.ts::model" [label="model"];
+    "useModel.ts::useModel" [label="useModel"];
+  }
+  "useModel.ts::model" -> "useModel.ts::useMemo";
+  "useModel.ts::useModel" -> "useModel.ts::useMemo";
+  subgraph "cluster_useMaterialPreset.ts" {
+    label="useMaterialPreset.ts";
+    style=filled;
+    color=lightgrey;
+    "useMaterialPreset.ts::materialPreset" [label="materialPreset"];
+    "useMaterialPreset.ts::useMaterialPreset" [label="useMaterialPreset"];
+  }
+  "useMaterialPreset.ts::materialPreset" -> "useMaterialPreset.ts::useMemo";
+  "useMaterialPreset.ts::useMaterialPreset" -> "useMaterialPreset.ts::useMemo";
+  subgraph "cluster_ThreeMaterialRenderer.tsx" {
+    label="ThreeMaterialRenderer.tsx";
+    style=filled;
+    color=lightgrey;
+    "ThreeMaterialRenderer.tsx::anonymous" [label="anonymous"];
+    "ThreeMaterialRenderer.tsx::containerRef" [label="containerRef"];
+    "ThreeMaterialRenderer.tsx::canvasRef" [label="canvasRef"];
+    "ThreeMaterialRenderer.tsx::sceneRef" [label="sceneRef"];
+    "ThreeMaterialRenderer.tsx::rendererRef" [label="rendererRef"];
+    "ThreeMaterialRenderer.tsx::cameraRef" [label="cameraRef"];
+    "ThreeMaterialRenderer.tsx::controlsRef" [label="controlsRef"];
+    "ThreeMaterialRenderer.tsx::frameRef" [label="frameRef"];
+    "ThreeMaterialRenderer.tsx::loaderRef" [label="loaderRef"];
+    "ThreeMaterialRenderer.tsx::dracoLoaderRef" [label="dracoLoaderRef"];
+    "ThreeMaterialRenderer.tsx::[isLoading, setIsLoading]" [label="[isLoading, setIsLoading]"];
+    "ThreeMaterialRenderer.tsx::[error, setError]" [label="[error, setError]"];
+    "ThreeMaterialRenderer.tsx::[loadingProgress, setLoadingProgress]" [label="[loadingProgress, setLoadingProgress]"];
+    "ThreeMaterialRenderer.tsx::{ model }" [label="{ model }"];
+    "ThreeMaterialRenderer.tsx::preset" [label="preset"];
+  }
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Math.random().toString(36).substring";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Math.random().toString";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Math.random";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Logger.debug";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::useState";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::useModel";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::useMaterialPreset";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::useEffect";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::DRACOLoader.setDecoderPath";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::DRACOLoader.preload";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::GLTFLoader.setDRACOLoader";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Logger.error";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Vector3.set";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::document.createElement";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::container.appendChild";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::WebGLRenderer.getContext";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::WebGLRenderer.setSize";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::WebGLRenderer.setPixelRatio";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Math.min";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::gl.hint";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Scene.add";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Logger.info";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::WebGLRenderer.getPixelRatio";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::PerspectiveCamera.updateProjectionMatrix";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::window.addEventListener";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::handleResize";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::requestAnimationFrame";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::OrbitControls.update";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::WebGLRenderer.render";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::animate";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::cancelAnimationFrame";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::OrbitControls.dispose";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Scene.traverse";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::object.geometry.dispose";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Array.isArray";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::object.material.forEach";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::material.dispose";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::object.material.dispose";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Scene.clear";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::WebGLRenderer.dispose";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::WebGLRenderer.forceContextLoss";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::gl.getExtension";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::loseContext.loseContext";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::canvasRef.current.parentNode.removeChild";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::window.removeEventListener";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::type.includes";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::setIsLoading";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Logger.warn";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::setError";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::getApplianceModelPath";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::loadModelProgressively";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::progress.toFixed";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::setLoadingProgress";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::sceneRef.current.children.filter";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::lights.forEach";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::sceneRef.current.add";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::result.traverse";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::result.rotation.set";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Box3.setFromObject";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Box3.getCenter";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Box3.getSize";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Vector3.toArray";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Math.max";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Math.abs";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Math.sin";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::PerspectiveCamera.lookAt";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::Vector3.copy";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::String";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::loadModel";
+  "ThreeMaterialRenderer.tsx::anonymous" -> "ThreeMaterialRenderer.tsx::loadingProgress.toFixed";
+  "ThreeMaterialRenderer.tsx::containerRef" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::canvasRef" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::sceneRef" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::rendererRef" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::cameraRef" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::controlsRef" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::frameRef" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::loaderRef" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::dracoLoaderRef" -> "ThreeMaterialRenderer.tsx::useRef";
+  "ThreeMaterialRenderer.tsx::[isLoading, setIsLoading]" -> "ThreeMaterialRenderer.tsx::useState";
+  "ThreeMaterialRenderer.tsx::[error, setError]" -> "ThreeMaterialRenderer.tsx::useState";
+  "ThreeMaterialRenderer.tsx::[loadingProgress, setLoadingProgress]" -> "ThreeMaterialRenderer.tsx::useState";
+  "ThreeMaterialRenderer.tsx::{ model }" -> "ThreeMaterialRenderer.tsx::useModel";
+  "ThreeMaterialRenderer.tsx::preset" -> "ThreeMaterialRenderer.tsx::useMaterialPreset";
+  subgraph "cluster_ObjModelTest.tsx" {
+    label="ObjModelTest.tsx";
+    style=filled;
+    color=lightgrey;
+    "ObjModelTest.tsx::ModelErrorBoundary.componentDidCatch" [label="ModelErrorBoundary.componentDidCatch"];
+    "ObjModelTest.tsx::dimensions" [label="dimensions"];
+    "ObjModelTest.tsx::anonymous" [label="anonymous"];
+    "ObjModelTest.tsx::leftHandModel" [label="leftHandModel"];
+    "ObjModelTest.tsx::rightHandModel" [label="rightHandModel"];
+  }
+  "ObjModelTest.tsx::ModelErrorBoundary.componentDidCatch" -> "ObjModelTest.tsx::console.error";
+  "ObjModelTest.tsx::dimensions" -> "ObjModelTest.tsx::useMemo";
+  "ObjModelTest.tsx::anonymous" -> "ObjModelTest.tsx::useMemo";
+  "ObjModelTest.tsx::leftHandModel" -> "ObjModelTest.tsx::useMemo";
+  "ObjModelTest.tsx::rightHandModel" -> "ObjModelTest.tsx::useMemo";
+  subgraph "cluster_App.tsx" {
+    label="App.tsx";
+    style=filled;
+    color=lightgrey;
+    "App.tsx::ErrorBoundary.componentDidCatch" [label="ErrorBoundary.componentDidCatch"];
+    "App.tsx::ErrorBoundary.render" [label="ErrorBoundary.render"];
+    "App.tsx::App" [label="App"];
+  }
+  "App.tsx::ErrorBoundary.componentDidCatch" -> "App.tsx::console.error";
+  "App.tsx::ErrorBoundary.render" -> "App.tsx::this.state.error.toString";
+  "App.tsx::App" -> "App.tsx::console.log";
+  subgraph "cluster_ThreeMaterialViewer.tsx" {
+    label="ThreeMaterialViewer.tsx";
+    style=filled;
+    color=lightgrey;
+    "ThreeMaterialViewer.tsx::anonymous" [label="anonymous"];
+    "ThreeMaterialViewer.tsx::containerRef" [label="containerRef"];
+    "ThreeMaterialViewer.tsx::canvasRef" [label="canvasRef"];
+    "ThreeMaterialViewer.tsx::sceneRef" [label="sceneRef"];
+    "ThreeMaterialViewer.tsx::rendererRef" [label="rendererRef"];
+    "ThreeMaterialViewer.tsx::cameraRef" [label="cameraRef"];
+    "ThreeMaterialViewer.tsx::controlsRef" [label="controlsRef"];
+    "ThreeMaterialViewer.tsx::frameRef" [label="frameRef"];
+    "ThreeMaterialViewer.tsx::loaderRef" [label="loaderRef"];
+    "ThreeMaterialViewer.tsx::dracoLoaderRef" [label="dracoLoaderRef"];
+    "ThreeMaterialViewer.tsx::[isLoading, setIsLoading]" [label="[isLoading, setIsLoading]"];
+    "ThreeMaterialViewer.tsx::[error, setError]" [label="[error, setError]"];
+    "ThreeMaterialViewer.tsx::[loadingProgress, setLoadingProgress]" [label="[loadingProgress, setLoadingProgress]"];
+    "ThreeMaterialViewer.tsx::{ model }" [label="{ model }"];
+    "ThreeMaterialViewer.tsx::preset" [label="preset"];
+  }
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::useRef";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Math.random().toString(36).substring";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Math.random().toString";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Math.random";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Logger.debug";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::useState";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::useModel";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::useMaterialPreset";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::useEffect";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::DRACOLoader.setDecoderPath";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::DRACOLoader.preload";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::GLTFLoader.setDRACOLoader";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Logger.error";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Vector3.set";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::document.createElement";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::container.appendChild";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::WebGLRenderer.getContext";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::WebGLRenderer.setSize";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::WebGLRenderer.setPixelRatio";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Math.min";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::gl.hint";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Scene.add";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Logger.info";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::WebGLRenderer.getPixelRatio";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::PerspectiveCamera.updateProjectionMatrix";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::window.addEventListener";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::handleResize";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::requestAnimationFrame";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::OrbitControls.update";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::WebGLRenderer.render";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::animate";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::cancelAnimationFrame";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::OrbitControls.dispose";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Scene.traverse";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::object.geometry.dispose";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Array.isArray";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::object.material.forEach";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::material.dispose";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::object.material.dispose";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Scene.clear";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::WebGLRenderer.dispose";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::WebGLRenderer.forceContextLoss";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::gl.getExtension";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::loseContext.loseContext";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::canvasRef.current.parentNode.removeChild";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::window.removeEventListener";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::type.includes";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::setIsLoading";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Logger.warn";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::setError";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::getApplianceModelPath";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::loadModelProgressively";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::progress.toFixed";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::setLoadingProgress";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::sceneRef.current.children.filter";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::lights.forEach";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::sceneRef.current.add";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::result.traverse";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::result.rotation.set";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Box3.setFromObject";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Box3.getCenter";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Box3.getSize";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Vector3.toArray";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Math.max";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Math.abs";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Math.sin";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::PerspectiveCamera.lookAt";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::Vector3.copy";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::String";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::loadModel";
+  "ThreeMaterialViewer.tsx::anonymous" -> "ThreeMaterialViewer.tsx::loadingProgress.toFixed";
+  "ThreeMaterialViewer.tsx::containerRef" -> "ThreeMaterialViewer.tsx::useRef";
+  "ThreeMaterialViewer.tsx::canvasRef" -> "ThreeMaterialViewer.tsx::useRef";
+  "ThreeMaterialViewer.tsx::sceneRef" -> "ThreeMaterialViewer.tsx::useRef";
+  "ThreeMaterialViewer.tsx::rendererRef" -> "ThreeMaterialViewer.tsx::useRef";
+  "ThreeMaterialViewer.tsx::cameraRef" -> "ThreeMaterialViewer.tsx::useRef";
+  "ThreeMaterialViewer.tsx::controlsRef" -> "ThreeMaterialViewer.tsx::useRef";
+  "ThreeMaterialViewer.tsx::frameRef" -> "ThreeMaterialViewer.tsx::useRef";
+  "ThreeMaterialViewer.tsx::loaderRef" -> "ThreeMaterialViewer.tsx::useRef";
+  "ThreeMaterialViewer.tsx::dracoLoaderRef" -> "ThreeMaterialViewer.tsx::useRef";
+  "ThreeMaterialViewer.tsx::[isLoading, setIsLoading]" -> "ThreeMaterialViewer.tsx::useState";
+  "ThreeMaterialViewer.tsx::[error, setError]" -> "ThreeMaterialViewer.tsx::useState";
+  "ThreeMaterialViewer.tsx::[loadingProgress, setLoadingProgress]" -> "ThreeMaterialViewer.tsx::useState";
+  "ThreeMaterialViewer.tsx::{ model }" -> "ThreeMaterialViewer.tsx::useModel";
+  "ThreeMaterialViewer.tsx::preset" -> "ThreeMaterialViewer.tsx::useMaterialPreset";
+  subgraph "cluster_CabinetDialog.tsx" {
+    label="CabinetDialog.tsx";
+    style=filled;
+    color=lightgrey;
+    "CabinetDialog.tsx::anonymous" [label="anonymous"];
+  }
+  "CabinetDialog.tsx::anonymous" -> "CabinetDialog.tsx::["base", "upper", "tall"].map";
+  "CabinetDialog.tsx::anonymous" -> "CabinetDialog.tsx::standardCabinets
+                    .filter((cabinet) => cabinet.type === type).map";
+  "CabinetDialog.tsx::anonymous" -> "CabinetDialog.tsx::standardCabinets.filter";
+  "CabinetDialog.tsx::anonymous" -> "CabinetDialog.tsx::onCabinetSelect";
+  "CabinetDialog.tsx::anonymous" -> "CabinetDialog.tsx::onOpenChange";
+  subgraph "cluster_MaterialRenderer.tsx" {
+    label="MaterialRenderer.tsx";
+    style=filled;
+    color=lightgrey;
+    "MaterialRenderer.tsx::anonymous" [label="anonymous"];
+  }
+  "MaterialRenderer.tsx::anonymous" -> "MaterialRenderer.tsx::overlay.gradientColors.map";
+  subgraph "cluster_RoomElement.tsx" {
+    label="RoomElement.tsx";
+    style=filled;
+    color=lightgrey;
+    "RoomElement.tsx::[selectedPart, setSelectedPart]" [label="[selectedPart, setSelectedPart]"];
+    "RoomElement.tsx::anonymous" [label="anonymous"];
+    "RoomElement.tsx::[draggingCorner, setDraggingCorner]" [label="[draggingCorner, setDraggingCorner]"];
+  }
+  "RoomElement.tsx::[selectedPart, setSelectedPart]" -> "RoomElement.tsx::useState";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::useState";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::e.stopPropagation";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::setDraggingCorner";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::setSelectedPart";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::onSelect";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::useEffect";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::element.wallSegments.map";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::window.addEventListener";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::window.removeEventListener";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::e.preventDefault";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::handleClick";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::element.points?.map(p => `${p.x - element.x} ${p.y - element.y}`).join";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::element.points.map";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::element.corners.map";
+  "RoomElement.tsx::anonymous" -> "RoomElement.tsx::handleCornerMouseDown";
+  "RoomElement.tsx::[draggingCorner, setDraggingCorner]" -> "RoomElement.tsx::useState";
+  subgraph "cluster_geometry.ts" {
+    label="geometry.ts";
+    style=filled;
+    color=lightgrey;
+    "geometry.ts::anonymous" [label="anonymous"];
+  }
+  "geometry.ts::anonymous" -> "geometry.ts::Math.abs";
+  "geometry.ts::anonymous" -> "geometry.ts::Math.round";
+  "geometry.ts::anonymous" -> "geometry.ts::Math.sqrt";
+  "geometry.ts::anonymous" -> "geometry.ts::Math.pow";
+  subgraph "cluster_floorplanManager.ts" {
+    label="floorplanManager.ts";
+    style=filled;
+    color=lightgrey;
+    "floorplanManager.ts::anonymous" [label="anonymous"];
+  }
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::new Date().toISOString";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::calculateTotalArea";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::countElementsByType";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::countApplianceElements";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::localStorage.setItem";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::JSON.stringify";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::console.error";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::localStorage.getItem";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::JSON.parse";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::localStorage.key";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::key.startsWith";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::floorplans.push";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::key.replace";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::elements
+    .filter(el => el.type === 'room').reduce";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::elements.filter";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::calculatePolygonArea";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::convertToSquareFeet";
+  "floorplanManager.ts::anonymous" -> "floorplanManager.ts::el.type.includes";
+  subgraph "cluster_SaveLoadDialog.tsx" {
+    label="SaveLoadDialog.tsx";
+    style=filled;
+    color=lightgrey;
+    "SaveLoadDialog.tsx::[mode, setMode]" [label="[mode, setMode]"];
+    "SaveLoadDialog.tsx::anonymous" [label="anonymous"];
+    "SaveLoadDialog.tsx::[floorplanName, setFloorplanName]" [label="[floorplanName, setFloorplanName]"];
+    "SaveLoadDialog.tsx::[savedFloorplans, setSavedFloorplans]" [label="[savedFloorplans, setSavedFloorplans]"];
+    "SaveLoadDialog.tsx::[error, setError]" [label="[error, setError]"];
+  }
+  "SaveLoadDialog.tsx::[mode, setMode]" -> "SaveLoadDialog.tsx::useState";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::useState";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::useEffect";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::setSavedFloorplans";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::listFloorplans";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::floorplanName.trim";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::setError";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::saveFloorplan";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::setFloorplanName";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::loadFloorplan";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::onLoad";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::onOpenChange";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::setMode";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::savedFloorplans.map";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::handleLoad";
+  "SaveLoadDialog.tsx::anonymous" -> "SaveLoadDialog.tsx::localStorage.removeItem";
+  "SaveLoadDialog.tsx::[floorplanName, setFloorplanName]" -> "SaveLoadDialog.tsx::useState";
+  "SaveLoadDialog.tsx::[savedFloorplans, setSavedFloorplans]" -> "SaveLoadDialog.tsx::useState";
+  "SaveLoadDialog.tsx::[error, setError]" -> "SaveLoadDialog.tsx::useState";
+  subgraph "cluster_accordion.tsx" {
+    label="accordion.tsx";
+    style=filled;
+    color=lightgrey;
+    "accordion.tsx::anonymous" [label="anonymous"];
+  }
+  "accordion.tsx::anonymous" -> "accordion.tsx::cn";
+  subgraph "cluster_alert-dialog.tsx" {
+    label="alert-dialog.tsx";
+    style=filled;
+    color=lightgrey;
+    "alert-dialog.tsx::anonymous" [label="anonymous"];
+  }
+  "alert-dialog.tsx::anonymous" -> "alert-dialog.tsx::cn";
+  "alert-dialog.tsx::anonymous" -> "alert-dialog.tsx::buttonVariants";
+  subgraph "cluster_alert.tsx" {
+    label="alert.tsx";
+    style=filled;
+    color=lightgrey;
+    "alert.tsx::anonymous" [label="anonymous"];
+  }
+  "alert.tsx::anonymous" -> "alert.tsx::cn";
+  "alert.tsx::anonymous" -> "alert.tsx::alertVariants";
+  subgraph "cluster_avatar.tsx" {
+    label="avatar.tsx";
+    style=filled;
+    color=lightgrey;
+    "avatar.tsx::anonymous" [label="anonymous"];
+  }
+  "avatar.tsx::anonymous" -> "avatar.tsx::cn";
+  subgraph "cluster_badge.tsx" {
+    label="badge.tsx";
+    style=filled;
+    color=lightgrey;
+    "badge.tsx::Badge" [label="Badge"];
+  }
+  "badge.tsx::Badge" -> "badge.tsx::cn";
+  "badge.tsx::Badge" -> "badge.tsx::badgeVariants";
+  subgraph "cluster_calendar.tsx" {
+    label="calendar.tsx";
+    style=filled;
+    color=lightgrey;
+    "calendar.tsx::Calendar" [label="Calendar"];
+  }
+  "calendar.tsx::Calendar" -> "calendar.tsx::cn";
+  "calendar.tsx::Calendar" -> "calendar.tsx::buttonVariants";
+  subgraph "cluster_carousel.tsx" {
+    label="carousel.tsx";
+    style=filled;
+    color=lightgrey;
+    "carousel.tsx::useCarousel" [label="useCarousel"];
+    "carousel.tsx::[carouselRef, api]" [label="[carouselRef, api]"];
+    "carousel.tsx::anonymous" [label="anonymous"];
+    "carousel.tsx::{ carouselRef, orientation }" [label="{ carouselRef, orientation }"];
+    "carousel.tsx::{ orientation }" [label="{ orientation }"];
+    "carousel.tsx::{ orientation, scrollPrev, canScrollPrev }" [label="{ orientation, scrollPrev, canScrollPrev }"];
+    "carousel.tsx::{ orientation, scrollNext, canScrollNext }" [label="{ orientation, scrollNext, canScrollNext }"];
+  }
+  "carousel.tsx::useCarousel" -> "carousel.tsx::React.useContext";
+  "carousel.tsx::[carouselRef, api]" -> "carousel.tsx::useEmblaCarousel";
+  "carousel.tsx::anonymous" -> "carousel.tsx::useEmblaCarousel";
+  "carousel.tsx::anonymous" -> "carousel.tsx::React.useState";
+  "carousel.tsx::anonymous" -> "carousel.tsx::React.useCallback";
+  "carousel.tsx::anonymous" -> "carousel.tsx::setCanScrollPrev";
+  "carousel.tsx::anonymous" -> "carousel.tsx::api.canScrollPrev";
+  "carousel.tsx::anonymous" -> "carousel.tsx::setCanScrollNext";
+  "carousel.tsx::anonymous" -> "carousel.tsx::api.canScrollNext";
+  "carousel.tsx::anonymous" -> "carousel.tsx::api.scrollPrev";
+  "carousel.tsx::anonymous" -> "carousel.tsx::api.scrollNext";
+  "carousel.tsx::anonymous" -> "carousel.tsx::event.preventDefault";
+  "carousel.tsx::anonymous" -> "carousel.tsx::scrollPrev";
+  "carousel.tsx::anonymous" -> "carousel.tsx::scrollNext";
+  "carousel.tsx::anonymous" -> "carousel.tsx::React.useEffect";
+  "carousel.tsx::anonymous" -> "carousel.tsx::setApi";
+  "carousel.tsx::anonymous" -> "carousel.tsx::onSelect";
+  "carousel.tsx::anonymous" -> "carousel.tsx::api.on";
+  "carousel.tsx::anonymous" -> "carousel.tsx::api.off";
+  "carousel.tsx::anonymous" -> "carousel.tsx::cn";
+  "carousel.tsx::anonymous" -> "carousel.tsx::useCarousel";
+  "carousel.tsx::{ carouselRef, orientation }" -> "carousel.tsx::useCarousel";
+  "carousel.tsx::{ orientation }" -> "carousel.tsx::useCarousel";
+  "carousel.tsx::{ orientation, scrollPrev, canScrollPrev }" -> "carousel.tsx::useCarousel";
+  "carousel.tsx::{ orientation, scrollNext, canScrollNext }" -> "carousel.tsx::useCarousel";
+  subgraph "cluster_checkbox.tsx" {
+    label="checkbox.tsx";
+    style=filled;
+    color=lightgrey;
+    "checkbox.tsx::anonymous" [label="anonymous"];
+  }
+  "checkbox.tsx::anonymous" -> "checkbox.tsx::cn";
+  subgraph "cluster_command.tsx" {
+    label="command.tsx";
+    style=filled;
+    color=lightgrey;
+    "command.tsx::anonymous" [label="anonymous"];
+  }
+  "command.tsx::anonymous" -> "command.tsx::cn";
+  subgraph "cluster_context-menu.tsx" {
+    label="context-menu.tsx";
+    style=filled;
+    color=lightgrey;
+    "context-menu.tsx::anonymous" [label="anonymous"];
+  }
+  "context-menu.tsx::anonymous" -> "context-menu.tsx::cn";
+  subgraph "cluster_popover.tsx" {
+    label="popover.tsx";
+    style=filled;
+    color=lightgrey;
+    "popover.tsx::anonymous" [label="anonymous"];
+  }
+  "popover.tsx::anonymous" -> "popover.tsx::cn";
+  subgraph "cluster_date-picker-with-range.tsx" {
+    label="date-picker-with-range.tsx";
+    style=filled;
+    color=lightgrey;
+    "date-picker-with-range.tsx::DatePickerWithRange" [label="DatePickerWithRange"];
+  }
+  "date-picker-with-range.tsx::DatePickerWithRange" -> "date-picker-with-range.tsx::React.useState";
+  "date-picker-with-range.tsx::DatePickerWithRange" -> "date-picker-with-range.tsx::addDays";
+  "date-picker-with-range.tsx::DatePickerWithRange" -> "date-picker-with-range.tsx::cn";
+  "date-picker-with-range.tsx::DatePickerWithRange" -> "date-picker-with-range.tsx::format";
+  subgraph "cluster_drawer.tsx" {
+    label="drawer.tsx";
+    style=filled;
+    color=lightgrey;
+    "drawer.tsx::anonymous" [label="anonymous"];
+  }
+  "drawer.tsx::anonymous" -> "drawer.tsx::cn";
+  subgraph "cluster_dropdown-menu.tsx" {
+    label="dropdown-menu.tsx";
+    style=filled;
+    color=lightgrey;
+    "dropdown-menu.tsx::anonymous" [label="anonymous"];
+  }
+  "dropdown-menu.tsx::anonymous" -> "dropdown-menu.tsx::cn";
+  subgraph "cluster_form.tsx" {
+    label="form.tsx";
+    style=filled;
+    color=lightgrey;
+    "form.tsx::anonymous" [label="anonymous"];
+    "form.tsx::{ getFieldState, formState }" [label="{ getFieldState, formState }"];
+    "form.tsx::{ error, formItemId }" [label="{ error, formItemId }"];
+    "form.tsx::{ error, formItemId, formDescriptionId, formMessageId }" [label="{ error, formItemId, formDescriptionId, formMessageId }"];
+    "form.tsx::{ formDescriptionId }" [label="{ formDescriptionId }"];
+    "form.tsx::{ error, formMessageId }" [label="{ error, formMessageId }"];
+  }
+  "form.tsx::anonymous" -> "form.tsx::React.useContext";
+  "form.tsx::anonymous" -> "form.tsx::useFormContext";
+  "form.tsx::anonymous" -> "form.tsx::getFieldState";
+  "form.tsx::anonymous" -> "form.tsx::React.useId";
+  "form.tsx::anonymous" -> "form.tsx::cn";
+  "form.tsx::anonymous" -> "form.tsx::useFormField";
+  "form.tsx::anonymous" -> "form.tsx::String";
+  "form.tsx::{ getFieldState, formState }" -> "form.tsx::useFormContext";
+  "form.tsx::{ error, formItemId }" -> "form.tsx::useFormField";
+  "form.tsx::{ error, formItemId, formDescriptionId, formMessageId }" -> "form.tsx::useFormField";
+  "form.tsx::{ formDescriptionId }" -> "form.tsx::useFormField";
+  "form.tsx::{ error, formMessageId }" -> "form.tsx::useFormField";
+  subgraph "cluster_hover-card.tsx" {
+    label="hover-card.tsx";
+    style=filled;
+    color=lightgrey;
+    "hover-card.tsx::anonymous" [label="anonymous"];
+  }
+  "hover-card.tsx::anonymous" -> "hover-card.tsx::cn";
+  subgraph "cluster_menubar.tsx" {
+    label="menubar.tsx";
+    style=filled;
+    color=lightgrey;
+    "menubar.tsx::anonymous" [label="anonymous"];
+  }
+  "menubar.tsx::anonymous" -> "menubar.tsx::cn";
+  subgraph "cluster_navigation-menu.tsx" {
+    label="navigation-menu.tsx";
+    style=filled;
+    color=lightgrey;
+    "navigation-menu.tsx::anonymous" [label="anonymous"];
+  }
+  "navigation-menu.tsx::anonymous" -> "navigation-menu.tsx::cn";
+  "navigation-menu.tsx::anonymous" -> "navigation-menu.tsx::navigationMenuTriggerStyle";
+  subgraph "cluster_pagination.tsx" {
+    label="pagination.tsx";
+    style=filled;
+    color=lightgrey;
+    "pagination.tsx::anonymous" [label="anonymous"];
+  }
+  "pagination.tsx::anonymous" -> "pagination.tsx::cn";
+  "pagination.tsx::anonymous" -> "pagination.tsx::buttonVariants";
+  subgraph "cluster_progress.tsx" {
+    label="progress.tsx";
+    style=filled;
+    color=lightgrey;
+    "progress.tsx::anonymous" [label="anonymous"];
+  }
+  "progress.tsx::anonymous" -> "progress.tsx::cn";
+  subgraph "cluster_radio-group.tsx" {
+    label="radio-group.tsx";
+    style=filled;
+    color=lightgrey;
+    "radio-group.tsx::anonymous" [label="anonymous"];
+  }
+  "radio-group.tsx::anonymous" -> "radio-group.tsx::cn";
+  subgraph "cluster_resizable.tsx" {
+    label="resizable.tsx";
+    style=filled;
+    color=lightgrey;
+    "resizable.tsx::anonymous" [label="anonymous"];
+  }
+  "resizable.tsx::anonymous" -> "resizable.tsx::cn";
+  subgraph "cluster_select.tsx" {
+    label="select.tsx";
+    style=filled;
+    color=lightgrey;
+    "select.tsx::anonymous" [label="anonymous"];
+  }
+  "select.tsx::anonymous" -> "select.tsx::cn";
+  subgraph "cluster_separator.tsx" {
+    label="separator.tsx";
+    style=filled;
+    color=lightgrey;
+    "separator.tsx::anonymous" [label="anonymous"];
+  }
+  "separator.tsx::anonymous" -> "separator.tsx::cn";
+  subgraph "cluster_sheet.tsx" {
+    label="sheet.tsx";
+    style=filled;
+    color=lightgrey;
+    "sheet.tsx::anonymous" [label="anonymous"];
+  }
+  "sheet.tsx::anonymous" -> "sheet.tsx::cn";
+  "sheet.tsx::anonymous" -> "sheet.tsx::sheetVariants";
+  subgraph "cluster_skeleton.tsx" {
+    label="skeleton.tsx";
+    style=filled;
+    color=lightgrey;
+    "skeleton.tsx::Skeleton" [label="Skeleton"];
+  }
+  "skeleton.tsx::Skeleton" -> "skeleton.tsx::cn";
+  subgraph "cluster_slider.tsx" {
+    label="slider.tsx";
+    style=filled;
+    color=lightgrey;
+    "slider.tsx::anonymous" [label="anonymous"];
+  }
+  "slider.tsx::anonymous" -> "slider.tsx::cn";
+  subgraph "cluster_switch.tsx" {
+    label="switch.tsx";
+    style=filled;
+    color=lightgrey;
+    "switch.tsx::anonymous" [label="anonymous"];
+  }
+  "switch.tsx::anonymous" -> "switch.tsx::cn";
+  subgraph "cluster_table.tsx" {
+    label="table.tsx";
+    style=filled;
+    color=lightgrey;
+    "table.tsx::anonymous" [label="anonymous"];
+  }
+  "table.tsx::anonymous" -> "table.tsx::cn";
+  subgraph "cluster_textarea.tsx" {
+    label="textarea.tsx";
+    style=filled;
+    color=lightgrey;
+    "textarea.tsx::anonymous" [label="anonymous"];
+  }
+  "textarea.tsx::anonymous" -> "textarea.tsx::cn";
+  subgraph "cluster_toast.tsx" {
+    label="toast.tsx";
+    style=filled;
+    color=lightgrey;
+    "toast.tsx::anonymous" [label="anonymous"];
+  }
+  "toast.tsx::anonymous" -> "toast.tsx::cn";
+  "toast.tsx::anonymous" -> "toast.tsx::toastVariants";
+  subgraph "cluster_use-toast.ts" {
+    label="use-toast.ts";
+    style=filled;
+    color=lightgrey;
+    "use-toast.ts::genId" [label="genId"];
+    "use-toast.ts::anonymous" [label="anonymous"];
+    "use-toast.ts::dispatch" [label="dispatch"];
+    "use-toast.ts::toast" [label="toast"];
+    "use-toast.ts::useToast" [label="useToast"];
+  }
+  "use-toast.ts::genId" -> "use-toast.ts::count.toString";
+  "use-toast.ts::anonymous" -> "use-toast.ts::toastTimeouts.has";
+  "use-toast.ts::anonymous" -> "use-toast.ts::setTimeout";
+  "use-toast.ts::anonymous" -> "use-toast.ts::toastTimeouts.delete";
+  "use-toast.ts::anonymous" -> "use-toast.ts::dispatch";
+  "use-toast.ts::anonymous" -> "use-toast.ts::toastTimeouts.set";
+  "use-toast.ts::anonymous" -> "use-toast.ts::[action.toast, ...state.toasts].slice";
+  "use-toast.ts::anonymous" -> "use-toast.ts::state.toasts.map";
+  "use-toast.ts::anonymous" -> "use-toast.ts::addToRemoveQueue";
+  "use-toast.ts::anonymous" -> "use-toast.ts::state.toasts.forEach";
+  "use-toast.ts::anonymous" -> "use-toast.ts::state.toasts.filter";
+  "use-toast.ts::anonymous" -> "use-toast.ts::listener";
+  "use-toast.ts::anonymous" -> "use-toast.ts::dismiss";
+  "use-toast.ts::anonymous" -> "use-toast.ts::listeners.push";
+  "use-toast.ts::anonymous" -> "use-toast.ts::listeners.indexOf";
+  "use-toast.ts::anonymous" -> "use-toast.ts::listeners.splice";
+  "use-toast.ts::dispatch" -> "use-toast.ts::reducer";
+  "use-toast.ts::dispatch" -> "use-toast.ts::listeners.forEach";
+  "use-toast.ts::toast" -> "use-toast.ts::genId";
+  "use-toast.ts::toast" -> "use-toast.ts::dispatch";
+  "use-toast.ts::useToast" -> "use-toast.ts::React.useState";
+  "use-toast.ts::useToast" -> "use-toast.ts::React.useEffect";
+  subgraph "cluster_toaster.tsx" {
+    label="toaster.tsx";
+    style=filled;
+    color=lightgrey;
+    "toaster.tsx::{ toasts }" [label="{ toasts }"];
+    "toaster.tsx::Toaster" [label="Toaster"];
+  }
+  "toaster.tsx::{ toasts }" -> "toaster.tsx::useToast";
+  "toaster.tsx::Toaster" -> "toaster.tsx::useToast";
+  "toaster.tsx::Toaster" -> "toaster.tsx::toasts.map";
+  subgraph "cluster_toggle.tsx" {
+    label="toggle.tsx";
+    style=filled;
+    color=lightgrey;
+    "toggle.tsx::anonymous" [label="anonymous"];
+  }
+  "toggle.tsx::anonymous" -> "toggle.tsx::cn";
+  "toggle.tsx::anonymous" -> "toggle.tsx::toggleVariants";
+  subgraph "cluster_tooltip.tsx" {
+    label="tooltip.tsx";
+    style=filled;
+    color=lightgrey;
+    "tooltip.tsx::anonymous" [label="anonymous"];
+  }
+  "tooltip.tsx::anonymous" -> "tooltip.tsx::cn";
+  subgraph "cluster_generateModel.ts" {
+    label="generateModel.ts";
+    style=filled;
+    color=lightgrey;
+    "generateModel.ts::anonymous" [label="anonymous"];
+  }
+  "generateModel.ts::anonymous" -> "generateModel.ts::JSON.stringify";
+  "generateModel.ts::anonymous" -> "generateModel.ts::fs.writeFileSync";
+  "generateModel.ts::anonymous" -> "generateModel.ts::path.join";
+  subgraph "cluster_materialPresets.ts" {
+    label="materialPresets.ts";
+    style=filled;
+    color=lightgrey;
+    "materialPresets.ts::getMaterialPreset" [label="getMaterialPreset"];
+  }
+  "materialPresets.ts::getMaterialPreset" -> "materialPresets.ts::elementType.includes";
+  subgraph "cluster_materialUtils.ts" {
+    label="materialUtils.ts";
+    style=filled;
+    color=lightgrey;
+    "materialUtils.ts::applyMaterialPreset" [label="applyMaterialPreset"];
+    "materialUtils.ts::applyOverlayPreset" [label="applyOverlayPreset"];
+    "materialUtils.ts::anonymous" [label="anonymous"];
+  }
+  "materialUtils.ts::applyMaterialPreset" -> "materialUtils.ts::model.traverse";
+  "materialUtils.ts::applyOverlayPreset" -> "materialUtils.ts::model.traverse";
+  "materialUtils.ts::anonymous" -> "materialUtils.ts::material.emissive.setHex";
+  subgraph "cluster_brushedMetal.ts" {
+    label="brushedMetal.ts";
+    style=filled;
+    color=lightgrey;
+    "brushedMetal.ts::BrushedMetalMaterial.setBrushScale" [label="BrushedMetalMaterial.setBrushScale"];
+  }
+  "brushedMetal.ts::BrushedMetalMaterial.setBrushScale" -> "brushedMetal.ts::this.uniforms.brushScale.value.set";
+  subgraph "cluster_calendar.stories.tsx" {
+    label="calendar.stories.tsx";
+    style=filled;
+    color=lightgrey;
+    "calendar.stories.tsx::[date, setDate]" [label="[date, setDate]"];
+    "calendar.stories.tsx::anonymous" [label="anonymous"];
+  }
+  "calendar.stories.tsx::[date, setDate]" -> "calendar.stories.tsx::useState";
+  "calendar.stories.tsx::anonymous" -> "calendar.stories.tsx::useState";
+  "calendar.stories.tsx::anonymous" -> "calendar.stories.tsx::addDays";
+  "calendar.stories.tsx::anonymous" -> "calendar.stories.tsx::format";
+  "calendar.stories.tsx::anonymous" -> "calendar.stories.tsx::newDate.setDate";
+  "calendar.stories.tsx::anonymous" -> "calendar.stories.tsx::newDate.getDate";
+  "calendar.stories.tsx::anonymous" -> "calendar.stories.tsx::parseInt";
+  "calendar.stories.tsx::anonymous" -> "calendar.stories.tsx::setDate";
+  subgraph "cluster_carousel.stories.tsx" {
+    label="carousel.stories.tsx";
+    style=filled;
+    color=lightgrey;
+    "carousel.stories.tsx::anonymous" [label="anonymous"];
+  }
+  "carousel.stories.tsx::anonymous" -> "carousel.stories.tsx::Array.from({ length: 5 }).map";
+  "carousel.stories.tsx::anonymous" -> "carousel.stories.tsx::Array.from";
+  subgraph "cluster_scroll-area.stories.tsx" {
+    label="scroll-area.stories.tsx";
+    style=filled;
+    color=lightgrey;
+    "scroll-area.stories.tsx::anonymous" [label="anonymous"];
+  }
+  "scroll-area.stories.tsx::anonymous" -> "scroll-area.stories.tsx::Array.from({ length: 50 })
+          .map((_, i, a) => `v1.2.0-beta.${a.length - i}`).map";
+  "scroll-area.stories.tsx::anonymous" -> "scroll-area.stories.tsx::Array.from({ length: 50 }).map";
+  "scroll-area.stories.tsx::anonymous" -> "scroll-area.stories.tsx::Array.from";
+  subgraph "cluster_materialUtils.ts" {
+    label="materialUtils.ts";
+    style=filled;
+    color=lightgrey;
+    "materialUtils.ts::anonymous" [label="anonymous"];
+  }
+  "materialUtils.ts::anonymous" -> "materialUtils.ts::textureLoader.load";
+  "materialUtils.ts::anonymous" -> "materialUtils.ts::material.normalScale.set";
+  "materialUtils.ts::anonymous" -> "materialUtils.ts::overlayMap.repeat.set";
+  "materialUtils.ts::anonymous" -> "materialUtils.ts::Math.min";
+  "materialUtils.ts::anonymous" -> "materialUtils.ts::Math.max";
+}

@@ -1,0 +1,137 @@
+digraph floorplannerDependencies {
+  rankdir=TB;
+  compound=true;
+  node [shape=box, style=filled, fillcolor=lightgrey];
+  edge [color=navy, penwidth=1];
+
+  subgraph "cluster_0" {
+    label="components/floorplanner";
+    style=filled;
+    color=lightblue;
+    node [style=filled, fillcolor=white];
+
+    n0 [label="LayersPanel", tooltip="components/floorplanner/LayersPanel.tsx"];
+    n1 [label="Toolbar", tooltip="components/floorplanner/Toolbar.tsx"];
+    n2 [label="ThreeMaterialRenderer", tooltip="components/floorplanner/ThreeMaterialRenderer.tsx"];
+    n3 [label="ThreeRoomRenderer", tooltip="components/floorplanner/ThreeRoomRenderer.tsx"];
+    n4 [label="Canvas", tooltip="components/floorplanner/Canvas.tsx"];
+    n5 [label="PropertiesPanel", tooltip="components/floorplanner/PropertiesPanel.tsx"];
+    n6 [label="ActionBar", tooltip="components/floorplanner/ActionBar.tsx"];
+    n7 [label="CatalogDialog", tooltip="components/floorplanner/CatalogDialog.tsx"];
+    n8 [label="CabinetDialog", tooltip="components/floorplanner/CabinetDialog.tsx"];
+    n9 [label="MaterialRenderer", tooltip="components/floorplanner/MaterialRenderer.tsx"];
+    n10 [label="RoomElement", tooltip="components/floorplanner/RoomElement.tsx"];
+    n11 [label="SaveLoadDialog", tooltip="components/floorplanner/SaveLoadDialog.tsx"];
+    n12 [label="Toolbar.stories", tooltip="components/floorplanner/Toolbar.stories.tsx"];
+  }
+
+  subgraph "cluster_1" {
+    label="lib";
+    style=filled;
+    color=lightblue;
+    node [style=filled, fillcolor=white];
+
+    n13 [label="wallUtils", tooltip="lib/wallUtils.ts"];
+    n14 [label="roomLayouts", tooltip="lib/roomLayouts.ts"];
+    n15 [label="geometry", tooltip="lib/geometry.ts"];
+  }
+
+  subgraph "cluster_2" {
+    label="stories";
+    style=filled;
+    color=lightblue;
+    node [style=filled, fillcolor=white];
+
+    n16 [label="floorplanner-canvas.stories", tooltip="stories/floorplanner-canvas.stories.tsx"];
+    n17 [label="floorplanner-toolbar.stories", tooltip="stories/floorplanner-toolbar.stories.tsx"];
+  }
+
+  n18 [shape=ellipse, style=filled, fillcolor=lightyellow, label="react"];
+  n0 -> n18;
+  n19 [shape=ellipse, style=filled, fillcolor=lightyellow, label="C__Users_ftbal_TEMPOPLANNER_TempoPlanner_1_src_components_ui_card_tsx"];
+  n0 -> n19;
+  n20 [shape=ellipse, style=filled, fillcolor=lightyellow, label="C__Users_ftbal_TEMPOPLANNER_TempoPlanner_1_src_components_ui_button_tsx"];
+  n0 -> n20;
+  n21 [shape=ellipse, style=filled, fillcolor=lightyellow, label="C__Users_ftbal_TEMPOPLANNER_TempoPlanner_1_src_components_ui_scroll_area_tsx"];
+  n0 -> n21;
+  n22 [shape=ellipse, style=filled, fillcolor=lightyellow, label="lucide_react"];
+  n0 -> n22;
+  n1 -> n18;
+  n1 -> n19;
+  n1 -> n20;
+  n1 -> n21;
+  n23 [shape=ellipse, style=filled, fillcolor=lightyellow, label="C__Users_ftbal_TEMPOPLANNER_TempoPlanner_1_src_components_floorplanner_LayersPanel_tsx"];
+  n1 -> n23;
+  n1 -> n22;
+  n2 -> n18;
+  n24 [shape=ellipse, style=filled, fillcolor=lightyellow, label="_"];
+  n2 -> n24;
+  n2 -> n24;
+  n2 -> n24;
+  n25 [shape=ellipse, style=filled, fillcolor=lightyellow, label="three"];
+  n2 -> n25;
+  n3 -> n18;
+  n3 -> n24;
+  n3 -> n25;
+  n13 -> n24;
+  n4 -> n18;
+  n4 -> n23;
+  n26 [shape=ellipse, style=filled, fillcolor=lightyellow, label="C__Users_ftbal_TEMPOPLANNER_TempoPlanner_1_src_components_floorplanner_ThreeMaterialRenderer_tsx"];
+  n4 -> n26;
+  n27 [shape=ellipse, style=filled, fillcolor=lightyellow, label="C__Users_ftbal_TEMPOPLANNER_TempoPlanner_1_src_components_floorplanner_ThreeRoomRenderer_tsx"];
+  n4 -> n27;
+  n4 -> n24;
+  n4 -> n24;
+  n4 -> n24;
+  n4 -> n24;
+  n4 -> n24;
+  n5 -> n18;
+  n5 -> n19;
+  n28 [shape=ellipse, style=filled, fillcolor=lightyellow, label="C__Users_ftbal_TEMPOPLANNER_TempoPlanner_1_src_components_ui_label_tsx"];
+  n5 -> n28;
+  n29 [shape=ellipse, style=filled, fillcolor=lightyellow, label="C__Users_ftbal_TEMPOPLANNER_TempoPlanner_1_src_components_ui_input_tsx"];
+  n5 -> n29;
+  n6 -> n18;
+  n6 -> n20;
+  n6 -> n22;
+  n14 -> n24;
+  n7 -> n18;
+  n7 -> n24;
+  n7 -> n24;
+  n7 -> n24;
+  n7 -> n24;
+  n7 -> n24;
+  n7 -> n24;
+  n7 -> n22;
+  n8 -> n18;
+  n8 -> n24;
+  n8 -> n24;
+  n8 -> n24;
+  n8 -> n24;
+  n8 -> n24;
+  n8 -> n22;
+  n9 -> n18;
+  n9 -> n24;
+  n10 -> n18;
+  n10 -> n27;
+  n10 -> n24;
+  n15 -> n24;
+  n11 -> n18;
+  n11 -> n24;
+  n11 -> n24;
+  n11 -> n24;
+  n11 -> n24;
+  n11 -> n24;
+  n11 -> n24;
+  n11 -> n24;
+  n11 -> n22;
+  n30 [shape=ellipse, style=filled, fillcolor=lightyellow, label="_storybook"];
+  n12 -> n30;
+  n31 [shape=ellipse, style=filled, fillcolor=lightyellow, label="C__Users_ftbal_TEMPOPLANNER_TempoPlanner_1_src_components_floorplanner_Toolbar_tsx"];
+  n12 -> n31;
+  n16 -> n30;
+  n32 [shape=ellipse, style=filled, fillcolor=lightyellow, label="C__Users_ftbal_TEMPOPLANNER_TempoPlanner_1_src_components_floorplanner_Canvas_tsx"];
+  n16 -> n32;
+  n17 -> n30;
+  n17 -> n31;
+}

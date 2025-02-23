@@ -14,7 +14,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "generate-diagrams": "node scripts/generate-diagrams.js",
-    "generate-diagrams:debug": "node scripts/generate-diagrams.js --debug"
+    "generate-diagrams:debug": "node scripts/generate-diagrams.js --debug",
+    "convert-diagrams": "node scripts/convert-svg-to-png.js"
   },
   "dependencies": {
     "@gltf-transform/cli": "^4.1.1",

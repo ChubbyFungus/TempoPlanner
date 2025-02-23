@@ -1,0 +1,645 @@
+digraph floorplannerCalls {
+  rankdir=LR;
+  node [shape=box, style=filled, fillcolor=lightblue];
+  edge [color=darkblue];
+
+  subgraph "cluster_LayersPanel_tsx" {
+    label="LayersPanel.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n214 [label="anonymous"];
+    n215 [label="layers.map"];
+    n214 -> n215;
+    n216 [label="onLayerSelect"];
+    n214 -> n216;
+    n217 [label="e.stopPropagation"];
+    n214 -> n217;
+    n218 [label="onLayerVisibilityToggle"];
+    n214 -> n218;
+  }
+
+  subgraph "cluster_Toolbar_tsx" {
+    label="Toolbar.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n219 [label="anonymous"];
+    n220 [label="toolbarItems.map"];
+    n219 -> n220;
+    n221 [label="onDrawingModeChange"];
+    n219 -> n221;
+  }
+
+  subgraph "cluster_ThreeMaterialRenderer_tsx" {
+    label="ThreeMaterialRenderer.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n222 [label="modelViewerRef"];
+    n223 [label="useRef"];
+    n222 -> n223;
+    n224 [label="anonymous"];
+    n223 [label="useRef"];
+    n224 -> n223;
+    n225 [label="useState"];
+    n224 -> n225;
+    n226 [label="useEffect"];
+    n224 -> n226;
+    n227 [label="setModelPath"];
+    n224 -> n227;
+    n228 [label="console.error"];
+    n224 -> n228;
+    n229 [label="loadModel"];
+    n224 -> n229;
+    n230 [label="modelViewer.model.position.set"];
+    n224 -> n230;
+    n231 [label="modelViewer.model.rotation.set"];
+    n224 -> n231;
+    n232 [label="createPBRMaterial"];
+    n224 -> n232;
+    n233 [label="modelViewer.model.traverse"];
+    n224 -> n233;
+    n234 [label="material.clone"];
+    n224 -> n234;
+    n235 [label="setModelLoaded"];
+    n224 -> n235;
+    n236 [label="applyMaterial"];
+    n224 -> n236;
+    n237 [label="[modelPath, setModelPath]"];
+    n225 [label="useState"];
+    n237 -> n225;
+    n238 [label="[modelLoaded, setModelLoaded]"];
+    n225 [label="useState"];
+    n238 -> n225;
+  }
+
+  subgraph "cluster_ThreeRoomRenderer_tsx" {
+    label="ThreeRoomRenderer.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n239 [label="containerRef"];
+    n240 [label="useRef"];
+    n239 -> n240;
+    n241 [label="anonymous"];
+    n240 [label="useRef"];
+    n241 -> n240;
+    n242 [label="useEffect"];
+    n241 -> n242;
+    n243 [label="camera.position.set"];
+    n241 -> n243;
+    n244 [label="camera.lookAt"];
+    n241 -> n244;
+    n245 [label="camera.updateProjectionMatrix"];
+    n241 -> n245;
+    n246 [label="renderer.setSize"];
+    n241 -> n246;
+    n247 [label="renderer.setClearColor"];
+    n241 -> n247;
+    n248 [label="containerRef.current.appendChild"];
+    n241 -> n248;
+    n249 [label="scene.add"];
+    n241 -> n249;
+    n250 [label="directionalLight.position.set"];
+    n241 -> n250;
+    n251 [label="points.reduce"];
+    n241 -> n251;
+    n252 [label="shape.moveTo"];
+    n241 -> n252;
+    n253 [label="points.slice(1).forEach"];
+    n241 -> n253;
+    n254 [label="points.slice"];
+    n241 -> n254;
+    n255 [label="shape.lineTo"];
+    n241 -> n255;
+    n256 [label="Math.sqrt"];
+    n241 -> n256;
+    n257 [label="Math.pow"];
+    n241 -> n257;
+    n258 [label="Math.atan2"];
+    n241 -> n258;
+    n259 [label="requestAnimationFrame"];
+    n241 -> n259;
+    n260 [label="OrbitControls.update"];
+    n241 -> n260;
+    n261 [label="renderer.render"];
+    n241 -> n261;
+    n262 [label="animate"];
+    n241 -> n262;
+    n263 [label="containerRef.current.contains"];
+    n241 -> n263;
+    n264 [label="containerRef.current.removeChild"];
+    n241 -> n264;
+    n265 [label="renderer.dispose"];
+    n241 -> n265;
+    n266 [label="scene.clear"];
+    n241 -> n266;
+    n267 [label="sceneRef"];
+    n240 [label="useRef"];
+    n267 -> n240;
+    n268 [label="cameraRef"];
+    n240 [label="useRef"];
+    n268 -> n240;
+    n269 [label="rendererRef"];
+    n240 [label="useRef"];
+    n269 -> n240;
+    n270 [label="controlsRef"];
+    n240 [label="useRef"];
+    n270 -> n240;
+  }
+
+  subgraph "cluster_wallUtils_ts" {
+    label="wallUtils.ts";
+    style=filled;
+    color=lightgrey;
+
+    n271 [label="snapToGrid"];
+    n272 [label="Math.round"];
+    n271 -> n272;
+    n273 [label="snapToNearestCorner"];
+    n274 [label="getDistance"];
+    n273 -> n274;
+    n275 [label="snapToNearestWall"];
+    n276 [label="wallSegments.forEach"];
+    n275 -> n276;
+    n277 [label="anonymous"];
+    n278 [label="projectPointOnLine"];
+    n277 -> n278;
+    n274 [label="getDistance"];
+    n277 -> n274;
+    n279 [label="doWallsIntersect"];
+    n277 -> n279;
+    n280 [label="errors.push"];
+    n277 -> n280;
+    n281 [label="validateWallSegment"];
+    n274 [label="getDistance"];
+    n281 -> n274;
+    n280 [label="errors.push"];
+    n281 -> n280;
+    n282 [label="length.toFixed"];
+    n281 -> n282;
+    n283 [label="existingWalls.forEach"];
+    n281 -> n283;
+    n284 [label="validateCorner"];
+    n285 [label="getAngleBetweenWalls"];
+    n284 -> n285;
+    n280 [label="errors.push"];
+    n284 -> n280;
+    n286 [label="angle.toFixed"];
+    n284 -> n286;
+    n274 [label="getDistance"];
+    n287 [label="Math.sqrt"];
+    n274 -> n287;
+    n278 [label="projectPointOnLine"];
+    n287 [label="Math.sqrt"];
+    n278 -> n287;
+    n285 [label="getAngleBetweenWalls"];
+    n288 [label="Math.atan2"];
+    n285 -> n288;
+    n289 [label="Math.abs"];
+    n285 -> n289;
+  }
+
+  subgraph "cluster_Canvas_tsx" {
+    label="Canvas.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n290 [label="[selectedPart, setSelectedPart]"];
+    n291 [label="useState"];
+    n290 -> n291;
+    n292 [label="anonymous"];
+    n291 [label="useState"];
+    n292 -> n291;
+    n293 [label="e.stopPropagation"];
+    n292 -> n293;
+    n294 [label="setDraggingCorner"];
+    n292 -> n294;
+    n295 [label="setSelectedPart"];
+    n292 -> n295;
+    n296 [label="onSelect"];
+    n292 -> n296;
+    n297 [label="useEffect"];
+    n292 -> n297;
+    n298 [label="element.wallSegments.map"];
+    n292 -> n298;
+    n299 [label="window.addEventListener"];
+    n292 -> n299;
+    n300 [label="window.removeEventListener"];
+    n292 -> n300;
+    n301 [label="element.points?.map(p => `${p.x - ele..."];
+    n292 -> n301;
+    n302 [label="element.points.map"];
+    n292 -> n302;
+    n303 [label="element.corners.map"];
+    n292 -> n303;
+    n304 [label="handleCornerMouseDown"];
+    n292 -> n304;
+    n305 [label="setResizing"];
+    n292 -> n305;
+    n306 [label="Math.round"];
+    n292 -> n306;
+    n307 [label="handleEndpointMouseDown"];
+    n292 -> n307;
+    n308 [label="func"];
+    n292 -> n308;
+    n309 [label="setTimeout"];
+    n292 -> n309;
+    n310 [label="useRef"];
+    n292 -> n310;
+    n311 [label="Date.now"];
+    n292 -> n311;
+    n312 [label="throttle"];
+    n292 -> n312;
+    n313 [label="Math.sqrt"];
+    n292 -> n313;
+    n314 [label="Logger.debug"];
+    n292 -> n314;
+    n315 [label="useCallback"];
+    n292 -> n315;
+    n316 [label="canvasRef.current.getBoundingClientRect"];
+    n292 -> n316;
+    n317 [label="e.preventDefault"];
+    n292 -> n317;
+    n318 [label="setViewport"];
+    n292 -> n318;
+    n319 [label="setLastMousePos"];
+    n292 -> n319;
+    n320 [label="snapToGrid"];
+    n292 -> n320;
+    n321 [label="JSON.stringify"];
+    n292 -> n321;
+    n322 [label="selectedRoomTemplate.points.map"];
+    n292 -> n322;
+    n323 [label="setMousePos"];
+    n292 -> n323;
+    n324 [label="Logger.info"];
+    n292 -> n324;
+    n325 [label="onCanvasClick"];
+    n292 -> n325;
+    n326 [label="onDoubleClick"];
+    n292 -> n326;
+    n327 [label="Math.min"];
+    n292 -> n327;
+    n328 [label="Math.max"];
+    n292 -> n328;
+    n329 [label="canvas.addEventListener"];
+    n292 -> n329;
+    n330 [label="canvas.removeEventListener"];
+    n292 -> n330;
+    n331 [label="centerCanvas"];
+    n292 -> n331;
+    n332 [label="setIsSpacePressed"];
+    n292 -> n332;
+    n333 [label="setIsPanning"];
+    n292 -> n333;
+    n334 [label="target.closest"];
+    n292 -> n334;
+    n335 [label="onElementSelect"];
+    n292 -> n335;
+    n336 [label="new Date().toISOString"];
+    n292 -> n336;
+    n337 [label="handleMouseDown"];
+    n292 -> n337;
+    n338 [label="drawingPoints.map"];
+    n292 -> n338;
+    n339 [label="getDistance"];
+    n292 -> n339;
+    n340 [label="adjustedPoints.map(p => `${p.x} ${p.y..."];
+    n292 -> n340;
+    n341 [label="adjustedPoints.map"];
+    n292 -> n341;
+    n342 [label="layers.map"];
+    n292 -> n342;
+    n343 [label="layer.elements.map"];
+    n292 -> n343;
+    n344 [label="wallSegments.map"];
+    n292 -> n344;
+    n345 [label="[draggingCorner, setDraggingCorner]"];
+    n291 [label="useState"];
+    n345 -> n291;
+    n346 [label="[resizing, setResizing]"];
+    n291 [label="useState"];
+    n346 -> n291;
+    n339 [label="getDistance"];
+    n313 [label="Math.sqrt"];
+    n339 -> n313;
+    n347 [label="[mousePos, setMousePos]"];
+    n291 [label="useState"];
+    n347 -> n291;
+    n348 [label="[viewport, setViewport]"];
+    n291 [label="useState"];
+    n348 -> n291;
+    n349 [label="canvasRef"];
+    n310 [label="useRef"];
+    n349 -> n310;
+    n350 [label="[validationErrors, setValidationErrors]"];
+    n291 [label="useState"];
+    n350 -> n291;
+    n351 [label="[isSpacePressed, setIsSpacePressed]"];
+    n291 [label="useState"];
+    n351 -> n291;
+    n352 [label="[isPanning, setIsPanning]"];
+    n291 [label="useState"];
+    n352 -> n291;
+    n353 [label="[lastMousePos, setLastMousePos]"];
+    n291 [label="useState"];
+    n353 -> n291;
+    n354 [label="[dragState, setDragState]"];
+    n291 [label="useState"];
+    n354 -> n291;
+    n355 [label="[isDragging, setIsDragging]"];
+    n291 [label="useState"];
+    n355 -> n291;
+    n356 [label="prevStateRef"];
+    n310 [label="useRef"];
+    n356 -> n310;
+    n357 [label="lastLoggedMousePos"];
+    n310 [label="useRef"];
+    n357 -> n310;
+    n358 [label="handleMouseMove"];
+    n315 [label="useCallback"];
+    n358 -> n315;
+    n359 [label="handleCanvasClick"];
+    n315 [label="useCallback"];
+    n359 -> n315;
+    n360 [label="handleWheel"];
+    n315 [label="useCallback"];
+    n360 -> n315;
+    n337 [label="handleMouseDown"];
+    n315 [label="useCallback"];
+    n337 -> n315;
+    n361 [label="handleMouseUp"];
+    n315 [label="useCallback"];
+    n361 -> n315;
+    n362 [label="handleRoomClick"];
+    n315 [label="useCallback"];
+    n362 -> n315;
+  }
+
+  subgraph "cluster_PropertiesPanel_tsx" {
+    label="PropertiesPanel.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n363 [label="anonymous"];
+    n364 [label="onUpdateElement"];
+    n363 -> n364;
+    n365 [label="parseFloat"];
+    n363 -> n365;
+    n366 [label="handleInputChange"];
+    n363 -> n366;
+  }
+
+  subgraph "cluster_ActionBar_tsx" {
+    label="ActionBar.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n367 [label="anonymous"];
+    n368 [label="onViewModeChange"];
+    n367 -> n368;
+  }
+
+  subgraph "cluster_roomLayouts_ts" {
+    label="roomLayouts.ts";
+    style=filled;
+    color=lightgrey;
+
+    n369 [label="createWallsAndCorners"];
+    n370 [label="points.forEach"];
+    n369 -> n370;
+    n371 [label="wallSegments.push"];
+    n369 -> n371;
+    n372 [label="corners[corners.length - 1].wallSegme..."];
+    n369 -> n372;
+    n373 [label="corners[0].wallSegments.push"];
+    n369 -> n373;
+    n374 [label="anonymous"];
+    n375 [label="corners.push"];
+    n374 -> n375;
+    n371 [label="wallSegments.push"];
+    n374 -> n371;
+    n376 [label="corner.wallSegments.push"];
+    n374 -> n376;
+  }
+
+  subgraph "cluster_CatalogDialog_tsx" {
+    label="CatalogDialog.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n377 [label="anonymous"];
+    n378 [label="Math.min"];
+    n377 -> n378;
+    n379 [label="points.map"];
+    n377 -> n379;
+    n380 [label="Math.max"];
+    n377 -> n380;
+    n381 [label="points.map(p => `${p.x},${p.y}`).join"];
+    n377 -> n381;
+    n382 [label="useState"];
+    n377 -> n382;
+    n383 [label="categories.find"];
+    n377 -> n383;
+    n384 [label="console.log"];
+    n377 -> n384;
+    n385 [label="roomItem.points.map"];
+    n377 -> n385;
+    n386 [label="roomItem.wallSegments.map"];
+    n377 -> n386;
+    n387 [label="roomItem.corners.map"];
+    n377 -> n387;
+    n388 [label="c.wallSegments.map"];
+    n377 -> n388;
+    n389 [label="onItemSelect"];
+    n377 -> n389;
+    n390 [label="onOpenChange"];
+    n377 -> n390;
+    n391 [label="scale.toFixed"];
+    n377 -> n391;
+    n392 [label="setScale"];
+    n377 -> n392;
+    n393 [label="parseFloat"];
+    n377 -> n393;
+    n394 [label="categories.map"];
+    n377 -> n394;
+    n395 [label="selectedCategory?.items.map"];
+    n377 -> n395;
+    n396 [label="handleItemSelect"];
+    n377 -> n396;
+    n397 [label="roomItem!.points.map(p => `${p.x} ${p..."];
+    n377 -> n397;
+    n398 [label="roomItem!.points.map"];
+    n377 -> n398;
+    n399 [label="Math.round"];
+    n377 -> n399;
+    n400 [label="[activeCategory, setActiveCategory]"];
+    n382 [label="useState"];
+    n400 -> n382;
+    n401 [label="[scale, setScale]"];
+    n382 [label="useState"];
+    n401 -> n382;
+  }
+
+  subgraph "cluster_CabinetDialog_tsx" {
+    label="CabinetDialog.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n402 [label="anonymous"];
+    n403 [label="[\"base\", \"upper\", \"tall\"].map"];
+    n402 -> n403;
+    n404 [label="standardCabinets .filter((cabinet) =>..."];
+    n402 -> n404;
+    n405 [label="standardCabinets.filter"];
+    n402 -> n405;
+    n406 [label="onCabinetSelect"];
+    n402 -> n406;
+    n407 [label="onOpenChange"];
+    n402 -> n407;
+  }
+
+  subgraph "cluster_MaterialRenderer_tsx" {
+    label="MaterialRenderer.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n408 [label="anonymous"];
+    n409 [label="overlay.gradientColors.map"];
+    n408 -> n409;
+  }
+
+  subgraph "cluster_RoomElement_tsx" {
+    label="RoomElement.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n410 [label="[selectedPart, setSelectedPart]"];
+    n411 [label="useState"];
+    n410 -> n411;
+    n412 [label="anonymous"];
+    n411 [label="useState"];
+    n412 -> n411;
+    n413 [label="e.stopPropagation"];
+    n412 -> n413;
+    n414 [label="setDraggingCorner"];
+    n412 -> n414;
+    n415 [label="setSelectedPart"];
+    n412 -> n415;
+    n416 [label="onSelect"];
+    n412 -> n416;
+    n417 [label="useEffect"];
+    n412 -> n417;
+    n418 [label="element.wallSegments.map"];
+    n412 -> n418;
+    n419 [label="window.addEventListener"];
+    n412 -> n419;
+    n420 [label="window.removeEventListener"];
+    n412 -> n420;
+    n421 [label="e.preventDefault"];
+    n412 -> n421;
+    n422 [label="handleClick"];
+    n412 -> n422;
+    n423 [label="element.points?.map(p => `${p.x - ele..."];
+    n412 -> n423;
+    n424 [label="element.points.map"];
+    n412 -> n424;
+    n425 [label="element.corners.map"];
+    n412 -> n425;
+    n426 [label="handleCornerMouseDown"];
+    n412 -> n426;
+    n427 [label="[draggingCorner, setDraggingCorner]"];
+    n411 [label="useState"];
+    n427 -> n411;
+  }
+
+  subgraph "cluster_geometry_ts" {
+    label="geometry.ts";
+    style=filled;
+    color=lightgrey;
+
+    n428 [label="anonymous"];
+    n429 [label="Math.abs"];
+    n428 -> n429;
+    n430 [label="Math.round"];
+    n428 -> n430;
+    n431 [label="Math.sqrt"];
+    n428 -> n431;
+    n432 [label="Math.pow"];
+    n428 -> n432;
+  }
+
+  subgraph "cluster_SaveLoadDialog_tsx" {
+    label="SaveLoadDialog.tsx";
+    style=filled;
+    color=lightgrey;
+
+    n433 [label="[mode, setMode]"];
+    n434 [label="useState"];
+    n433 -> n434;
+    n435 [label="anonymous"];
+    n434 [label="useState"];
+    n435 -> n434;
+    n436 [label="useEffect"];
+    n435 -> n436;
+    n437 [label="setSavedFloorplans"];
+    n435 -> n437;
+    n438 [label="listFloorplans"];
+    n435 -> n438;
+    n439 [label="floorplanName.trim"];
+    n435 -> n439;
+    n440 [label="setError"];
+    n435 -> n440;
+    n441 [label="saveFloorplan"];
+    n435 -> n441;
+    n442 [label="setFloorplanName"];
+    n435 -> n442;
+    n443 [label="loadFloorplan"];
+    n435 -> n443;
+    n444 [label="onLoad"];
+    n435 -> n444;
+    n445 [label="onOpenChange"];
+    n435 -> n445;
+    n446 [label="setMode"];
+    n435 -> n446;
+    n447 [label="savedFloorplans.map"];
+    n435 -> n447;
+    n448 [label="handleLoad"];
+    n435 -> n448;
+    n449 [label="localStorage.removeItem"];
+    n435 -> n449;
+    n450 [label="[floorplanName, setFloorplanName]"];
+    n434 [label="useState"];
+    n450 -> n434;
+    n451 [label="[savedFloorplans, setSavedFloorplans]"];
+    n434 [label="useState"];
+    n451 -> n434;
+    n452 [label="[error, setError]"];
+    n434 [label="useState"];
+    n452 -> n434;
+  }
+
+  subgraph "cluster_Toolbar_stories_tsx" {
+    label="Toolbar.stories.tsx";
+    style=filled;
+    color=lightgrey;
+
+  }
+
+  subgraph "cluster_floorplanner_canvas_stories_tsx" {
+    label="floorplanner-canvas.stories.tsx";
+    style=filled;
+    color=lightgrey;
+
+  }
+
+  subgraph "cluster_floorplanner_toolbar_stories_tsx" {
+    label="floorplanner-toolbar.stories.tsx";
+    style=filled;
+    color=lightgrey;
+
+  }
+
+}

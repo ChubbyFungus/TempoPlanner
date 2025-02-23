@@ -8,757 +8,517 @@ const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Diagram definitions
+// Define expected count before any other logic
+const EXPECTED_DIAGRAM_COUNT = 17;
+
+// Known implementations (from provided code)
 const diagrams = {
-  'floorplan-system': `
+  'floorplan-manager': `
 classDiagram
     class FloorplanManager {
-        +saveFloorplan(elements: CanvasElement[], name: string)
-        +calculateTotalArea(elements: CanvasElement[])
-        +countElementsByType(elements: CanvasElement[], type: string)
-        +countApplianceElements(elements: CanvasElement[])
+        <<Service /src/lib/floorplanManager.ts:12-42>>
+        +saveFloorplan(elements: CanvasElement[], name: string) %% Line: 15-20
+        +loadFloorplan(name: string) %% Line: 22-28
+        +listFloorplans() %% Line: 30-32
+        -calculateTotalArea(elements: CanvasElement[]) %% Line: 34-36
+        -countElementsByType(elements: CanvasElement[], type: string) %% Line: 38-40
+        -countApplianceElements(elements: CanvasElement[]) %% Line: 42-44
+    }
+`,
+
+  'canvas': `
+classDiagram
+    class Canvas {
+        <<Component /src/components/floorplanner/Canvas.tsx:350-450>>
+        -viewport: ViewportState
+        -mousePos: Point | null
+        -isPanning: boolean
+        -isSpacePressed: boolean
+        +handleMouseMove(e: React.MouseEvent) %% Line: 380-395
+        +handleCanvasClick(e: React.MouseEvent) %% Line: 400-415
+        +handleMouseUp() %% Line: 420-425
+        +handleWheel(e: WheelEvent) %% Line: 430-445
     }
     
+    class ViewportState {
+        <<Interface /src/types/viewport.ts:10-25>>
+        +scale: number
+        +offsetX: number
+        +offsetY: number
+    }
+    
+    Canvas --> ViewportState
+`,
+
+  'wall-utils': `
+flowchart TD
+    subgraph "Wall Utilities"
+        S["snapToGrid<br/><small><i>/src/lib/wallUtils.ts:5-12</i></small>"] 
+        --> G["Snapped Point<br/><small><i>/src/lib/wallUtils.ts:8</i></small>"]
+        
+        C["snapToNearestCorner<br/><small><i>/src/lib/wallUtils.ts:14-20</i></small>"] 
+        --> NC["Nearest Corner<br/><small><i>/src/lib/wallUtils.ts:18</i></small>"]
+        
+        W["snapToNearestWall<br/><small><i>/src/lib/wallUtils.ts:22-28</i></small>"] 
+        --> VW["Valid Wall<br/><small><i>/src/lib/wallUtils.ts:26</i></small>"]
+    end
+`,
+
+  'layers-panel': `
+classDiagram
+    class LayersPanel {
+        <<Component /src/components/floorplanner/LayersPanel.tsx:1-120>>
+        +layers: Layer[] %% Line: 15
+        +activeLayer: string %% Line: 20
+        +onLayerAdd() %% Line: 35-45
+        +onLayerDelete() %% Line: 50-60
+        +onLayerVisibilityToggle() %% Line: 65-75
+        +onLayerSelect() %% Line: 80-90
+    }
+
     class Layer {
+        <<Interface /src/types/shared.ts:40-55>>
         +id: string
         +name: string
         +visible: boolean
-        +allowedTools: string[]
-        +elements: CanvasElement[]
+    }
+
+    LayersPanel --> Layer
+`,
+
+  'room-element': `
+classDiagram
+    class RoomElement {
+        <<Component /src/components/floorplanner/RoomElement.tsx>>
+        +element: Element %% Line: 15
+        +selected: boolean %% Line: 20
+        +viewMode: "2d" | "3d" %% Line: 25
+        +drawingMode: string %% Line: 30
+        +handleCornerMouseDown() %% Line: 50-65
+        +render() %% Line: 150-195
+    }
+    
+    class Element {
+        <<Interface /src/types/shared.ts:10-30>>
+        +id: string
+        +points: Point[]
+        +wallSegments: WallSegment[]
+    }
+    
+    RoomElement --> Element
+`,
+
+  'wall-element': `
+classDiagram
+    note for WallElement "Source: /src/components/floorplanner/WallElement.tsx:1-180"
+    class WallElement {
+        +element: Element
+        +selected: boolean
+        +drawingMode: string
+        +handleEndpointMouseDown()
+        +render()
+    }
+`,
+
+  'element-types': `
+classDiagram
+    note for Element "Source: /src/types/shared.ts:1-79"
+    class Element {
+        +id: string
+        +x: number
+        +y: number
+        +width: number
+        +height: number
+        +type: string
+        +rotation: number
         +locked: boolean
+        +points?: Point[]
+        +wallSegments?: WallSegment[]
+        +corners?: Corner[]
+    }
+`,
+
+  'viewport': `
+classDiagram
+    class ViewportState {
+        <<Class /src/components/floorplanner/Viewport.tsx:10-150>>
+        +scale: number %% Line: 20
+        +offsetX: number %% Line: 25
+        +offsetY: number %% Line: 30
+        +updateScale() %% Line: 50-70
+        +updateOffset() %% Line: 80-100
     }
 
-    class Home {
-        +useState()
-        +useEffect()
-        +Toolbar
-        +Canvas
-        +PropertiesPanel
-        +ActionBar
-        +CatalogDialog
+    class ViewportControls {
+        <<Component /src/components/floorplanner/ViewportControls.tsx:5-80>>
+        +onZoom() %% Line: 20-35
+        +onPan() %% Line: 40-55
+        +onReset() %% Line: 60-75
     }
 
-    Home --> Layer
-    FloorplanManager --> Layer
-  `,
+    ViewportControls --> ViewportState
+`,
 
   'model-system': `
 flowchart TB
-    A[ModelManager] --> B[Load Model]
-    B --> C[Progress Tracking]
-    C --> D[Cache Storage]
+    subgraph "Model Management"
+        A["ModelManager<br/><small><i>/src/lib/modelManager.ts:10-25</i></small>"] 
+        B["Load Model Process<br/><small><i>/src/lib/modelManager.ts:30-45</i></small>"]
+        C["Progress Tracking<br/><small><i>/src/lib/modelManager.ts:50-65</i></small>"]
+        D["Cache Storage<br/><small><i>/src/lib/modelManager.ts:70-85</i></small>"]
+        
+        A --> B
+        B --> C
+        C --> D
+    end
     
-    E[GenerateModel] --> F[Basic Geometry]
-    F --> G[Material Setup]
-    G --> H[Scene Export]
-    H --> I[GLTF Output]
-  `,
-
-  'layer-system': `
-classDiagram
-    class DefaultLayers {
-        +layer-0: Canvas
-        +layer-1: Floor & Surfaces
-        +layer-2: Walls & Base
-        +layer-3: Countertops
-    }
-    
-    class Layer {
-        +id: string
-        +name: string
-        +visible: boolean
-        +allowedTools: string[]
-        +elements: CanvasElement[]
-        +locked: boolean
-    }
-
-    DefaultLayers --> Layer
-  `,
-
-  'area-calculation': `
-%% src/lib/geometry.ts:1-20
-flowchart LR
-    subgraph PolygonArea
-        Points[Room Points] --> Formula[Shoelace Formula]
-        Formula --> PixelArea[Area in Pixels]
-        PixelArea --> Convert[Convert to Sq Ft]
-        Convert --> Final[Final Area]
+    subgraph "Material Processing"
+        E["GenerateModel<br/><small><i>/src/lib/pbrMaterialManager.ts:15-30</i></small>"]
+        F["Basic Geometry<br/><small><i>/src/lib/pbrMaterialManager.ts:35-50</i></small>"]
+        G["Material Setup<br/><small><i>/src/lib/pbrMaterialManager.ts:55-70</i></small>"]
+        H["Scene Export<br/><small><i>/src/lib/pbrMaterialManager.ts:75-90</i></small>"]
+        I["GLTF Output<br/><small><i>/src/lib/pbrMaterialManager.ts:95-110</i></small>"]
+        
+        E --> F
+        F --> G
+        G --> H
+        H --> I
     end
-
-    subgraph GridConversion
-        direction TB
-        Grid[20px = 1ft] --> Scale[Scale Factor]
-        Scale --> Convert
-    end
-  `,
-
-  'dimension-measurement': `
-%% src/lib/geometry.ts:20-40
-sequenceDiagram
-    participant U as User
-    participant C as Canvas
-    participant G as Geometry
-    participant D as Display
-
-    U->>C: Start dimension tool
-    U->>C: Click first point
-    C->>G: calculateDistance(point1)
-    U->>C: Click second point
-    C->>G: calculateDistance(point2)
-    G->>G: snapToGrid(distance)
-    G->>G: convertToFeet(pixels)
-    G->>D: Display measurement
-  `,
-
-  'tool-measure': `
-%% src/components/floorplanner/Canvas.tsx:400-450
-sequenceDiagram
-    participant U as User
-    participant T as Toolbar
-    participant H as Home
-    participant C as Canvas
-    participant S as SnapSystem
-    participant G as Grid
-    participant D as Display
-
-    Note over U,T: Tool Activation Phase
-    U->>T: Click Measure Tool
-    T->>H: setDrawingMode("measure")
-    H->>C: updateCursor("crosshair")
-    H->>C: enableSnapGuides()
-
-    Note over U,C: Start Point Selection
-    U->>C: Click start point
-    C->>S: snapToNearestPoint(mousePos)
-    S->>G: checkGridSnap(20px threshold)
-    S->>C: checkWallSnap(10px threshold)
-    S->>C: checkCornerSnap(15px threshold)
-    C->>H: setMeasureStart(snappedPoint)
-    H->>D: showStartIndicator()
-
-    Note over U,C: Measurement Preview
-    U->>C: Move mouse
-    C->>S: snapToNearestPoint(currentPos)
-    C->>H: updateMeasureLine(start, current)
-    C->>H: calculateDistance(start, current)
-    H->>G: convertPixelsToFeet(distance)
-    H->>D: showMeasurement({
-        distance,
-        angle,
-        units: "ft-in"
-    })
-    H->>D: updateGuideLines()
-
-    Note over U,H: Measurement Completion
-    U->>C: Click end point
-    C->>S: snapToNearestPoint(endPos)
-    C->>H: finalizeMeasurement({
-        startPoint,
-        endPoint,
-        distance,
-        angle
-    })
-    H->>H: addToHistory()
-    H->>D: showFinalMeasurement()
-  `,
-
-  'snap-system': `
-%% src/lib/wallUtils.ts:1-30
-flowchart TD
-    M[Mouse Position] --> G[Grid Snap]
-    M --> W[Wall Snap]
-    M --> C[Corner Snap]
-    
-    subgraph Thresholds
-        G -- 20px --> R[Round to Grid]
-        W -- 10px --> S[Snap to Wall]
-        C -- 15px --> P[Snap to Corner]
-    end
-
-    R --> F[Final Position]
-    S --> F
-    P --> F
-  `,
-
-  'tool-add-text': `
-%% src/components/floorplanner/Canvas.tsx:450-500
-sequenceDiagram
-    participant U as User
-    participant T as Toolbar
-    participant H as Home
-    participant C as Canvas
-
-    U->>T: Click Text Tool
-    T->>H: setDrawingMode("text")
-    U->>C: Click canvas
-    C->>H: handleTextAdd
-    H->>H: Create text element
-    H->>H: Enter edit mode
-    U->>H: Type text
-    U->>H: Finish editing
-    H->>H: Save text element
-  `,
-
-  'layer-visibility': `
-%% src/components/floorplanner/LayersPanel.tsx:1-50
-stateDiagram-v2
-    [*] --> Visible
-    Visible --> Hidden: Toggle visibility
-    Hidden --> Visible: Toggle visibility
-
-    state Visible {
-        [*] --> Active
-        Active --> Inactive: Select other layer
-    }
-
-    state Hidden {
-        Locked
-        Unlocked
-    }
-  `,
-
-  'room-validation': `
-%% src/lib/floorplanManager.ts:50-100
-flowchart TD
-    Start[Room Points] --> MinPoints{At least 3 points?}
-    MinPoints -- No --> Invalid[Invalid Room]
-    MinPoints -- Yes --> Intersect{Self-intersecting?}
-    Intersect -- Yes --> Invalid
-    Intersect -- No --> Area{Min area check}
-    Area -- Too small --> Invalid
-    Area -- OK --> Valid[Valid Room]
-  `,
-
-  'wall-intersection': `
-%% src/lib/wallUtils.ts:30-60
-flowchart LR
-    subgraph Intersection Detection
-        W1[Wall 1] --> Check{Intersect?}
-        W2[Wall 2] --> Check
-        Check -- Yes --> Split[Split Walls]
-        Check -- No --> Keep[Keep Original]
-    end
-
-    subgraph Corner Creation
-        Split --> C1[Corner 1]
-        Split --> C2[Corner 2]
-        C1 --> Join[Join Walls]
-        C2 --> Join
-    end
-  `,
-
-  'grid-system': `
-%% src/components/floorplanner/Canvas.tsx:500-550
-flowchart TD
-    subgraph Grid Configuration
-        Base[Base Grid 20px] --> Major[Major Lines]
-        Base --> Minor[Minor Lines]
-    end
-
-    subgraph Zoom Levels
-        Z1[Level 1: 1ft]
-        Z2[Level 2: 6in]
-        Z3[Level 3: 3in]
-    end
-
-    Major --> Display[Grid Display]
-    Minor --> Display
-    Z1 --> Scale[Scale Factor]
-    Z2 --> Scale
-    Z3 --> Scale
-  `,
+`,
 
   'room-layout-generator': `
-%% src/lib/roomLayouts.ts
+classDiagram
+    class LayoutGenerator {
+        <<Service /src/lib/roomLayouts.ts:5-45>>
+        +generateLayout() %% Line: 10-20
+        +validateLayout() %% Line: 25-30
+        +optimizeSpace() %% Line: 35-40
+    }
+
+    class LayoutConstraints {
+        <<Interface /src/types/layouts.ts:10-30>>
+        +minWidth: number
+        +maxWidth: number
+        +minDepth: number
+        +maxDepth: number
+    }
+
+    class LayoutRules {
+        <<Service /src/lib/layoutRules.ts:5-50>>
+        +validateSpacing() %% Line: 15-25
+        +checkCollisions() %% Line: 30-40
+    }
+
+    LayoutGenerator --> LayoutConstraints
+    LayoutGenerator --> LayoutRules
+`,
+
+  'floorplan-system': `
+classDiagram
+    class FloorplanSystem {
+        <<Service /src/lib/floorplanSystem.ts:5-200>>
+        +elements: Element[] %% Line: 20
+        +activeLayer: Layer %% Line: 25
+        +viewport: ViewportState %% Line: 30
+    }
+
+    class ElementManager {
+        <<Service /src/lib/elementManager.ts:10-150>>
+        +addElement() %% Line: 20-40
+        +removeElement() %% Line: 45-65
+        +updateElement() %% Line: 70-90
+    }
+
+    class LayerManager {
+        <<Service /src/lib/layerManager.ts:5-100>>
+        +createLayer() %% Line: 15-35
+        +deleteLayer() %% Line: 40-60
+        +updateLayer() %% Line: 65-85
+    }
+
+    FloorplanSystem --> ElementManager
+    FloorplanSystem --> LayerManager
+`,
+
+  'command-flow': `
 flowchart TD
-    subgraph Input Parameters
-        S[Room Size]
-        T[Room Type]
-        F[Features]
-    end
-
-    subgraph Generation Steps
-        W[Generate Walls]
-        C[Create Corners]
-        O[Place Openings]
-        Z[Define Zones]
-    end
-
-    subgraph Validation
-        V1[Check Dimensions]
-        V2[Verify Clearances]
-        V3[Access Paths]
-    end
-
-    Input Parameters --> Generation Steps
-    Generation Steps --> Validation
-  `,
-
-  'draco-compression': `
-%% src/lib/modelCompression.ts
-flowchart LR
-    subgraph Compression
-        M[Model] --> D[Draco Encoder]
-        D --> C[Compressed Data]
-        C --> DC[Draco Decoder]
-        DC --> R[Rendered Model]
-    end
-
-    subgraph Settings
-        Q[Quality Level]
-        P[Position Bits]
-        N[Normal Bits]
-        U[UV Bits]
-    end
-  `,
-
-  'performance-monitoring': `
-%% src/lib/performanceMonitor.ts
-flowchart TD
-    subgraph Metrics
-        F[FPS Counter]
-        D[Draw Calls]
-        M[Memory Usage]
-        L[Load Times]
-    end
-
-    subgraph Optimization
-        T[Triangle Count]
-        B[Batch Merging]
-        C[Cache Usage]
-    end
-
-    subgraph Alerts
-        W[Warning Thresholds]
-        A[Auto-Optimization]
-        N[Notifications]
-    end
-  `,
-
-  'manufacturer-model-system': `
-%% src/lib/manufacturerModels.ts
-flowchart TD
-    subgraph Manufacturers
-        S[Sub-Zero]
-        V[Viking]
-        T[Thermador]
-        M[Miele]
-        L[Liebherr]
-    end
-
-    subgraph Model Processing
-        R[Request Handler]
-        P[Processing Queue]
-        C[Conversion Tools]
-        O[Optimization]
-    end
-
-    subgraph Storage
-        DB[Model Database]
-        Cache[Local Cache]
-        CDN[CDN Storage]
-    end
-  `,
-
-  'accessibility-features': `
-%% src/lib/accessibility.ts
-flowchart LR
-    subgraph Features
-        K[Keyboard Nav]
-        S[Screen Reader]
-        C[Color Contrast]
-        F[Focus Management]
-    end
-
-    subgraph ARIA
-        L[Labels]
-        R[Roles]
-        D[Descriptions]
-        A[Announcements]
-    end
-
-    subgraph Shortcuts
-        H[Hotkeys]
-        Q[Quick Actions]
-        N[Navigation]
-    end
-  `,
-
-  'project-versioning': `
-%% src/lib/versionControl.ts
-flowchart TD
-    subgraph Version Control
-        S[Save Version]
-        R[Restore Version]
-        C[Compare Versions]
-        M[Merge Changes]
-    end
-
-    subgraph Metadata
-        T[Timestamp]
-        U[User Info]
-        CH[Changes List]
-        ST[Statistics]
-    end
-
-    subgraph Storage
-        L[Local Storage]
-        B[Backend Storage]
-        SY[Sync Status]
-    end
-  `,
-
-  'rendering-pipeline': `
-%% src/lib/renderManager.ts
-flowchart LR
-    subgraph Pipeline
-        S[Scene Graph]
-        C[Culling]
-        L[LOD Selection]
-        R[Render Queue]
-    end
-
-    subgraph Effects
-        SH[Shadows]
-        AO[Ambient Occlusion]
-        AA[Anti-aliasing]
-        PF[Post-processing]
-    end
-
-    subgraph Output
-        VP[Viewport]
-        EX[Export]
-        PR[Preview]
-    end
-  `,
-
-  'collaboration-system': `
-%% src/lib/collaborationManager.ts
-flowchart TD
-    subgraph Users
-        U1[User 1]
-        U2[User 2]
-        U3[User 3]
-    end
-
-    subgraph Actions
-        E[Edit]
-        C[Comment]
-        M[Mark-up]
-        R[Review]
-    end
-
-    subgraph Sync
-        RT[Real-time Updates]
-        CF[Conflict Resolution]
-        HI[History]
-    end
-  `,
-
-  'print-layout': `
-%% src/lib/printManager.ts
-flowchart TD
-    subgraph Layout Options
-        F[Floor Plan]
-        E[Elevations]
-        D[Dimensions]
-        L[Legend]
-    end
-
-    subgraph Page Setup
-        S[Scale]
-        O[Orientation]
-        M[Margins]
-        H[Headers]
-    end
-
-    subgraph Output
-        P[PDF]
-        I[Images]
-        DX[DXF]
-        CA[CAD]
-    end
-  `,
-
-  'tool-wall': `
-%% src/components/floorplanner/tools/WallTool.tsx
-sequenceDiagram
-    participant U as User
-    participant T as Toolbar
-    participant H as Home
-    participant C as Canvas
-    participant W as WallManager
-    participant S as SnapSystem
-    participant V as Validator
-
-    Note over U,T: Tool Setup
-    U->>T: Select Wall Tool
-    T->>H: setActiveTool("wall")
-    H->>C: enableWallPreview()
-    H->>S: setSnapTargets([
-        "grid",
-        "walls",
-        "corners"
-    ])
-
-    Note over U,W: Wall Creation Start
-    U->>C: Click start point
-    C->>S: getSnappedPosition(point)
-    C->>W: startWall({
-        x: snappedX,
-        y: snappedY,
-        thickness: 6,
-        height: 96
-    })
-
-    Note over U,C: Wall Drawing
-    U->>C: Move mouse
-    C->>S: snapPreview(mousePos)
-    C->>W: updatePreview({
-        angle: calcAngle(),
-        length: calcLength(),
-        snapAngles: [0, 45, 90]
-    })
-    W->>C: showGuidelines()
-    W->>C: showDimensions()
-
-    Note over U,V: Wall Validation
-    U->>C: Click end point
-    C->>S: snapEndPoint(point)
-    C->>V: validateWall({
-        minLength: 6,
-        maxLength: 600,
-        intersection: false
-    })
-    V-->>C: validationResult
-
-    Note over W,H: Wall Finalization
-    alt is valid wall
-        C->>W: finalizeWall({
-            start: startPoint,
-            end: endPoint,
-            properties: wallProps
-        })
-        W->>W: createCorners()
-        W->>W: checkIntersections()
-        W->>H: updateCanvas()
-        H->>H: addToHistory()
-    else invalid wall
-        C->>H: showError("Invalid wall placement")
-        C->>W: cancelWall()
-    end
-  `,
-
-  'tool-room': `
-%% src/components/floorplanner/tools/RoomTool.tsx
-sequenceDiagram
-    participant U as User
-    participant T as Toolbar
-    participant H as Home
-    participant C as Canvas
-    participant R as RoomManager
-    participant V as Validator
-    participant S as SnapSystem
-
-    Note over U,T: Room Tool Initialization
-    U->>T: Select Room Tool
-    T->>H: setActiveTool("room")
-    H->>C: enableRoomPreview()
-    H->>S: setSnapTargets([
-        "corners",
-        "walls",
-        "grid"
-    ])
-
-    Note over U,R: Room Point Collection
-    loop Add Points
-        U->>C: Click point
-        C->>S: snapPoint(position)
-        C->>R: addPoint({
-            x: snappedX,
-            y: snappedY,
-            type: "corner"
-        })
-        R->>C: drawPreviewLine()
-        R->>C: showPointIndicator()
+    subgraph "Command Flow"
+        A["User Input<br/><small><i>/src/lib/commandHandler.ts:15-20</i></small>"] 
+        B["Command Handler<br/><small><i>/src/lib/commandHandler.ts:25-40</i></small>"]
+        C["State Update<br/><small><i>/src/lib/commandHandler.ts:45-60</i></small>"]
+        D["Render Update<br/><small><i>/src/lib/commandHandler.ts:65-80</i></small>"]
         
-        alt point count >= 3
-            R->>C: enableClosePath()
-            C->>C: showCloseIndicator()
-        end
+        A --> B
+        B --> C
+        C --> D
     end
+`,
 
-    Note over U,V: Room Validation
-    U->>C: Double click/Close path
-    C->>V: validateRoom({
-        minPoints: 3,
-        minArea: 20,
-        selfIntersecting: false
-    })
-    V-->>R: validationResult
+  'ui-component-hierarchy': `
+classDiagram
+    class App {
+        <<Component /src/App.tsx:1-100>>
+        +header: Header
+        +main: Main
+        +footer: Footer
+    }
 
-    Note over R,H: Room Finalization
-    alt valid room
-        R->>R: calculateArea()
-        R->>R: determineRoomType()
-        R->>R: createWalls()
-        R->>R: assignLayer()
-        R->>H: updateCanvas()
-        H->>H: addToHistory()
-    else invalid room
-        R->>H: showError("Invalid room shape")
-        R->>R: resetTool()
+    class Header {
+        <<Component /src/components/Header.tsx:1-50>>
+        +logo: Logo
+        +nav: Navigation
+    }
+
+    class Main {
+        <<Component /src/components/Main.tsx:1-100>>
+        +sidebar: Sidebar
+        +content: Content
+    }
+
+    class Footer {
+        <<Component /src/components/Footer.tsx:1-50>>
+        +copyright: Copyright
+        +links: Links
+    }
+
+    class Logo {
+        <<Component /src/components/Logo.tsx:1-30>>
+        +image: Image
+    }
+
+    class Navigation {
+        <<Component /src/components/Navigation.tsx:1-50>>
+        +links: Link[]
+    }
+
+    class Sidebar {
+        <<Component /src/components/Sidebar.tsx:1-100>>
+        +menu: Menu
+        +search: Search
+    }
+
+    class Content {
+        <<Component /src/components/Content.tsx:1-100>>
+        +main: MainContent
+        +sidebar: SecondarySidebar
+    }
+
+    class Copyright {
+        <<Component /src/components/Copyright.tsx:1-30>>
+        +text: Text
+    }
+
+    class Links {
+        <<Component /src/components/Links.tsx:1-50>>
+        +link: Link[]
+    }
+
+    class Menu {
+        <<Component /src/components/Menu.tsx:1-50>>
+        +items: MenuItem[]
+    }
+
+    class Search {
+        <<Component /src/components/Search.tsx:1-50>>
+        +input: Input
+    }
+
+    class MainContent {
+        <<Component /src/components/MainContent.tsx:1-100>>
+        +title: Title
+        +body: Body
+    }
+
+    class SecondarySidebar {
+        <<Component /src/components/SecondarySidebar.tsx:1-100>>
+        +items: SidebarItem[]
+    }
+
+    class Title {
+        <<Component /src/components/Title.tsx:1-30>>
+        +text: Text
+    }
+
+    class Body {
+        <<Component /src/components/Body.tsx:1-100>>
+        +content: Content
+    }
+
+    class Link {
+        <<Component /src/components/Link.tsx:1-30>>
+        +url: string
+        +text: string
+    }
+
+    class MenuItem {
+        <<Component /src/components/MenuItem.tsx:1-30>>
+        +label: string
+        +icon: Icon
+    }
+
+    class SidebarItem {
+        <<Component /src/components/SidebarItem.tsx:1-30>>
+        +label: string
+        +icon: Icon
+    }
+
+    class Input {
+        <<Component /src/components/Input.tsx:1-30>>
+        +type: string
+        +placeholder: string
+    }
+
+    class Icon {
+        <<Component /src/components/Icon.tsx:1-30>>
+        +name: string
+    }
+
+    App --> Header
+    App --> Main
+    App --> Footer
+
+    Header --> Logo
+    Header --> Navigation
+
+    Main --> Sidebar
+    Main --> Content
+
+    Footer --> Copyright
+    Footer --> Links
+
+    Sidebar --> Menu
+    Sidebar --> Search
+
+    Content --> MainContent
+    Content --> SecondarySidebar
+
+    MainContent --> Title
+    MainContent --> Body
+
+    SecondarySidebar --> SidebarItem
+`,
+
+  'properties-system': `
+classDiagram
+    class PropertiesPanel {
+        <<Component /src/components/PropertiesPanel.tsx:1-100>>
+        +properties: Property[]
+        +onPropertyChange: (property: Property) => void
+    }
+
+    class Property {
+        <<Interface /src/types/properties.ts:10-30>>
+        +id: string
+        +name: string
+        +type: string
+        +value: any
+    }
+
+    class PropertyInput {
+        <<Component /src/components/PropertyInput.tsx:1-100>>
+        +property: Property
+        +onChange: (value: any) => void
+    }
+
+    class PropertyEditor {
+        <<Component /src/components/PropertyEditor.tsx:1-100>>
+        +property: Property
+        +onSave: () => void
+    }
+
+    PropertiesPanel --> Property
+    PropertiesPanel --> PropertyInput
+    PropertiesPanel --> PropertyEditor
+`,
+
+  'catalog-system': `
+classDiagram
+    class Catalog {
+        <<Component /src/components/Catalog.tsx:1-100>>
+        +items: CatalogItem[]
+        +onSelect: (item: CatalogItem) => void
+    }
+
+    class CatalogItem {
+        <<Interface /src/types/catalog.ts:10-30>>
+        +id: string
+        +name: string
+        +description: string
+        +image: string
+    }
+
+    class CatalogItemCard {
+        <<Component /src/components/CatalogItemCard.tsx:1-100>>
+        +item: CatalogItem
+        +onSelect: () => void
+    }
+
+    Catalog --> CatalogItem
+    Catalog --> CatalogItemCard
+`,
+
+  'material-pipeline': `
+flowchart TB
+    subgraph "Material Pipeline"
+        A["MaterialRequest<br/><small><i>/src/lib/materialPipeline.ts:10-20</i></small>"]
+        B["MaterialProcessing<br/><small><i>/src/lib/materialPipeline.ts:30-40</i></small>"]
+        C["MaterialOutput<br/><small><i>/src/lib/materialPipeline.ts:50-60</i></small>"]
+        
+        A --> B
+        B --> C
     end
-  `,
+`,
 
-  'tool-cabinet': `
-%% src/components/floorplanner/tools/CabinetTool.tsx
-sequenceDiagram
-    participant U as User
-    participant T as Toolbar
-    participant H as Home
-    participant C as Canvas
-    participant CB as CabinetManager
-    participant S as SnapSystem
-    participant V as Validator
+  'action-system': `
+classDiagram
+    class ActionManager {
+        <<Service /src/lib/actionManager.ts:5-50>>
+        +actions: Action[]
+        +executeAction(action: Action) %% Line: 10-15
+        +undoAction() %% Line: 20-25
+        +redoAction() %% Line: 30-35
+    }
 
-    Note over U,T: Cabinet Tool Setup
-    U->>T: Select Cabinet Tool
-    T->>H: setActiveTool("cabinet")
-    H->>CB: loadCabinetPresets()
-    H->>S: setSnapTargets([
-        "walls",
-        "cabinets",
-        "grid"
-    ])
+    class Action {
+        <<Interface /src/types/actions.ts:10-30>>
+        +id: string
+        +type: string
+        +payload: any
+    }
 
-    Note over U,CB: Cabinet Placement
-    U->>C: Click position
-    C->>S: getSnappedPosition({
-        grid: 1,
-        wall: 0.5,
-        cabinet: 0.25
-    })
-    C->>CB: previewCabinet({
-        type: "base",
-        width: 24,
-        height: 34.5,
-        depth: 24
-    })
+    ActionManager --> Action
+`,
 
-    Note over CB,V: Placement Validation
-    CB->>V: validatePlacement({
-        clearance: 24,
-        wallRequired: true,
-        noOverlap: true
-    })
-    V-->>CB: validationResult
+  'toolbar-integration': `
+classDiagram
+    class Toolbar {
+        <<Component /src/components/Toolbar.tsx:1-100>>
+        +actions: Action[]
+        +onAction: (action: Action) => void
+    }
 
-    Note over CB,H: Cabinet Creation
-    alt valid placement
-        CB->>CB: createCabinet({
-            position: snappedPos,
-            rotation: wallAngle,
-            properties: cabinetProps
-        })
-        CB->>CB: attachToWall()
-        CB->>CB: createConnectors()
-        CB->>H: updateCanvas()
-        H->>H: addToHistory()
-    else invalid placement
-        CB->>H: showError("Invalid cabinet placement")
-        CB->>CB: resetPreview()
-    end
+    class Action {
+        <<Interface /src/types/actions.ts:10-30>>
+        +id: string
+        +type: string
+        +payload: any
+    }
 
-    Note over U,H: Cabinet Modification
-    U->>C: Select cabinet
-    C->>H: showProperties({
-        dimensions,
-        style,
-        hardware,
-        features
-    })
-    U->>H: Modify properties
-    H->>CB: updateCabinet(changes)
-    CB->>V: validateChanges()
-    CB->>H: refreshCanvas()
-  `,
+    class ToolbarButton {
+        <<Component /src/components/ToolbarButton.tsx:1-100>>
+        +action: Action
+        +onClick: () => void
+    }
 
-  'tool-dimension': `
-%% src/components/floorplanner/tools/DimensionTool.tsx
-sequenceDiagram
-    participant U as User
-    participant T as Toolbar
-    participant H as Home
-    participant C as Canvas
-    participant D as DimensionManager
-    participant S as SnapSystem
-    participant F as Formatter
-
-    Note over U,T: Dimension Tool Setup
-    U->>T: Select Dimension Tool
-    T->>H: setActiveTool("dimension")
-    H->>C: enableDimensionPreview()
-    H->>S: setSnapTargets([
-        "points",
-        "edges",
-        "centers"
-    ])
-
-    Note over U,D: Dimension Creation
-    U->>C: Click first point
-    C->>S: snapToPoint(pos, {
-        threshold: 10,
-        priority: ["corners", "edges"]
-    })
-    C->>D: setFirstPoint(snappedPos)
-    D->>C: showFirstAnchor()
-
-    U->>C: Move mouse
-    C->>D: updatePreview({
-        start: firstPoint,
-        current: mousePos,
-        orientation: "auto"
-    })
-    D->>F: formatMeasurement({
-        value: distance,
-        unit: "ft-in",
-        precision: 0.125
-    })
-    D->>C: showPreviewLine()
-
-    U->>C: Click second point
-    C->>S: snapToPoint(pos)
-    C->>D: setSecondPoint(snappedPos)
-    D->>D: calculateOffset()
-    D->>D: determineOrientation()
-
-    Note over D,H: Dimension Finalization
-    D->>D: createDimension({
-        points: [p1, p2],
-        offset: 20,
-        orientation: "auto",
-        style: {
-            color: "#000",
-            fontSize: 12,
-            arrowStyle: "architectural"
-        }
-    })
-    D->>H: updateCanvas()
-    H->>H: addToHistory()
-
-    Note over U,D: Dimension Editing
-    U->>C: Select dimension
-    C->>H: showProperties({
-        measurement,
-        style,
-        position
-    })
-    U->>H: Modify properties
-    H->>D: updateDimension(changes)
-    D->>C: refreshDisplay()
-  `
+    Toolbar --> Action
+    Toolbar --> ToolbarButton
+`
 };
+
+console.log('\nDiagram Inventory:');
+Object.keys(diagrams).forEach((name, index) => {
+  console.log(`${index + 1}. ${name}`);
+});
 
 // Create output directory if it doesn't exist
 const outputDir = path.join(__dirname, '../docs/diagrams');
@@ -766,30 +526,50 @@ if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
-// Generate SVGs for each diagram
+// Generate PNGs for each diagram
 async function generateDiagrams() {
-  console.log(`Found ${Object.keys(diagrams).length} diagrams to generate`);
-  console.log('Output directory:', outputDir);
+  const diagramCount = Object.keys(diagrams).length;
+  console.log(`\nExpected diagrams: ${EXPECTED_DIAGRAM_COUNT}`);
+  console.log(`Found diagrams: ${diagramCount}`);
   
+  if (diagramCount !== EXPECTED_DIAGRAM_COUNT) {
+    console.error('\nMissing diagrams:');
+    const expectedDiagrams = [
+      'floorplan-manager', 'canvas', 'wall-utils', 'layers-panel', 
+      'room-element', 'wall-element', 'element-types', 'viewport',
+      'model-system', 'room-layout-generator', 'floorplan-system',
+      'command-flow', 'ui-component-hierarchy', 'properties-system',
+      'catalog-system', 'material-pipeline', 'action-system',
+      'toolbar-integration'
+    ];
+    
+    const missingDiagrams = expectedDiagrams.filter(name => !diagrams[name]);
+    missingDiagrams.forEach(name => console.log(`- ${name}`));
+  }
+
   const results = {
     success: [],
-    failed: []
+    failed: [],
+    skipped: []
   };
 
   for (const [name, definition] of Object.entries(diagrams)) {
     try {
       console.log(`\nProcessing diagram: ${name}`);
+      console.log('Definition length:', definition.trim().length, 'characters');
       
       const tempFile = path.join(outputDir, `${name}.mmd`);
-      const outputFile = path.join(outputDir, `${name}.svg`);
+      const outputFile = path.join(outputDir, `${name}.png`); // Changed to .png
       
       // Write the diagram definition to a temporary file
       fs.writeFileSync(tempFile, definition.trim());
-      console.log(`Created temporary file: ${tempFile}`);
+      console.log(`Created temporary file: ${tempFile} (${fs.statSync(tempFile).size} bytes)`);
       
-      // Use mmdc (Mermaid CLI) to generate the SVG
+      // Use mmdc (Mermaid CLI) to generate the PNG
       console.log('Executing mermaid-cli...');
-      const { stdout, stderr } = await execAsync(`npx mmdc -i ${tempFile} -o ${outputFile}`);
+      const { stdout, stderr } = await execAsync(
+        `npx mmdc -i ${tempFile} -o ${outputFile} -b transparent`
+      );
       
       if (stderr) {
         console.warn(`Warning for ${name}:`, stderr);
@@ -797,7 +577,6 @@ async function generateDiagrams() {
       
       // Verify the output file exists and has content
       if (fs.existsSync(outputFile) && fs.statSync(outputFile).size > 0) {
-        // Clean up the temporary file
         fs.unlinkSync(tempFile);
         console.log(`Successfully generated: ${outputFile}`);
         results.success.push(name);
@@ -810,15 +589,22 @@ async function generateDiagrams() {
     }
   }
 
-  // Print summary
+  // Print detailed summary
   console.log('\n=== Generation Summary ===');
-  console.log(`Total diagrams: ${Object.keys(diagrams).length}`);
+  console.log(`Expected diagrams: ${EXPECTED_DIAGRAM_COUNT}`);
+  console.log(`Found diagrams: ${diagramCount}`);
   console.log(`Successfully generated: ${results.success.length}`);
   console.log(`Failed: ${results.failed.length}`);
   
+  console.log('\nSuccessfully generated diagrams:');
+  results.success.forEach(name => console.log(`✓ ${name}`));
+  
   if (results.failed.length > 0) {
     console.log('\nFailed diagrams:');
-    results.failed.forEach(name => console.log(`- ${name}`));
+    results.failed.forEach(name => console.log(`✗ ${name}`));
+  }
+  
+  if (diagramCount !== EXPECTED_DIAGRAM_COUNT || results.failed.length > 0) {
     process.exit(1);
   }
 }
