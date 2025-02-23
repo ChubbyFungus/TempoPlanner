@@ -1,19 +1,19 @@
 import * as THREE from 'three';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-export { THREE };
+// Re-export everything from three
+export * from 'three';
 
-export type {
-  Material,
-  Mesh,
-  Object3D,
-  Scene,
-  Group,
-  MeshStandardMaterial,
-  Vector2,
-  Vector3,
-  Color,
-  WebGLRenderer,
-  PerspectiveCamera,
-  Box3,
-  Texture
-} from 'three';
+// Export the loaders
+export { DRACOLoader, GLTFLoader };
+
+// Configure DRACOLoader
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath('/draco/'); // Make sure these files are in your public directory
+
+// Configure GLTFLoader with DRACO support
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader);
+
+export { dracoLoader, gltfLoader };
