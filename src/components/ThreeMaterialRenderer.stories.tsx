@@ -53,4 +53,12 @@ export const LargeView: Story = {
     height: 600,
     type: 'test-cube',
   },
+};
+
+export const SmallView: Story = {
+  args: {
+    width: 200,
+    height: 150,
+    type: 'test-cube',
+  },
 }; 
