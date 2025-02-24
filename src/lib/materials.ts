@@ -1,5 +1,4 @@
 import { THREE } from '@/lib/three';
-const { Color } = THREE;
 
 export interface MaterialDefinition {
   name: string;
@@ -27,6 +26,30 @@ export interface MaterialOverlay {
 
 // Material presets for different surfaces
 export const MATERIAL_PRESETS: Record<string, MaterialDefinition> = {
+  default: {
+    name: 'Default',
+    baseColor: '#cccccc',
+    roughness: 0.5,
+    metalness: 0.1,
+  },
+  wall: {
+    name: 'Wall',
+    baseColor: '#ffffff',
+    roughness: 0.9,
+    metalness: 0.1,
+  },
+  floor: {
+    name: 'Floor',
+    baseColor: '#f0f0f0',
+    roughness: 0.8,
+    metalness: 0.2,
+  },
+  ceiling: {
+    name: 'Ceiling',
+    baseColor: '#ffffff',
+    roughness: 0.95,
+    metalness: 0.05,
+  },
   // Appliance Materials
   subZeroStainless: {
     name: 'Sub-Zero Stainless Steel',

@@ -29,3 +29,23 @@ dist-ssr
 **/tempobook/storyboards/
 
 core
+
+# 3D Models
+**/models/**/*.glb
+**/models/**/*.gltf
+**/models/**/*.obj
+**/models/**/*.fbx
+**/models/**/*.3ds
+**/models/**/*.bin
+**/models/**/*.usdz
+**/3ds_models/**/*
+public/models/**/*
+static/models/**/*
+**/appliances/**/*.glb
+**/appliances/**/*.gltf
+**/appliances/**/*.obj
+**/appliances/**/*.fbx
+**/appliances/**/*.3ds
+
+# Keep mock models for testing
+!public/mock-model.js

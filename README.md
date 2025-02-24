@@ -28,3 +28,29 @@ export default {
 - Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
 - Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
 - Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+
+## Storybook & Chromatic
+
+This project uses Storybook for component development and testing. Chromatic is integrated for visual regression testing and documentation hosting.
+
+### Continuous Integration
+
+Storybook is automatically published to Chromatic on every push through GitHub Actions. The workflow:
+- Builds and publishes Storybook
+- Runs visual regression tests
+- Provides deploy previews in PR checks
+- Maintains component history
+
+You can view the published Storybook at: [Chromatic Project URL]
+
+### Local Development
+
+To run Storybook locally:
+```bash
+npm run storybook
+```
+
+To build Storybook:
+```bash
+npm run build-storybook
+```

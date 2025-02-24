@@ -1,15 +1,12 @@
 import { Point, WallSegment, Corner } from "@/types/shared";
 
-export const SNAP_THRESHOLD = 20; // pixels
+export const GRID_SIZE = 50; // 50 units per grid cell
+export const SNAP_THRESHOLD = GRID_SIZE / 2;
 const MIN_WALL_LENGTH = 50; // pixels
 const MIN_CORNER_ANGLE = 30; // degrees
-export const GRID_SIZE = 20; // pixels
 
-export function snapToGrid(point: Point): Point {
-  return {
-    x: Math.round(point.x / GRID_SIZE) * GRID_SIZE,
-    y: Math.round(point.y / GRID_SIZE) * GRID_SIZE
-  };
+export function snapToGrid(value: number): number {
+  return Math.round(value / GRID_SIZE) * GRID_SIZE;
 }
 
 export function snapToNearestCorner(point: Point, corners: Corner[]): Point | null {

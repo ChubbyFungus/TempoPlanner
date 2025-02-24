@@ -1,0 +1,30 @@
+{
+  "projectToken": "chpt_dc84fc577a78525",
+  "storybookBuildDir": "storybook-static",
+  "onlyChanged": true,
+  "zip": true,
+  "ignoreFile": ".chromatic.ignore",
+  "externals": [
+    "**/models/**",
+    "**/*.glb",
+    "**/*.gltf",
+    "**/*.obj",
+    "**/*.fbx",
+    "**/*.3ds",
+    "**/*.bin",
+    "**/*.usdz",
+    "**/3ds_models/**",
+    "public/models/**",
+    "static/models/**"
+  ],
+  "skipSnapshots": [
+    "**/*ThreeMaterialRenderer*"
+  ],
+  "buildScriptName": "build-storybook",
+  "preserveMissing": true,
+  "untraced": [
+    "**/models/**",
+    "**/3ds_models/**",
+    "**/appliances/**"
+  ]
+} 

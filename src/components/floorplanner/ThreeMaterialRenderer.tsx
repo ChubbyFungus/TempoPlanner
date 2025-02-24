@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { MaterialPreset } from "@/types/shared";
 import { createPBRMaterial } from "@/lib/pbrMaterialManager";
 import { MaterialCategory, MaterialId } from "@/types/materials";
-import * as THREE from "three";
+import { THREE } from "@/lib/three";
 
 declare global {
   namespace JSX {
